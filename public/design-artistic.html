@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ndl-viz アーティスティック比較</title>
+<script src="/dagre.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #111; color: #ccc; }
+h1 { padding: 18px 24px 4px; font-size: 17px; font-weight: 700; color: #e8e8e8; letter-spacing: 0.04em; }
+.subtitle { padding: 0 24px 16px; font-size: 11px; color: #666; }
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 0 16px 24px; }
+.panel { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.5); }
+.panel-title {
+  font-size: 10.5px; font-weight: 700; padding: 7px 12px 5px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+svg { display: block; }
+</style>
+</head>
+<body>
+<h1>ndl-viz アーティスティック スタイル比較</h1>
+<p class="subtitle">5スタイル — 同一トポロジー、同一 dagre レイアウト。L1 物理トポロジー（MLAG + LACP + underlay）。</p>
+<div class="grid" id="grid">
+  <div class="panel" id="p-constellation">
+    <div class="panel-title" style="background:#0c0820;color:#afaaca;">✦ コンステレーション<span style="opacity:.5">星座</span></div>
+  </div>
+  <div class="panel" id="p-pcb">
+    <div class="panel-title" style="background:#0a1a10;color:#4caf50;">⊕ 回路基板<span style="opacity:.5">PCB Trace</span></div>
+  </div>
+  <div class="panel" id="p-neural">
+    <div class="panel-title" style="background:#f5f0e8;color:#5a3e2b;">◉ 有機神経<span style="opacity:.5">Organic Neural</span></div>
+  </div>
+  <div class="panel" id="p-neon">
+    <div class="panel-title" style="background:#0b0c10;color:#18e0ff;">◈ グロー・ネオン<span style="opacity:.5">Cyberpunk</span></div>
+  </div>
+  <div class="panel" id="p-sumi">
+    <div class="panel-title" style="background:#f8f5ee;color:#2c2c2c;">● 墨絵<span style="opacity:.5">Sumi-e Ink</span></div>
+  </div>
+</div>
+
+<script>
+// ─── Geometry ──────────────────────────────────────────────────────────────
+const W = 360, H = 420
+const NS = 'http://www.w3.org/2000/svg'
+function el(tag, a, p) {
+  const e = document.createElementNS(NS, tag)
+  for (const [k,v] of Object.entries(a)) e.setAttribute(k, String(v))
+  p && p.appendChild(e)
+  return e
+}
+function txt(s, a, p) { const e = el('text', a, p); e.textContent = s; return e }
+
+function boundaryPt(cx, cy, w, h, tx, ty) {
+  const dx = tx-cx, dy = ty-cy
+  if (!dx && !dy) return {x:cx, y:cy}
+  const hw=w/2, hh=h/2
+  const t = Math.min(hw/Math.max(Math.abs(dx),1e-9), hh/Math.max(Math.abs(dy),1e-9))
+  return { x: cx+t*dx, y: cy+t*dy }
+}
+function perp(x1,y1,x2,y2) {
+  const dx=x2-x1, dy=y2-y1, l=Math.hypot(dx,dy)||1
+  return { px:-dy/l, py:dx/l }
+}
+
+// ─── Layout ────────────────────────────────────────────────────────────────
+function computeLayout(nodes, edges) {
+  const g = new dagre.graphlib.Graph()
+  g.setGraph({ rankdir:'TB', nodesep:100, ranksep:130, marginx:50, marginy:50 })
+  g.setDefaultEdgeLabel(() => ({}))
+
+  const l1n = nodes.filter(n => n.data.layer==='layer1' && n.data.type==='node')
+  l1n.forEach(n => g.setNode(n.data.id, {width:70, height:40}))
+
+  const l1l = edges.filter(e => e.data.layer==='layer1' && e.data.type==='link')
+  const seen = new Set()
+  l1l.forEach(e => {
+    const k = [e.data.source,e.data.target].sort().join('|')
+    if (!seen.has(k)) { seen.add(k); g.setEdge(e.data.source,e.data.target) }
+  })
+  dagre.layout(g)
+
+  const pos = {}
+  l1n.forEach(n => {
+    const d = g.node(n.data.id)
+    pos[n.data.id] = { x:d.x, y:d.y, w:70, h:40, role:n.data.role, label:n.data.label??n.data.id }
+  })
+
+  // Scale to fit
+  const xs = Object.values(pos).map(p=>p.x)
+  const ys = Object.values(pos).map(p=>p.y)
+  const minX = Math.min(...xs)-40, maxX = Math.max(...xs)+40
+  const minY = Math.min(...ys)-40, maxY = Math.max(...ys)+40
+  const sx = (W-60)/(maxX-minX), sy = (H-80)/(maxY-minY)
+  const sc = Math.min(sx,sy,1)
+  const ox = 30+(W-60-(maxX-minX)*sc)/2 - minX*sc
+  const oy = 36+(H-80-(maxY-minY)*sc)/2 - minY*sc
+  for (const p of Object.values(pos)) {
+    p.x = p.x*sc+ox; p.y = p.y*sc+oy
+    p.w = 70*sc; p.h = 40*sc
+  }
+
+  const mlag = {}
+  l1l.forEach(e => {
+    if (e.data.lag_type==='mlag') {
+      if (!mlag[e.data.lag_id]) mlag[e.data.lag_id] = new Set()
+      mlag[e.data.lag_id].add(e.data.source)
+    }
+  })
+  return { pos, l1l, l1n, mlag }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLE 1: コンステレーション
+// ─────────────────────────────────────────────────────────────────────────────
+function renderConstellation(container, layout) {
+  const { pos, l1l, mlag } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+
+  el('defs', {}, svg).innerHTML = `
+    <radialGradient id="bg-grad" cx="50%" cy="40%">
+      <stop offset="0%" stop-color="#1a1040"/>
+      <stop offset="100%" stop-color="#06011c"/>
+    </radialGradient>
+    <filter id="star-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b2"/>
+      <feBlend in="b1" in2="b2" mode="screen" result="glow"/>
+      <feComposite in="SourceGraphic" in2="glow" operator="over"/>
+    </filter>
+    <filter id="line-glow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>`
+
+  // Background
+  el('rect', {x:0,y:0,width:W,height:H, fill:'url(#bg-grad)'}, svg)
+
+  // Stars (random)
+  const rng = (s=0) => { let x=s+1; return ()=>{ x=(x*1664525+1013904223)&0xffffffff; return(x>>>0)/0xffffffff } }
+  const rand = rng(42)
+  for (let i=0; i<200; i++) {
+    const sx=rand()*W, sy=rand()*H, sr=rand()*1.2+0.2, op=rand()*0.5+0.1
+    el('circle', {cx:sx,cy:sy,r:sr,fill:'#fff',opacity:op}, svg)
+  }
+
+  // MLAG domains
+  for (const [,ids] of Object.entries(mlag)) {
+    const ps = [...ids].map(id=>pos[id]).filter(Boolean)
+    if (ps.length<2) continue
+    const PAD=18
+    const x1=Math.min(...ps.map(p=>p.x-p.w/2))-PAD, y1=Math.min(...ps.map(p=>p.y-p.h/2))-PAD-6
+    const x2=Math.max(...ps.map(p=>p.x+p.w/2))+PAD, y2=Math.max(...ps.map(p=>p.y+p.h/2))+PAD
+    el('rect', {x:x1,y:y1,width:x2-x1,height:y2-y1,rx:10,
+      fill:'rgba(90,60,160,0.08)',stroke:'rgba(175,170,202,0.4)','stroke-width':0.8,'stroke-dasharray':'5 4'}, svg)
+    txt('MLAG', {x:x1+6,y:y1+10,fill:'#8b7ec8','font-size':7,
+      'font-family':'"SF Mono",monospace','letter-spacing':'0.06em'}, svg)
+  }
+
+  // Links
+  const linkGroups = {}
+  l1l.forEach(e => {
+    const k = [e.data.source,e.data.target].sort().join('|')+'||'+(e.data.lag_id??'none')
+    if (!linkGroups[k]) linkGroups[k] = {src:e.data.source,tgt:e.data.target,lag:e.data.lag_id,links:[]}
+    linkGroups[k].links.push(e)
+  })
+  for (const {src,tgt,links} of Object.values(linkGroups)) {
+    const sp=pos[src], tp=pos[tgt]
+    if (!sp||!tp) continue
+    const isLag = links[0].data.lag_id
+    const isMlag = links.some(l=>l.data.lag_type==='mlag')
+    const bp1=boundaryPt(sp.x,sp.y,sp.w,sp.h,tp.x,tp.y)
+    const bp2=boundaryPt(tp.x,tp.y,tp.w,tp.h,sp.x,sp.y)
+    const clr = isMlag ? 'rgba(100,200,255,0.5)' : isLag ? 'rgba(100,200,120,0.5)' : 'rgba(61,53,102,0.6)'
+    el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,
+      stroke:clr,'stroke-width':isLag?1.2:0.8, filter:'url(#line-glow)'}, svg)
+  }
+
+  // Nodes
+  for (const [id,p] of Object.entries(pos)) {
+    const roleClr = {spine:'#bd93f9',core:'#bd93f9',leaf:'#8be9fd',server:'#afaaca'}[p.role]??'#afaaca'
+    const g = el('g', {filter:'url(#star-glow)'}, svg)
+    el('circle', {cx:p.x,cy:p.y,r:p.w/4,fill:'rgba(20,10,60,0.8)',
+      stroke:roleClr,'stroke-width':1.2}, g)
+    el('circle', {cx:p.x,cy:p.y,r:2,fill:'#fff',opacity:0.9}, g)
+    txt(p.label, {x:p.x,y:p.y+p.h/2+13,'text-anchor':'middle','font-size':9.5,
+      'font-family':'"SF Mono",monospace',fill:'rgba(175,170,202,0.85)'}, g)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLE 2: 回路基板 PCB
+// ─────────────────────────────────────────────────────────────────────────────
+function renderPCB(container, layout) {
+  const { pos, l1l, mlag } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+  el('defs', {}, svg).innerHTML = `
+    <filter id="via-glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+    <pattern id="dot-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.6" fill="rgba(76,175,80,0.2)"/>
+    </pattern>`
+
+  el('rect', {x:0,y:0,width:W,height:H,fill:'#0d1f15'}, svg)
+  el('rect', {x:0,y:0,width:W,height:H,fill:'url(#dot-grid)'}, svg)
+
+  // MLAG domains
+  for (const [,ids] of Object.entries(mlag)) {
+    const ps = [...ids].map(id=>pos[id]).filter(Boolean)
+    if (ps.length<2) continue
+    const PAD=16
+    const x1=Math.min(...ps.map(p=>p.x-p.w/2))-PAD, y1=Math.min(...ps.map(p=>p.y-p.h/2))-PAD
+    const x2=Math.max(...ps.map(p=>p.x+p.w/2))+PAD, y2=Math.max(...ps.map(p=>p.y+p.h/2))+PAD
+    el('rect', {x:x1,y:y1,width:x2-x1,height:y2-y1,rx:2,
+      fill:'rgba(180,115,51,0.07)',stroke:'rgba(180,115,51,0.5)','stroke-width':1,'stroke-dasharray':'4 3'}, svg)
+  }
+
+  // Links — orthogonal routing via mid-point
+  const drawn = new Set()
+  l1l.forEach(e => {
+    const k = [e.data.source,e.data.target].sort().join('|')
+    if (drawn.has(k)) return
+    drawn.add(k)
+    const sp=pos[e.data.source], tp=pos[e.data.target]
+    if (!sp||!tp) return
+    const isLag = !!e.data.lag_id
+    const isMlag = e.data.lag_type==='mlag'
+    const clr = isMlag ? '#b87333' : isLag ? '#cfb53b' : '#3d7a55'
+    const sw  = isLag ? 1.8 : 1.2
+    // Orthogonal route: H then V then H
+    const mx = (sp.x+tp.x)/2
+    const d = `M${sp.x},${sp.y} H${mx} V${tp.y} H${tp.x}`
+    el('path', {d, fill:'none', stroke:clr, 'stroke-width':sw,
+      'stroke-linecap':'square', 'stroke-linejoin':'miter'}, svg)
+    if (isLag) {
+      // Second parallel trace
+      const off = 3
+      el('path', {d:`M${sp.x},${sp.y+off} H${mx} V${tp.y+off} H${tp.x}`,
+        fill:'none', stroke:clr, 'stroke-width':0.6, opacity:0.5}, svg)
+    }
+  })
+
+  // Nodes (via / pad)
+  for (const [,p] of Object.entries(pos)) {
+    const roleClr={spine:'#cfb53b',core:'#cfb53b',leaf:'#4caf50',server:'#b87333'}[p.role]??'#4caf50'
+    const g = el('g', {filter:'url(#via-glow)'}, svg)
+    // Pad ring
+    el('circle', {cx:p.x,cy:p.y,r:p.w/3.2,fill:'#0a1a10',stroke:roleClr,'stroke-width':1.5}, g)
+    // Inner fill
+    el('circle', {cx:p.x,cy:p.y,r:p.w/5,fill:roleClr,opacity:0.85}, g)
+    // Through-hole center
+    el('circle', {cx:p.x,cy:p.y,r:p.w/10,fill:'#0a1a10'}, g)
+    txt(p.label, {x:p.x,y:p.y+p.h/2+13,'text-anchor':'middle','font-size':9,
+      'font-family':'"Courier New",monospace',fill:'#4caf50',opacity:0.9}, g)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLE 3: 有機神経ネットワーク
+// ─────────────────────────────────────────────────────────────────────────────
+function renderNeural(container, layout) {
+  const { pos, l1l, mlag } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+  el('defs', {}, svg).innerHTML = `
+    <filter id="ink-bleed">
+      <feTurbulence baseFrequency="0.06" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+    </filter>
+    <filter id="node-blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.4"/>
+    </filter>`
+
+  el('rect', {x:0,y:0,width:W,height:H,fill:'#fafaf4'}, svg)
+  // Subtle paper texture (noise lines)
+  const rng = (()=>{ let x=7; return ()=>{ x=(x*1664525+1013904223)&0xffffffff;return(x>>>0)/0xffffffff } })()
+  for (let i=0; i<18; i++) {
+    const y1=rng()*H, y2=rng()*H
+    el('line', {x1:0,y1,x2:W,y2,stroke:'rgba(180,160,130,0.06)','stroke-width':0.5}, svg)
+  }
+
+  // MLAG domain
+  for (const [,ids] of Object.entries(mlag)) {
+    const ps=[...ids].map(id=>pos[id]).filter(Boolean); if(ps.length<2) continue
+    const PAD=18
+    const x1=Math.min(...ps.map(p=>p.x-p.w/2))-PAD, y1=Math.min(...ps.map(p=>p.y-p.h/2))-PAD
+    const x2=Math.max(...ps.map(p=>p.x+p.w/2))+PAD, y2=Math.max(...ps.map(p=>p.y+p.h/2))+PAD
+    el('rect', {x:x1,y:y1,width:x2-x1,height:y2-y1,rx:20,
+      fill:'rgba(139,90,60,0.05)',stroke:'rgba(139,90,60,0.25)',
+      'stroke-width':0.8,'stroke-dasharray':'5 4'}, svg)
+  }
+
+  // Links — organic bezier curves
+  const drawn = new Set()
+  l1l.forEach(e => {
+    const k=[e.data.source,e.data.target].sort().join('|')
+    if(drawn.has(k)) return; drawn.add(k)
+    const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
+    const isLag=!!e.data.lag_id, isMlag=e.data.lag_type==='mlag'
+    const clr=isMlag?'rgba(180,100,40,0.45)':isLag?'rgba(80,150,80,0.45)':'rgba(100,80,60,0.3)'
+    const sw=isLag?1.8:1.0
+    // Slightly curved path
+    const cpx=(sp.x+tp.x)/2+(tp.y-sp.y)*0.12, cpy=(sp.y+tp.y)/2+(sp.x-tp.x)*0.12
+    el('path', {d:`M${sp.x},${sp.y} Q${cpx},${cpy} ${tp.x},${tp.y}`,
+      fill:'none',stroke:clr,'stroke-width':sw,'stroke-linecap':'round',
+      filter:'url(#ink-bleed)'}, svg)
+  })
+
+  // Nodes (cell body with dendrites)
+  for (const [,p] of Object.entries(pos)) {
+    const roleClr={spine:'#8b4513',core:'#6b3a8a',leaf:'#2e6b3a',server:'#555555'}[p.role]??'#555'
+    const g = el('g', {filter:'url(#node-blur)'}, svg)
+    // Dendrite spikes
+    const rnd=Math.sin(p.x*13+p.y*7)
+    for (let a=0; a<8; a++) {
+      const ang = (a/8)*Math.PI*2+rnd
+      const len = p.w/4*(0.7+Math.abs(Math.sin(a*2.1+p.y*0.05))*0.5)
+      el('line', {x1:p.x,y1:p.y,x2:p.x+Math.cos(ang)*len,y2:p.y+Math.sin(ang)*len,
+        stroke:roleClr,'stroke-width':0.7,opacity:0.35,'stroke-linecap':'round'}, g)
+    }
+    // Cell body
+    el('circle', {cx:p.x,cy:p.y,r:p.w/4.5,fill:'#fafaf4',stroke:roleClr,'stroke-width':1.4}, g)
+    // Nucleus
+    el('circle', {cx:p.x,cy:p.y,r:p.w/10,fill:roleClr,opacity:0.6}, g)
+    txt(p.label, {x:p.x,y:p.y+p.h/2+13,'text-anchor':'middle','font-size':9,
+      'font-family':'"Georgia",serif',fill:'#3a2a1a',opacity:0.8}, g)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLE 4: グロー・ネオン (Cyberpunk)
+// ─────────────────────────────────────────────────────────────────────────────
+function renderNeon(container, layout) {
+  const { pos, l1l, mlag } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+  el('defs', {}, svg).innerHTML = `
+    <filter id="cyan-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b2"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="b3"/>
+      <feBlend in="b1" in2="b2" mode="screen" result="m1"/>
+      <feBlend in="m1" in2="b3" mode="screen" result="glow"/>
+      <feComposite in="SourceGraphic" in2="glow" operator="over"/>
+    </filter>
+    <filter id="link-glow" x="-20%" y="-400%" width="140%" height="900%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <style>
+      @keyframes data-flow { to { stroke-dashoffset: -200; } }
+      @keyframes node-pulse {
+        0%,100% { opacity:0.85; }
+        50% { opacity:1; }
+      }
+      .neon-flow { animation: data-flow 2s linear infinite; }
+      .neon-node { animation: node-pulse 2.5s ease-in-out infinite; }
+    </style>`
+
+  el('rect', {x:0,y:0,width:W,height:H,fill:'#0b0c10'}, svg)
+  // Grid
+  const gridG = el('g', {opacity:0.06}, svg)
+  for (let x=0; x<W; x+=24) el('line', {x1:x,y1:0,x2:x,y2:H,stroke:'#fff','stroke-width':0.4}, gridG)
+  for (let y=0; y<H; y+=24) el('line', {x1:0,y1:y,x2:W,y2:y,stroke:'#fff','stroke-width':0.4}, gridG)
+
+  // MLAG
+  for (const [,ids] of Object.entries(mlag)) {
+    const ps=[...ids].map(id=>pos[id]).filter(Boolean); if(ps.length<2) continue
+    const PAD=18
+    const x1=Math.min(...ps.map(p=>p.x-p.w/2))-PAD, y1=Math.min(...ps.map(p=>p.y-p.h/2))-PAD
+    const x2=Math.max(...ps.map(p=>p.x+p.w/2))+PAD, y2=Math.max(...ps.map(p=>p.y+p.h/2))+PAD
+    el('rect', {x:x1,y:y1,width:x2-x1,height:y2-y1,rx:4,
+      fill:'rgba(247,194,68,0.04)',stroke:'rgba(247,194,68,0.6)',
+      'stroke-width':0.9,'stroke-dasharray':'6 4'}, svg)
+    txt('MLAG', {x:x1+6,y:y1+10,fill:'#f7c244','font-size':7,
+      'font-family':'"Courier New",monospace','letter-spacing':'0.1em'}, svg)
+  }
+
+  // Links
+  const drawn = new Set()
+  l1l.forEach(e => {
+    const k=[e.data.source,e.data.target].sort().join('|')
+    if(drawn.has(k)) return; drawn.add(k)
+    const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
+    const bp1=boundaryPt(sp.x,sp.y,sp.w,sp.h,tp.x,tp.y)
+    const bp2=boundaryPt(tp.x,tp.y,tp.w,tp.h,sp.x,sp.y)
+    const isMlag=e.data.lag_type==='mlag', isLag=!!e.data.lag_id
+    const clr = isMlag?'#f7c244':isLag?'#50fa7b':'#1a6b7f'
+    const bright = isMlag?'#f7c244':isLag?'#50fa7b':'#00bfff'
+    // base
+    el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,stroke:clr,'stroke-width':1,opacity:0.5}, svg)
+    // glow line
+    el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,stroke:bright,'stroke-width':1.5,
+      filter:'url(#link-glow)', opacity:0.8}, svg)
+    // animated flow
+    if (isLag) {
+      el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,stroke:bright,
+        'stroke-width':1.2,'stroke-dasharray':'5 18',class:'neon-flow',opacity:0.95}, svg)
+    }
+  })
+
+  // Nodes
+  for (const [,p] of Object.entries(pos)) {
+    const roleClr={spine:'#bd93f9',core:'#bd93f9',leaf:'#50fa7b',server:'#ffb86c'}[p.role]??'#18e0ff'
+    const g = el('g', {filter:'url(#cyan-glow)', class:'neon-node'}, svg)
+    el('circle', {cx:p.x,cy:p.y,r:p.w/3,fill:'rgba(11,12,16,0.9)',
+      stroke:roleClr,'stroke-width':1.4}, g)
+    el('circle', {cx:p.x,cy:p.y,r:2.5,fill:'#fff',opacity:0.95}, g)
+    txt(p.label, {x:p.x,y:p.y+p.h/2+13,'text-anchor':'middle','font-size':9,
+      'font-family':'"Courier New",monospace',fill:'#e0f7ff',opacity:0.9}, g)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLE 5: 墨絵 Sumi-e Ink
+// ─────────────────────────────────────────────────────────────────────────────
+function renderSumi(container, layout) {
+  const { pos, l1l, mlag } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+  el('defs', {}, svg).innerHTML = `
+    <filter id="ink-spread" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence baseFrequency="0.065" numOctaves="4" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="0.3"/>
+    </filter>`
+
+  el('rect', {x:0,y:0,width:W,height:H,fill:'#f9f6ee'}, svg)
+  // Subtle wash
+  el('rect', {x:0,y:0,width:W,height:H,fill:'rgba(200,180,140,0.06)'}, svg)
+
+  // MLAG — very subtle enclosure
+  for (const [,ids] of Object.entries(mlag)) {
+    const ps=[...ids].map(id=>pos[id]).filter(Boolean); if(ps.length<2) continue
+    const PAD=20
+    const x1=Math.min(...ps.map(p=>p.x-p.w/2))-PAD, y1=Math.min(...ps.map(p=>p.y-p.h/2))-PAD
+    const x2=Math.max(...ps.map(p=>p.x+p.w/2))+PAD, y2=Math.max(...ps.map(p=>p.y+p.h/2))+PAD
+    // Hand-drawn oval feel
+    el('ellipse', {cx:(x1+x2)/2,cy:(y1+y2)/2,rx:(x2-x1)/2,ry:(y2-y1)/2,
+      fill:'rgba(80,40,20,0.025)',stroke:'rgba(80,40,20,0.2)',
+      'stroke-width':0.8,'stroke-dasharray':'3 5'}, svg)
+  }
+
+  // Links
+  const drawn = new Set()
+  l1l.forEach(e => {
+    const k=[e.data.source,e.data.target].sort().join('|')
+    if(drawn.has(k)) return; drawn.add(k)
+    const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
+    const isLag=!!e.data.lag_id, isMlag=e.data.lag_type==='mlag'
+    const op = isMlag?0.55:isLag?0.45:0.25
+    const sw = isMlag?1.6:isLag?1.4:0.8
+    // Brushstroke bezier
+    const cpx=(sp.x+tp.x)/2+(tp.y-sp.y)*0.08
+    const cpy=(sp.y+tp.y)/2+(sp.x-tp.x)*0.08
+    el('path', {d:`M${sp.x},${sp.y} Q${cpx},${cpy} ${tp.x},${tp.y}`,
+      fill:'none',stroke:`rgba(44,44,44,${op})`,'stroke-width':sw,
+      'stroke-linecap':'round','stroke-linejoin':'round',
+      filter:'url(#ink-spread)'}, svg)
+  })
+
+  // Nodes (ink drops)
+  for (const [,p] of Object.entries(pos)) {
+    const tier = {spine:0,core:0,leaf:1,server:2}[p.role]??1
+    const size = [p.w/3.5, p.w/4.5, p.w/5.5][tier]
+    const opacity = [0.85, 0.75, 0.60][tier]
+    const g = el('g', {filter:'url(#ink-spread)'}, svg)
+    el('circle', {cx:p.x,cy:p.y,r:size,fill:`rgba(44,44,44,${opacity})`}, g)
+    txt(p.label, {x:p.x,y:p.y+size+13,'text-anchor':'middle','font-size':9,
+      'font-family':'"Georgia",serif',fill:'rgba(44,44,44,0.75)'}, g)
+  }
+}
+
+// ─── Main ──────────────────────────────────────────────────────────────────
+fetch('/sample.json')
+  .then(r => r.json())
+  .then(data => {
+    const layout = computeLayout(data.nodes, data.edges)
+    renderConstellation(document.getElementById('p-constellation'), layout)
+    renderPCB(document.getElementById('p-pcb'), layout)
+    renderNeural(document.getElementById('p-neural'), layout)
+    renderNeon(document.getElementById('p-neon'), layout)
+    renderSumi(document.getElementById('p-sumi'), layout)
+  })
+  .catch(err => {
+    document.body.innerHTML += `<p style="color:#f44;padding:20px">Error: ${err.message}</p>`
+  })
+</script>
+</body>
+</html>

@@ -1,0 +1,630 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "spine1",
+        "label": "Spine-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux",
+        "lo_ip": "10.0.0.1/32",
+        "l3_interfaces": [
+          {
+            "interface": "lo",
+            "ip": "10.0.0.1/32",
+            "kind": "loopback"
+          }
+        ],
+        "local_as": 65000
+      }
+    },
+    {
+      "data": {
+        "id": "spine2",
+        "label": "Spine-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux",
+        "lo_ip": "10.0.0.2/32",
+        "l3_interfaces": [
+          {
+            "interface": "lo",
+            "ip": "10.0.0.2/32",
+            "kind": "loopback"
+          }
+        ],
+        "local_as": 65000
+      }
+    },
+    {
+      "data": {
+        "id": "leaf1",
+        "label": "Leaf-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux",
+        "lo_ip": "10.0.0.11/32",
+        "l3_interfaces": [
+          {
+            "interface": "lo",
+            "ip": "10.0.0.11/32",
+            "kind": "loopback"
+          },
+          {
+            "interface": "swp51",
+            "ip": "10.1.0.1/31",
+            "kind": "routed",
+            "vrf": "vrf-default"
+          },
+          {
+            "interface": "swp52",
+            "ip": "10.1.0.5/31",
+            "kind": "routed",
+            "vrf": "vrf-default"
+          },
+          {
+            "interface": "vlan-100",
+            "ip": "192.168.100.1/24",
+            "kind": "svi",
+            "vrf": "vrf-tenant-a"
+          }
+        ],
+        "vrfs": [
+          "vrf-default",
+          "vrf-tenant-a"
+        ],
+        "vlans": [
+          "vlan-100"
+        ],
+        "local_as": 65001
+      }
+    },
+    {
+      "data": {
+        "id": "leaf2",
+        "label": "Leaf-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux",
+        "lo_ip": "10.0.0.12/32",
+        "l3_interfaces": [
+          {
+            "interface": "lo",
+            "ip": "10.0.0.12/32",
+            "kind": "loopback"
+          },
+          {
+            "interface": "swp51",
+            "ip": "10.1.0.3/31",
+            "kind": "routed",
+            "vrf": "vrf-default"
+          },
+          {
+            "interface": "swp52",
+            "ip": "10.1.0.7/31",
+            "kind": "routed",
+            "vrf": "vrf-default"
+          }
+        ],
+        "vrfs": [
+          "vrf-default"
+        ],
+        "vlans": [
+          "vlan-100"
+        ],
+        "local_as": 65002
+      }
+    },
+    {
+      "data": {
+        "id": "server1",
+        "label": "Server-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    },
+    {
+      "data": {
+        "id": "leaf3",
+        "label": "Leaf-3",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "server2",
+        "label": "Server-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-100",
+        "label": "VLAN 100\ntenant-a",
+        "layer": "layer2",
+        "type": "vlan",
+        "vlan_id": 100,
+        "name": "tenant-a",
+        "subnet": "192.168.100.0/24",
+        "vrf_name": "vrf-tenant-a"
+      }
+    },
+    {
+      "data": {
+        "layer": "layer2",
+        "vni": 10100,
+        "id": "vni-10100",
+        "label": "L2VNI 10100",
+        "type": "l2vni",
+        "vlan": "vlan-100"
+      }
+    },
+    {
+      "data": {
+        "layer": "layer2",
+        "vni": 10900,
+        "id": "vni-10900",
+        "label": "L3VNI 10900",
+        "type": "l3vni",
+        "vrf": "vrf-tenant-a"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "link-spine1-leaf1",
+        "source": "spine1",
+        "target": "leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp51",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-spine1-leaf2",
+        "source": "spine1",
+        "target": "leaf2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "swp51",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-spine2-leaf1",
+        "source": "spine2",
+        "target": "leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp52",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-spine2-leaf2",
+        "source": "spine2",
+        "target": "leaf2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "swp52",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-mlag-peerlink-1",
+        "source": "leaf1",
+        "target": "leaf2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp49",
+        "target_if": "swp49",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "peer-link",
+        "lag_id": "lag-peer-link",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-mlag-peerlink-2",
+        "source": "leaf1",
+        "target": "leaf2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp50",
+        "target_if": "swp50",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "peer-link",
+        "lag_id": "lag-peer-link",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-spine1-leaf3",
+        "source": "spine1",
+        "target": "leaf3",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp51",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-spine2-leaf3",
+        "source": "spine2",
+        "target": "leaf3",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp52",
+        "link_speed": "10G",
+        "mtu": 9216,
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-leaf3-server2-1",
+        "source": "leaf3",
+        "target": "server2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "eth0",
+        "link_speed": "10G",
+        "link_role": "access",
+        "lag_id": "lag-leaf3-server2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-leaf3-server2-2",
+        "source": "leaf3",
+        "target": "server2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "eth1",
+        "link_speed": "10G",
+        "link_role": "access",
+        "lag_id": "lag-leaf3-server2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-leaf1-server1",
+        "source": "leaf1",
+        "target": "server1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "eth0",
+        "link_speed": "1G",
+        "link_role": "access",
+        "lag_id": "lag-mlag-server1",
+        "lag_type": "mlag"
+      }
+    },
+    {
+      "data": {
+        "id": "link-leaf2-server1",
+        "source": "leaf2",
+        "target": "server1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "eth1",
+        "link_speed": "1G",
+        "link_role": "access",
+        "lag_id": "lag-mlag-server1",
+        "lag_type": "mlag"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-peer-link-leaf1-leaf2",
+        "source": "leaf1",
+        "target": "leaf2",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-peer-link",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-leaf3-server2-leaf3-server2",
+        "source": "leaf3",
+        "target": "server2",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-leaf3-server2",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-mlag-server1-leaf1-server1",
+        "source": "leaf1",
+        "target": "server1",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-mlag-server1",
+        "lag_type": "mlag",
+        "member_count": 1,
+        "label": "×1 1G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-mlag-server1-leaf2-server1",
+        "source": "leaf2",
+        "target": "server1",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-mlag-server1",
+        "lag_type": "mlag",
+        "member_count": 1,
+        "label": "×1 1G"
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-100-leaf2",
+        "source": "vlan-100",
+        "target": "leaf2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "swp1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-100-leaf1",
+        "source": "vlan-100",
+        "target": "leaf1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "swp1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "l3-bgp-peer-spine1-leaf1",
+        "source": "spine1",
+        "target": "leaf1",
+        "layer": "layer3",
+        "type": "routing_adjacency",
+        "adj_type": "bgp"
+      }
+    },
+    {
+      "data": {
+        "id": "l3-bgp-peer-spine1-leaf2",
+        "source": "spine1",
+        "target": "leaf2",
+        "layer": "layer3",
+        "type": "routing_adjacency",
+        "adj_type": "bgp"
+      }
+    },
+    {
+      "data": {
+        "id": "l3-bgp-peer-spine2-leaf1",
+        "source": "spine2",
+        "target": "leaf1",
+        "layer": "layer3",
+        "type": "routing_adjacency",
+        "adj_type": "bgp"
+      }
+    },
+    {
+      "data": {
+        "id": "l3-bgp-peer-spine2-leaf2",
+        "source": "spine2",
+        "target": "leaf2",
+        "layer": "layer3",
+        "type": "routing_adjacency",
+        "adj_type": "bgp"
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine1-leaf1-bgp-underlay",
+        "source": "spine1",
+        "target": "leaf1",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ebgp",
+        "label": "AS65000→65001",
+        "process": "bgp-underlay",
+        "process_role": "underlay",
+        "bfd": true,
+        "local_as": 65000,
+        "remote_as": 65001,
+        "address_families": []
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine1-leaf2-bgp-underlay",
+        "source": "spine1",
+        "target": "leaf2",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ebgp",
+        "label": "AS65000→65002",
+        "process": "bgp-underlay",
+        "process_role": "underlay",
+        "bfd": true,
+        "local_as": 65000,
+        "remote_as": 65002,
+        "address_families": []
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine2-leaf1-bgp-underlay",
+        "source": "spine2",
+        "target": "leaf1",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ebgp",
+        "label": "AS65000→65001",
+        "process": "bgp-underlay",
+        "process_role": "underlay",
+        "bfd": true,
+        "local_as": 65000,
+        "remote_as": 65001,
+        "address_families": []
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine2-leaf2-bgp-underlay",
+        "source": "spine2",
+        "target": "leaf2",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ebgp",
+        "label": "AS65000→65002",
+        "process": "bgp-underlay",
+        "process_role": "underlay",
+        "bfd": true,
+        "local_as": 65000,
+        "remote_as": 65002,
+        "address_families": []
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine1-leaf1-bgp-evpn",
+        "source": "spine1",
+        "target": "leaf1",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ibgp",
+        "label": "AS65000→65000",
+        "process": "bgp-evpn",
+        "process_role": "overlay",
+        "bfd": false,
+        "local_as": 65000,
+        "remote_as": 65000,
+        "address_families": [
+          "l2vpn_evpn"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine1-leaf2-bgp-evpn",
+        "source": "spine1",
+        "target": "leaf2",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ibgp",
+        "label": "AS65000→65000",
+        "process": "bgp-evpn",
+        "process_role": "overlay",
+        "bfd": false,
+        "local_as": 65000,
+        "remote_as": 65000,
+        "address_families": [
+          "l2vpn_evpn"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine2-leaf1-bgp-evpn",
+        "source": "spine2",
+        "target": "leaf1",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ibgp",
+        "label": "AS65000→65000",
+        "process": "bgp-evpn",
+        "process_role": "overlay",
+        "bfd": false,
+        "local_as": 65000,
+        "remote_as": 65000,
+        "address_families": [
+          "l2vpn_evpn"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-spine2-leaf2-bgp-evpn",
+        "source": "spine2",
+        "target": "leaf2",
+        "layer": "protocols",
+        "type": "bgp_session",
+        "bgp_type": "ibgp",
+        "label": "AS65000→65000",
+        "process": "bgp-evpn",
+        "process_role": "overlay",
+        "bfd": false,
+        "local_as": 65000,
+        "remote_as": 65000,
+        "address_families": [
+          "l2vpn_evpn"
+        ]
+      }
+    }
+  ]
+}

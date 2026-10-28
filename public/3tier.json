@@ -1,0 +1,467 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "core1",
+        "label": "Core-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "core",
+        "implementation": "physical",
+        "device_type": "cisco_nexus_9508"
+      }
+    },
+    {
+      "data": {
+        "id": "core2",
+        "label": "Core-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "core",
+        "implementation": "physical",
+        "device_type": "cisco_nexus_9508"
+      }
+    },
+    {
+      "data": {
+        "id": "agg1",
+        "label": "Agg-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "aggregation",
+        "implementation": "physical",
+        "device_type": "cisco_nexus_7706"
+      }
+    },
+    {
+      "data": {
+        "id": "agg2",
+        "label": "Agg-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "aggregation",
+        "implementation": "physical",
+        "device_type": "cisco_nexus_7706"
+      }
+    },
+    {
+      "data": {
+        "id": "dist1",
+        "label": "Dist-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "distribution",
+        "implementation": "physical",
+        "device_type": "cisco_catalyst_9300"
+      }
+    },
+    {
+      "data": {
+        "id": "dist2",
+        "label": "Dist-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "distribution",
+        "implementation": "physical",
+        "device_type": "cisco_catalyst_9300"
+      }
+    },
+    {
+      "data": {
+        "id": "dist3",
+        "label": "Dist-3",
+        "layer": "layer1",
+        "type": "node",
+        "role": "distribution",
+        "implementation": "physical",
+        "device_type": "cisco_catalyst_9300"
+      }
+    },
+    {
+      "data": {
+        "id": "dist4",
+        "label": "Dist-4",
+        "layer": "layer1",
+        "type": "node",
+        "role": "distribution",
+        "implementation": "physical",
+        "device_type": "cisco_catalyst_9300"
+      }
+    },
+    {
+      "data": {
+        "id": "server1",
+        "label": "Server-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    },
+    {
+      "data": {
+        "id": "server2",
+        "label": "Server-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    },
+    {
+      "data": {
+        "id": "server3",
+        "label": "Server-3",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    },
+    {
+      "data": {
+        "id": "server4",
+        "label": "Server-4",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "physical"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "link-core1-core2",
+        "source": "core1",
+        "target": "core2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te2/1",
+        "target_if": "Te2/1",
+        "link_speed": "40G",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core1-agg1-a",
+        "source": "core1",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/1",
+        "target_if": "Te1/1",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core1-agg1",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core1-agg1-b",
+        "source": "core1",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/2",
+        "target_if": "Te1/2",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core1-agg1",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core1-agg2-a",
+        "source": "core1",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/3",
+        "target_if": "Te1/1",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core1-agg2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core1-agg2-b",
+        "source": "core1",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/4",
+        "target_if": "Te1/2",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core1-agg2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core2-agg1-a",
+        "source": "core2",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/1",
+        "target_if": "Te1/3",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core2-agg1",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core2-agg1-b",
+        "source": "core2",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/2",
+        "target_if": "Te1/4",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core2-agg1",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core2-agg2-a",
+        "source": "core2",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/3",
+        "target_if": "Te1/3",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core2-agg2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-core2-agg2-b",
+        "source": "core2",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/4",
+        "target_if": "Te1/4",
+        "link_speed": "10G",
+        "link_role": "underlay",
+        "lag_id": "lag-core2-agg2",
+        "lag_type": "lacp"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg1-dist1",
+        "source": "agg1",
+        "target": "dist1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/1",
+        "target_if": "Ge0/1",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg2-dist1",
+        "source": "agg2",
+        "target": "dist1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/1",
+        "target_if": "Ge0/2",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg1-dist2",
+        "source": "agg1",
+        "target": "dist2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/2",
+        "target_if": "Ge0/1",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg2-dist2",
+        "source": "agg2",
+        "target": "dist2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/2",
+        "target_if": "Ge0/2",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg1-dist3",
+        "source": "agg1",
+        "target": "dist3",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/3",
+        "target_if": "Ge0/1",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg2-dist3",
+        "source": "agg2",
+        "target": "dist3",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/3",
+        "target_if": "Ge0/2",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg1-dist4",
+        "source": "agg1",
+        "target": "dist4",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/4",
+        "target_if": "Ge0/1",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-agg2-dist4",
+        "source": "agg2",
+        "target": "dist4",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge1/4",
+        "target_if": "Ge0/2",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dist1-server1",
+        "source": "dist1",
+        "target": "server1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Fa0/1",
+        "target_if": "eth0",
+        "link_speed": "1G",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dist2-server2",
+        "source": "dist2",
+        "target": "server2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Fa0/1",
+        "target_if": "eth0",
+        "link_speed": "1G",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dist3-server3",
+        "source": "dist3",
+        "target": "server3",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Fa0/1",
+        "target_if": "eth0",
+        "link_speed": "1G",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dist4-server4",
+        "source": "dist4",
+        "target": "server4",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Fa0/1",
+        "target_if": "eth0",
+        "link_speed": "1G",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-core1-agg1-core1-agg1",
+        "source": "core1",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-core1-agg1",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-core1-agg2-core1-agg2",
+        "source": "core1",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-core1-agg2",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-core2-agg1-core2-agg1",
+        "source": "core2",
+        "target": "agg1",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-core2-agg1",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    },
+    {
+      "data": {
+        "id": "bundle-lag-core2-agg2-core2-agg2",
+        "source": "core2",
+        "target": "agg2",
+        "layer": "layer1",
+        "type": "lag_bundle",
+        "lag_id": "lag-core2-agg2",
+        "lag_type": "lacp",
+        "member_count": 2,
+        "label": "×2 10G"
+      }
+    }
+  ]
+}

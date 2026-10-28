@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ndl-viz デザイン比較</title>
+<script src="/dagre.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Helvetica Neue", sans-serif; background: #f0f3f8; color: #1e293b; }
+  h1 { padding: 18px 24px 6px; font-size: 18px; font-weight: 700; color: #1e293b; }
+  .subtitle { padding: 0 24px 16px; font-size: 12px; color: #64748b; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 16px 24px; }
+  .row-label { grid-column: 1 / -1; font-size: 11px; font-weight: 700; color: #475569;
+    background: #e2e8f0; padding: 5px 12px; border-radius: 4px; margin-top: 4px; }
+  .panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.10); overflow: hidden; }
+  .panel-title { font-size: 11px; font-weight: 700; color: #334155; padding: 7px 12px 5px;
+    border-bottom: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; }
+  .panel-title .state { font-weight: 400; color: #94a3b8; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<h1>ndl-viz デザイン比較</h1>
+<p class="subtitle">4 バリアント × 2 状態（L1 のみ / L3+BGP overlay）。同一 dagre レイアウトで比較。</p>
+
+<div class="grid" id="grid">
+  <div class="row-label">📡 L1 のみ（物理トポロジー）</div>
+  <div class="panel" id="p-v1-l1"><div class="panel-title">V1: 現状（幾何図形）<span class="state">L1 only</span></div></div>
+  <div class="panel" id="p-v2-l1"><div class="panel-title">V2: Cisco アイコン<span class="state">L1 only</span></div></div>
+  <div class="panel" id="p-v3-l1"><div class="panel-title">V3: 最小スタイル<span class="state">L1 only</span></div></div>
+  <div class="panel" id="p-v4-l1"><div class="panel-title">V4: 情報強調<span class="state">L1 only</span></div></div>
+
+  <div class="row-label">🌐 L3 + BGP Overlay ON</div>
+  <div class="panel" id="p-v1-ov"><div class="panel-title">V1: 現状（幾何図形）<span class="state">L3+BGP</span></div></div>
+  <div class="panel" id="p-v2-ov"><div class="panel-title">V2: Cisco アイコン<span class="state">L3+BGP</span></div></div>
+  <div class="panel" id="p-v3-ov"><div class="panel-title">V3: 最小スタイル<span class="state">L3+BGP</span></div></div>
+  <div class="panel" id="p-v4-ov"><div class="panel-title">V4: 情報強調<span class="state">L3+BGP</span></div></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+const W = 440, H = 380, MX = 55, MY = 48, INNER_W = W - MX*2, INNER_H = H - MY*2
+const NODE_W = 88, NODE_H = 44  // dagre layout size (same for all variants)
+const FONT = '"SF Mono", "Fira Mono", monospace'
+const SAN  = '"SF Pro Text", "Helvetica Neue", system-ui, sans-serif'
+const NS   = 'http://www.w3.org/2000/svg'
+
+const ROLE_CFG = {
+  spine:  { fill:'#dbeafe', stroke:'#1d4ed8', lw:40, lh:32 },
+  core:   { fill:'#ede9fe', stroke:'#6d28d9', lw:40, lh:32 },
+  leaf:   { fill:'#dcfce7', stroke:'#059669', lw:36, lh:28 },
+  server: { fill:'#f1f5f9', stroke:'#475569', lw:28, lh:28 },
+}
+const DEFAULT_CFG = { fill:'#f8fafc', stroke:'#64748b', lw:36, lh:28 }
+
+const LINK_CLR = { underlay:'#2563EB', 'peer-link':'#D97706', access:'#6B7280', management:'#4B5563' }
+const LAG_CLR  = '#059669'
+const ADJ_CLR  = { bgp:'#059669', ebgp:'#EA580C', ibgp:'#7C3AED' }
+const MLAG_BX  = { stroke:'#B45309', fill:'rgba(180,83,9,0.06)' }
+const TIER_CLR = 'rgba(0,0,0,0.09)'
+const TIER_TXT = 'rgba(0,0,0,0.30)'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SVG helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag)
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v))
+  if (parent) parent.appendChild(e)
+  return e
+}
+function txt(text, attrs, parent) {
+  const e = document.createElementNS(NS, 'text')
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v))
+  e.textContent = text
+  if (parent) parent.appendChild(e)
+  return e
+}
+function pts(arr) { return arr.map(([x,y]) => `${x},${y}`).join(' ') }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Geometry helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function boundaryPt(cx, cy, w, h, tx, ty) {
+  const dx = tx-cx, dy = ty-cy
+  if (!dx && !dy) return {x:cx, y:cy}
+  const hw = w/2, hh = h/2
+  const absX = Math.abs(dx), absY = Math.abs(dy)
+  const t = absX === 0 ? hh/absY : absY === 0 ? hw/absX : Math.min(hw/absX, hh/absY)
+  return { x: cx + t*dx, y: cy + t*dy }
+}
+
+// Perpendicular offset for parallel LAG lines
+function perp(x1,y1,x2,y2) {
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1
+  return { px:-dy/len, py:dx/len, nx:dx/len, ny:dy/len }
+}
+
+function lagLinePts(srcPos, tgtPos, idx, total) {
+  const SPACING = 7
+  const bp1 = boundaryPt(srcPos.x, srcPos.y, srcPos.w, srcPos.h, tgtPos.x, tgtPos.y)
+  const bp2 = boundaryPt(tgtPos.x, tgtPos.y, tgtPos.w, tgtPos.h, srcPos.x, srcPos.y)
+  const { px, py } = perp(bp1.x, bp1.y, bp2.x, bp2.y)
+  const off = (idx - (total-1)/2) * SPACING
+  return {
+    x1: bp1.x + px*off, y1: bp1.y + py*off,
+    x2: bp2.x + px*off, y2: bp2.y + py*off,
+    mx: (bp1.x+bp2.x)/2 + px*off, my: (bp1.y+bp2.y)/2 + py*off,
+    px, py
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout computation (dagre)
+// ─────────────────────────────────────────────────────────────────────────────
+function computeLayout(nodes, edges) {
+  const g = new dagre.graphlib.Graph()
+  g.setGraph({ rankdir:'TB', nodesep:130, ranksep:150, marginx:MX, marginy:MY })
+  g.setDefaultEdgeLabel(() => ({}))
+
+  const l1Nodes = nodes.filter(n => n.data.layer === 'layer1' && n.data.type === 'node')
+  l1Nodes.forEach(n => g.setNode(n.data.id, { width: NODE_W, height: NODE_H }))
+
+  const l1Links = edges.filter(e => e.data.layer === 'layer1' && e.data.type === 'link')
+  const seenPairs = new Set()
+  l1Links.forEach(e => {
+    const key = [e.data.source, e.data.target].sort().join('|')
+    if (!seenPairs.has(key)) { seenPairs.add(key); g.setEdge(e.data.source, e.data.target) }
+  })
+
+  dagre.layout(g)
+
+  // Node positions
+  const pos = {}
+  l1Nodes.forEach(n => {
+    const d = g.node(n.data.id)
+    pos[n.data.id] = { x: d.x, y: d.y, w: NODE_W, h: NODE_H, role: n.data.role,
+                       label: n.data.label, lo_ip: n.data.lo_ip, local_as: n.data.local_as }
+  })
+
+  // Scale to fit INNER_W × INNER_H
+  const xs = Object.values(pos).map(p => p.x)
+  const ys = Object.values(pos).map(p => p.y)
+  const minX = Math.min(...xs) - NODE_W/2
+  const maxX = Math.max(...xs) + NODE_W/2
+  const minY = Math.min(...ys) - NODE_H/2
+  const maxY = Math.max(...ys) + NODE_H/2
+  const scaleX = INNER_W / (maxX - minX)
+  const scaleY = INNER_H / (maxY - minY)
+  const scale  = Math.min(scaleX, scaleY, 1.0)
+  const offX   = MX + (INNER_W - (maxX-minX)*scale)/2 - minX*scale
+  const offY   = MY + (INNER_H - (maxY-minY)*scale)/2 - minY*scale
+
+  for (const p of Object.values(pos)) {
+    p.x = p.x*scale + offX
+    p.y = p.y*scale + offY
+    p.w = NODE_W * scale
+    p.h = NODE_H * scale
+  }
+
+  // Tier groups (by dagre rank)
+  const ranks = {}
+  l1Nodes.forEach(n => {
+    const d = g.node(n.data.id)
+    const rank = d._rank ?? 0
+    if (!ranks[rank]) ranks[rank] = []
+    ranks[rank].push(n.data.id)
+  })
+
+  // Y bounds per tier
+  const tiers = Object.entries(ranks).sort((a,b) => +a[0] - +b[0]).map(([, ids]) => {
+    const ys = ids.map(id => pos[id].y)
+    const role = pos[ids[0]].role
+    return { y: Math.min(...ys), yMid: ys.reduce((s,v)=>s+v,0)/ys.length, label: tierLabel(role) }
+  })
+
+  // MLAG groups: lag_id → set of source node ids
+  const mlagMap = {}
+  l1Links.forEach(e => {
+    if (e.data.lag_type === 'mlag') {
+      if (!mlagMap[e.data.lag_id]) mlagMap[e.data.lag_id] = new Set()
+      mlagMap[e.data.lag_id].add(e.data.source)
+    }
+  })
+
+  return { pos, l1Links, l1Nodes, tiers, mlagMap }
+}
+
+function tierLabel(role) {
+  if (!role) return ''
+  if (['spine','core'].includes(role)) return 'Spine'
+  if (['leaf','distribution','aggregation','border'].includes(role)) return 'Leaf'
+  if (['server','host'].includes(role)) return 'Server'
+  return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shape renderers
+// ─────────────────────────────────────────────────────────────────────────────
+function drawShape(g, variant, role, cx, cy, w, h, cfg, extra) {
+  if (variant === 'v2-cisco') {
+    drawCiscoIcon(g, role, cx, cy, w, h, cfg, extra)
+  } else if (variant === 'v3-minimal') {
+    el('rect', { x:cx-w/2, y:cy-h/2, width:w, height:h, rx:6,
+                 fill:cfg.fill, stroke:cfg.stroke, 'stroke-width':1.5 }, g)
+  } else {
+    // V1 / V4: geometric shapes
+    const s = { spine:'diamond', core:'diamond', leaf:'roundrect', server:'ellipse' }[role] ?? 'roundrect'
+    drawGeoShape(g, s, cx, cy, w, h, cfg)
+  }
+}
+
+function drawGeoShape(g, shape, cx, cy, w, h, cfg) {
+  const f = cfg.fill, s = cfg.stroke
+  if (shape === 'diamond') {
+    el('polygon', { points: pts([[cx,cy-h/2],[cx+w/2,cy],[cx,cy+h/2],[cx-w/2,cy]]),
+                    fill:f, stroke:s, 'stroke-width':1.5 }, g)
+  } else if (shape === 'ellipse') {
+    el('ellipse', { cx, cy, rx:w/2, ry:h/2, fill:f, stroke:s, 'stroke-width':1.5 }, g)
+  } else {
+    el('rect', { x:cx-w/2, y:cy-h/2, width:w, height:h, rx:8,
+                 fill:f, stroke:s, 'stroke-width':1.5 }, g)
+  }
+}
+
+function drawCiscoIcon(g, role, cx, cy, w, h, cfg, extra) {
+  const f = cfg.fill, s = cfg.stroke, lw = cfg.lw ?? 40, lh = cfg.lh ?? 28
+
+  if (role === 'spine' || role === 'core') {
+    // L3 Switch: body + port nubs + routing symbol
+    el('rect', {x:cx-lw/2, y:cy-lh/2, width:lw, height:lh, rx:3, fill:f, stroke:s, 'stroke-width':1.5}, g)
+    // Port nubs on top
+    const portY = cy - lh/2 - 6
+    const nubW = 6, nubH = 7
+    for (const nx of [-16, -5, 6, 17]) {
+      el('rect', {x:cx+nx-nubW/2, y:portY, width:nubW, height:nubH, rx:1, fill:s, opacity:0.9}, g)
+    }
+    // Routing symbol: asterisk
+    const sy = 0
+    el('line', {x1:cx-8, y1:cy+sy, x2:cx+8, y2:cy+sy, stroke:s, 'stroke-width':1.4, 'stroke-linecap':'round'}, g)
+    el('line', {x1:cx, y1:cy+sy-7, x2:cx, y2:cy+sy+7, stroke:s, 'stroke-width':1.4, 'stroke-linecap':'round'}, g)
+    el('line', {x1:cx-6, y1:cy+sy-5, x2:cx+6, y2:cy+sy+5, stroke:s, 'stroke-width':1, 'stroke-linecap':'round'}, g)
+    el('line', {x1:cx+6, y1:cy+sy-5, x2:cx-6, y2:cy+sy+5, stroke:s, 'stroke-width':1, 'stroke-linecap':'round'}, g)
+
+  } else if (role === 'leaf') {
+    // L2 Switch: body + port nubs + switching symbol
+    el('rect', {x:cx-lw/2, y:cy-lh/2, width:lw, height:lh, rx:3, fill:f, stroke:s, 'stroke-width':1.5}, g)
+    // Port nubs on top
+    const portY = cy - lh/2 - 6
+    const nubW = 6, nubH = 7
+    for (const nx of [-11, 0, 11]) {
+      el('rect', {x:cx+nx-nubW/2, y:portY, width:nubW, height:nubH, rx:1, fill:s, opacity:0.9}, g)
+    }
+    // Switching symbol: parallel lines
+    el('line', {x1:cx-12, y1:cy-5, x2:cx+12, y2:cy-5, stroke:s, 'stroke-width':1.5, 'stroke-linecap':'round'}, g)
+    el('line', {x1:cx-12, y1:cy+4, x2:cx+12, y2:cy+4, stroke:s, 'stroke-width':1.5, 'stroke-linecap':'round'}, g)
+
+  } else if (role === 'server') {
+    // Server: vertical rect + drive bays
+    const bw = lw, bh = lh + 4
+    el('rect', {x:cx-bw/2, y:cy-bh/2, width:bw, height:bh, rx:3, fill:f, stroke:s, 'stroke-width':1.5}, g)
+    // Drive bays
+    const bayW = lw*0.55, bayH = 4.5, bayX = cx - bayW/2 - 3
+    for (const [off, op] of [[-7, 0.7],[0, 0.7],[7, 0.7]]) {
+      el('rect', {x:bayX, y:cy+off-bayH/2, width:bayW, height:bayH, rx:1.5, fill:s, opacity:op}, g)
+    }
+    // Power LED (small circle on right)
+    el('circle', {cx:cx+lw/2-7, cy:cy, r:3.5, fill:'none', stroke:s, 'stroke-width':1.3}, g)
+
+  } else {
+    // Fallback: roundrect
+    el('rect', {x:cx-w/2, y:cy-h/2, width:w, height:h, rx:6, fill:f, stroke:s, 'stroke-width':1.5}, g)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tier separator lines
+// ─────────────────────────────────────────────────────────────────────────────
+function drawTierLines(svg, tiers) {
+  for (let i = 0; i < tiers.length - 1; i++) {
+    const y = (tiers[i].yMid + tiers[i+1].yMid) / 2
+    el('line', {x1:MX, y1:y, x2:W-MX*0.5, y2:y, stroke:TIER_CLR, 'stroke-width':1,
+                'stroke-dasharray':'5 7'}, svg)
+  }
+  tiers.forEach(t => {
+    txt(t.label, {x:MX-4, y:t.yMid+4, 'text-anchor':'end', 'font-size':9,
+                  'font-family':SAN, fill:TIER_TXT, 'font-weight':'700', 'letter-spacing':'0.05em'}, svg)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MLAG domain boxes
+// ─────────────────────────────────────────────────────────────────────────────
+function drawMLAGDomains(svg, mlagMap, pos) {
+  for (const [lagId, srcIds] of Object.entries(mlagMap)) {
+    const ps = [...srcIds].map(id => pos[id]).filter(Boolean)
+    if (ps.length < 2) continue
+    const PAD = 20
+    const x1 = Math.min(...ps.map(p => p.x - p.w/2)) - PAD
+    const y1 = Math.min(...ps.map(p => p.y - p.h/2)) - PAD - 6 // extra for MLAG label
+    const x2 = Math.max(...ps.map(p => p.x + p.w/2)) + PAD
+    const y2 = Math.max(...ps.map(p => p.y + p.h/2)) + PAD
+    el('rect', {x:x1, y:y1, width:x2-x1, height:y2-y1, rx:10,
+                fill:MLAG_BX.fill, stroke:MLAG_BX.stroke,
+                'stroke-width':1.4, 'stroke-dasharray':'8 4'}, svg)
+    txt('MLAG', {x:x1+7, y:y1+11, fill:MLAG_BX.stroke, 'font-size':8,
+                 'font-weight':'700', 'font-family':FONT, 'letter-spacing':'0.08em'}, svg)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Physical link rendering
+// ─────────────────────────────────────────────────────────────────────────────
+function drawLinks(svg, l1Links, pos, variant) {
+  // Group by (sorted src+tgt, lag_id or 'none')
+  const groups = {}
+  l1Links.forEach(e => {
+    const {source:s, target:t, lag_id, lag_type, link_role} = e.data
+    const key = [s,t].sort().join('|') + '||' + (lag_id ?? 'none')
+    if (!groups[key]) groups[key] = { src:s, tgt:t, lag_id, lag_type, link_role, links:[] }
+    groups[key].links.push(e)
+  })
+
+  for (const grp of Object.values(groups)) {
+    const {src, tgt, lag_id, lag_type, link_role, links} = grp
+    const srcPos = pos[src], tgtPos = pos[tgt]
+    if (!srcPos || !tgtPos) continue
+
+    // Check if this group shares the same src+tgt pair (LACP) or different srcs (MLAG)
+    const allSameSrc = links.every(l => l.data.source === src)
+
+    const isLag = !!lag_id
+    const isMlag = lag_type === 'mlag' || !allSameSrc
+    const linkColor = LINK_CLR[link_role] ?? LINK_CLR.access
+
+    const N = links.length
+    // For MLAG, each link has a unique src; treat each as N=1 for parallel offset
+    if (isLag && !isMlag && N >= 2) {
+      // LACP bundle — draw polygon + parallel lines
+      const p0 = lagLinePts(srcPos, tgtPos, 0, N)
+      const pN = lagLinePts(srcPos, tgtPos, N-1, N)
+
+      if (variant !== 'v3-minimal') {
+        const opacity = variant === 'v4-info' ? 0.22 : 0.12
+        el('polygon', {
+          points: pts([[p0.x1,p0.y1],[pN.x1,pN.y1],[pN.x2,pN.y2],[p0.x2,p0.y2]]),
+          fill: `rgba(5,150,105,${opacity})`, stroke: LAG_CLR,
+          'stroke-width': 0.6
+        }, svg)
+      }
+
+      for (let i = 0; i < N; i++) {
+        const p = lagLinePts(srcPos, tgtPos, i, N)
+        const sw = variant === 'v3-minimal' ? 3.5 : 1.6
+        el('line', {x1:p.x1,y1:p.y1,x2:p.x2,y2:p.y2,
+                    stroke: LAG_CLR, 'stroke-width':sw, 'stroke-linecap':'round'}, svg)
+        if (variant !== 'v3-minimal') drawTicks(svg, p.mx, p.my, p.px, p.py, LAG_CLR)
+      }
+
+    } else if (isLag && isMlag) {
+      // MLAG: lines come from different src nodes — draw as separate lines converging to tgt
+      // For V1/V2/V4: draw the MLAG trapezoid polygon
+      const mlagLinks = links.filter(l => l.data.lag_type === 'mlag')
+      const mlagSrcs = [...new Set(mlagLinks.map(l => l.data.source))]
+
+      if (variant !== 'v3-minimal' && mlagSrcs.length >= 2) {
+        const bp1 = boundaryPt(pos[mlagSrcs[0]].x, pos[mlagSrcs[0]].y, pos[mlagSrcs[0]].w, pos[mlagSrcs[0]].h, tgtPos.x, tgtPos.y)
+        const bp2 = boundaryPt(pos[mlagSrcs[1]].x, pos[mlagSrcs[1]].y, pos[mlagSrcs[1]].w, pos[mlagSrcs[1]].h, tgtPos.x, tgtPos.y)
+        const bp3 = boundaryPt(tgtPos.x, tgtPos.y, tgtPos.w, tgtPos.h, pos[mlagSrcs[1]].x, pos[mlagSrcs[1]].y)
+        const bp4 = boundaryPt(tgtPos.x, tgtPos.y, tgtPos.w, tgtPos.h, pos[mlagSrcs[0]].x, pos[mlagSrcs[0]].y)
+        const opacity = variant === 'v4-info' ? 0.22 : 0.12
+        el('polygon', {
+          points: pts([[bp1.x,bp1.y],[bp2.x,bp2.y],[bp3.x,bp3.y],[bp4.x,bp4.y]]),
+          fill: `rgba(5,150,105,${opacity})`, stroke: LAG_CLR, 'stroke-width': 0.6
+        }, svg)
+      }
+
+      mlagLinks.forEach(l => {
+        const sp = pos[l.data.source], tp = pos[l.data.target]
+        if (!sp || !tp) return
+        const bp1 = boundaryPt(sp.x, sp.y, sp.w, sp.h, tp.x, tp.y)
+        const bp2 = boundaryPt(tp.x, tp.y, tp.w, tp.h, sp.x, sp.y)
+        const sw = variant === 'v3-minimal' ? 3.5 : 1.6
+        el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,
+                    stroke:LAG_CLR, 'stroke-width':sw, 'stroke-linecap':'round'}, svg)
+        if (variant !== 'v3-minimal') {
+          const mx = (bp1.x+bp2.x)/2, my = (bp1.y+bp2.y)/2
+          const { px, py } = perp(bp1.x, bp1.y, bp2.x, bp2.y)
+          drawTicks(svg, mx, my, px, py, LAG_CLR)
+        }
+      })
+
+    } else {
+      // Single non-LAG link
+      const bp1 = boundaryPt(srcPos.x, srcPos.y, srcPos.w, srcPos.h, tgtPos.x, tgtPos.y)
+      const bp2 = boundaryPt(tgtPos.x, tgtPos.y, tgtPos.w, tgtPos.h, srcPos.x, srcPos.y)
+      el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,
+                  stroke:linkColor, 'stroke-width':1.6, 'stroke-linecap':'round'}, svg)
+    }
+  }
+}
+
+function drawTicks(svg, mx, my, px, py, color) {
+  for (const off of [-5, 5]) {
+    const cx2 = mx + px*off, cy2 = my + py*off
+    const TICK = 6
+    el('line', {x1:cx2 - py*TICK, y1:cy2 + px*TICK, x2:cx2 + py*TICK, y2:cy2 - px*TICK,
+                stroke:color, 'stroke-width':1.5, 'stroke-linecap':'round'}, svg)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Overlay edges (routing adj + BGP sessions)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawOverlayEdges(svg, edges, pos) {
+  // Collect unique overlay edges (routing_adjacency only for clarity)
+  const drawn = new Set()
+  edges.forEach(e => {
+    const d = e.data
+    if (d.type === 'routing_adjacency' && d.adj_type === 'bgp') {
+      const key = [d.source, d.target].sort().join('|')
+      if (drawn.has(key)) return
+      drawn.add(key)
+      const sp = pos[d.source], tp = pos[d.target]
+      if (!sp || !tp) return
+      const bp1 = boundaryPt(sp.x, sp.y, sp.w, sp.h, tp.x, tp.y)
+      const bp2 = boundaryPt(tp.x, tp.y, tp.w, tp.h, sp.x, sp.y)
+      // Curved line (slight arc via quadratic)
+      const mx = (bp1.x+bp2.x)/2 + 14, my = (bp1.y+bp2.y)/2
+      el('path', {
+        d: `M${bp1.x},${bp1.y} Q${mx},${my} ${bp2.x},${bp2.y}`,
+        fill:'none', stroke:ADJ_CLR.bgp, 'stroke-width':1.5,
+        'stroke-dasharray':'9 3', opacity:0.65
+      }, svg)
+    } else if (d.type === 'bgp_session') {
+      const key = [d.source, d.target].sort().join('|') + '|' + d.bgp_type
+      if (drawn.has(key)) return
+      drawn.add(key)
+      const sp = pos[d.source], tp = pos[d.target]
+      if (!sp || !tp) return
+      const bp1 = boundaryPt(sp.x, sp.y, sp.w, sp.h, tp.x, tp.y)
+      const bp2 = boundaryPt(tp.x, tp.y, tp.w, tp.h, sp.x, sp.y)
+      const color = d.bgp_type === 'ebgp' ? ADJ_CLR.ebgp : ADJ_CLR.ibgp
+      const dash = d.bgp_type === 'ibgp' ? '9 3' : ''
+      const sw = d.bgp_type === 'ebgp' ? 2.2 : 1.6
+      el('line', {x1:bp1.x,y1:bp1.y,x2:bp2.x,y2:bp2.y,
+                  stroke:color, 'stroke-width':sw, 'stroke-dasharray':dash,
+                  'stroke-linecap':'round', opacity:0.75}, svg)
+    }
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Node rendering
+// ─────────────────────────────────────────────────────────────────────────────
+function drawNodes(svg, pos, variant, showOverlay) {
+  for (const [id, p] of Object.entries(pos)) {
+    const cfg = ROLE_CFG[p.role] ?? DEFAULT_CFG
+    const w = p.w, h = p.h
+
+    // Per-variant adjustments
+    let drawW = w, drawH = h
+    if (variant === 'v2-cisco') {
+      drawW = w * 0.78
+      drawH = h * 0.78
+    } else if (variant === 'v3-minimal') {
+      drawW = w * 0.85
+      drawH = h * 0.80
+    }
+
+    const g = el('g', {}, svg)
+    drawShape(g, variant, p.role, p.x, p.y, drawW, drawH, cfg, p)
+
+    // Labels
+    const labelY = p.y + h/2 + 13
+    txt(p.label ?? id, {
+      x:p.x, y:labelY, 'text-anchor':'middle',
+      'font-size': 10.5, 'font-weight':'600', 'font-family':SAN,
+      fill:'#1e293b'
+    }, g)
+
+    // Role badge (V3: show role inside box)
+    if (variant === 'v3-minimal') {
+      txt(p.role ?? '', {
+        x:p.x, y:p.y+4, 'text-anchor':'middle',
+        'font-size':8, 'font-family':SAN, fill:cfg.stroke, opacity:0.9
+      }, g)
+    }
+
+    // V4: always show IP + AS inside node
+    if (variant === 'v4-info') {
+      if (p.lo_ip) {
+        txt(p.lo_ip.replace('/32',''), {
+          x:p.x, y:p.y+2, 'text-anchor':'middle',
+          'font-size':7.5, 'font-family':FONT, fill:'#059669'
+        }, g)
+      }
+      if (p.local_as != null) {
+        txt(`AS${p.local_as}`, {
+          x:p.x, y:p.y + (p.lo_ip ? 11 : 4), 'text-anchor':'middle',
+          'font-size':7.5, 'font-family':FONT, fill: cfg.stroke
+        }, g)
+      }
+    }
+
+    // Overlay: show IP+AS in V1/V2 when overlay is ON
+    if (showOverlay && (variant === 'v1-current' || variant === 'v2-cisco')) {
+      if (p.lo_ip) {
+        txt(p.lo_ip.replace('/32',''), {
+          x:p.x, y:p.y-3, 'text-anchor':'middle',
+          'font-size':7, 'font-family':FONT, fill:'#059669'
+        }, g)
+      }
+      if (p.local_as != null) {
+        txt(`AS${p.local_as}`, {
+          x:p.x, y:p.y + 7, 'text-anchor':'middle',
+          'font-size':7, 'font-family':FONT, fill: cfg.stroke
+        }, g)
+      }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legend (bottom of each panel)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawLegend(svg, variant, showOverlay) {
+  const items = []
+  items.push({ color:'#2563EB', dash:'', label:'underlay' })
+  items.push({ color:'#D97706', dash:'7 3', label:'peer-link' })
+  items.push({ color:'#6B7280', dash:'', label:'access' })
+  items.push({ color:LAG_CLR, dash:'', label:'LAG', thick: variant !== 'v3-minimal' })
+  if (showOverlay) {
+    items.push({ color:ADJ_CLR.ebgp, dash:'', label:'eBGP' })
+    items.push({ color:ADJ_CLR.ibgp, dash:'9 3', label:'iBGP' })
+  }
+
+  const g = el('g', {}, svg)
+  el('rect', {x:4, y:H-28, width: items.length*58+8, height:22, rx:4,
+              fill:'rgba(255,255,255,0.92)', stroke:'#e2e8f0', 'stroke-width':0.8}, g)
+
+  items.forEach((item, i) => {
+    const x = 12 + i*58
+    const y = H-16
+    el('line', {x1:x, y1:y, x2:x+18, y2:y, stroke:item.color,
+                'stroke-width': item.thick ? 2.5 : 1.8,
+                'stroke-dasharray': item.dash, 'stroke-linecap':'round'}, g)
+    txt(item.label, {x:x+22, y:y+4, 'font-size':8, 'font-family':SAN, fill:'#475569'}, g)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main panel renderer
+// ─────────────────────────────────────────────────────────────────────────────
+function renderPanel(container, layout, allEdges, variant, showOverlay) {
+  const { pos, l1Links, tiers, mlagMap } = layout
+  const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`}, container)
+
+  // Background
+  el('rect', {x:0, y:0, width:W, height:H, fill:'#f8fafc'}, svg)
+
+  // z-order: tier lines → MLAG domain → links → overlay edges → nodes → legend
+  drawTierLines(svg, tiers)
+  drawMLAGDomains(svg, mlagMap, pos)
+  drawLinks(svg, l1Links, pos, variant)
+  if (showOverlay) drawOverlayEdges(svg, allEdges, pos)
+  drawNodes(svg, pos, variant, showOverlay)
+  drawLegend(svg, variant, showOverlay)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main
+// ─────────────────────────────────────────────────────────────────────────────
+fetch('/sample.json')
+  .then(r => r.json())
+  .then(data => {
+    const layout = computeLayout(data.nodes, data.edges)
+
+    const panels = [
+      { id:'p-v1-l1', variant:'v1-current', overlay:false },
+      { id:'p-v2-l1', variant:'v2-cisco',   overlay:false },
+      { id:'p-v3-l1', variant:'v3-minimal', overlay:false },
+      { id:'p-v4-l1', variant:'v4-info',    overlay:false },
+      { id:'p-v1-ov', variant:'v1-current', overlay:true  },
+      { id:'p-v2-ov', variant:'v2-cisco',   overlay:true  },
+      { id:'p-v3-ov', variant:'v3-minimal', overlay:true  },
+      { id:'p-v4-ov', variant:'v4-info',    overlay:true  },
+    ]
+
+    panels.forEach(({ id, variant, overlay }) => {
+      const container = document.getElementById(id)
+      renderPanel(container, layout, data.edges, variant, overlay)
+    })
+  })
+  .catch(err => {
+    document.getElementById('grid').innerHTML =
+      `<p style="color:red;padding:20px">Failed to load /sample.json: ${err.message}<br>
+       Run: <code>cd ndl-viz && npm run dev</code> and open via http://localhost:5200/design-comparison.html</p>`
+  })
+</script>
+</body>
+</html>
