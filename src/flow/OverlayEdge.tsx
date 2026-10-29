@@ -2,7 +2,7 @@
  * OverlayEdge — L2/L3/BGP/attaches_to のオーバーレイエッジ
  *
  * 曲線 (quadratic bezier) で L1 リンクと視覚的に区別する。
- * 表示は opacity フェード。Flow ON で bgp_session にデータフローを重ねる。
+ * 表示は opacity フェード。ラベルは YAML に書かれた値から出す（routing_adjacency は type）。
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
@@ -19,6 +19,10 @@ const KIND_OF: Record<string, OverlayKey | 'always'> = {
   vlan_member: 'l2',
   attaches_to: 'always',
 }
+
+/** routing_adjacencies[].type の表示名。知らない値はそのまま大文字で出す */
+const ADJ_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
+const adjLabel = (t?: string): string => (t ? ADJ_LABEL[t] ?? t.toUpperCase() : '')
 
 export const OverlayEdge = memo(function OverlayEdge({ source, target, data, selected }: EdgeProps) {
   const d = data as unknown as CyEdgeData
@@ -39,7 +43,7 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
 
   let color: string = EDGE_COLOR.attach, dash = '5 5', sw = 1.4, label = ''
   if (d.type === 'routing_adjacency') {
-    color = EDGE_COLOR.routing; dash = '8 4'; sw = 1.8; label = 'OSPF/static'
+    color = EDGE_COLOR.routing; dash = '8 4'; sw = 1.8; label = adjLabel(d.adj_type)
   } else if (d.type === 'bgp_session') {
     if (d.bgp_type === 'ebgp') { color = EDGE_COLOR.ebgp; dash = ''; sw = 2.2 }
     else { color = EDGE_COLOR.ibgp; dash = '8 4'; sw = 1.8 }
