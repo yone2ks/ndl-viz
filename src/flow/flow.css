@@ -179,12 +179,38 @@
   padding: 2px 7px;
   border-radius: 6px;
 }
-.card-ips {
-  margin-top: 6px;
+/* ── IF チップ（機器カード内の L3 IF。押すと IP を開く）── */
+.card-ifs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+  align-items: center;
+}
+.if-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: 'SF Mono', monospace;
-  font-size: 9px;
-  color: #7c8ba3;
-  line-height: 1.5;
+  font-size: 8.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: box-shadow 150ms ease-out, background 150ms ease-out;
+}
+.if-chip:hover { background: rgba(148, 163, 184, 0.18); }
+.if-chip .if-ip {
+  padding-left: 5px;
+  border-left: 1px solid rgba(94, 234, 212, 0.35);
+  color: #5eead4;
+}
+.if-chip.is-open {
+  border-color: rgba(94, 234, 212, 0.5);
+  background: rgba(94, 234, 212, 0.08);
+  color: #cbd5e1;
 }
 /* ── SVI チップ（機器カード内の VLAN IF）── */
 .card-svis {
@@ -261,13 +287,6 @@
   border-color: hsla(var(--vh), 65%, 40%, 0.45);
 }
 
-.ip-row-grid {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-.ip-row-grid .if-col { color: #64748b; }
-.ip-row-grid .ip-col { color: #5eead4; }
 .ip-more { color: #4b5a73; font-size: 8.5px; margin-top: 1px; }
 
 .hidden-handle {
@@ -621,7 +640,17 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   background: rgba(15, 118, 110, 0.06);
   border-color: rgba(15, 118, 110, 0.22);
 }
-[data-theme="light"] .card-ips { color: #64748b; }
+[data-theme="light"] .if-chip {
+  background: rgba(100, 116, 139, 0.06);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #475569;
+}
+[data-theme="light"] .if-chip.is-open {
+  background: rgba(15, 118, 110, 0.06);
+  border-color: rgba(15, 118, 110, 0.4);
+  color: #1e293b;
+}
+[data-theme="light"] .if-chip .if-ip { color: #0f766e; border-left-color: rgba(15, 118, 110, 0.3); }
 
 [data-theme="light"] .vlan-card {
   background: linear-gradient(150deg,
@@ -658,7 +687,6 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 }
 [data-theme="light"] .edge-if .if-ip { color: #0f766e; }
 [data-theme="light"] .ip-more { color: #94a3b8; }
-[data-theme="light"] .ip-row-grid .ip-col { color: #0f766e; }
 [data-theme="light"] .bfd-tag {
   background: rgba(109, 40, 217, 0.08);
   border-color: rgba(109, 40, 217, 0.4);

@@ -3,8 +3,12 @@
  *
  * グラスモーフィズムカード: role 色のアクセント、ステータスドット、
  * LOD に応じて代表アドレス / AS / VRF チップを出し分ける。
+ * near 以上では L3 IF の名前をチップで並べ、押した IF の IP を開く。
  */
-import { memo } from 'react'
+
+/** カードに並べる IF チップの上限（超えた分は …+n にまとめ、ツールチップに名前を出す）*/
+const MAX_IF_CHIPS = 6
+import { memo, useState } from 'react'
 import { Handle, Position, useStore, type NodeProps } from '@xyflow/react'
 import { roleStyle, vrfColor } from './palette'
 import { Glyph } from './Glyph'
@@ -12,7 +16,7 @@ import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
 import type { CyNodeData, NodeVtep } from '../types/topology'
 import type { VlanEndpoint } from './layout'
-import { l3Name, primaryAddress } from './l3'
+import { l3Name, isVlanIf, primaryAddress } from './l3'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
@@ -51,14 +55,23 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const showAs  = lod !== 'far' && overlays.has('bgp') && nd.local_as
   const showVrf = (lod === 'near' || lod === 'detail') && overlays.has('l3')
   const vrfs = showVrf ? (nd.vrfs ?? []).filter(v => v !== 'vrf-default') : []
-  // detail: 全 IF の IP 一覧（新形式 l3_interfaces 優先、旧 ips にフォールバック）
-  const ipRows: { ifName: string; ip: string }[] =
-    nd.l3_interfaces?.map(e => ({ ifName: l3Name(e), ip: e.ip }))
+  // near 以上: IF チップ（YAML に書かれた順。新形式 l3_interfaces 優先、旧 ips にフォールバック）
+  // SVI は下の vl チップで出すので除く
+  const ifRows: { key: string; ifName: string; ip: string; ipv6?: string }[] =
+    nd.l3_interfaces?.filter(e => !isVlanIf(e))
+      .map(e => ({ key: e.id ?? l3Name(e), ifName: l3Name(e), ip: e.ip, ipv6: e.ipv6 }))
     ?? nd.ips?.map(s => {
       const idx = s.indexOf(':')
-      return { ifName: idx > 0 ? s.slice(0, idx) : '', ip: idx > 0 ? s.slice(idx + 1) : s }
+      const ifName = idx > 0 ? s.slice(0, idx) : ''
+      return { key: s, ifName, ip: idx > 0 ? s.slice(idx + 1) : s }
     }) ?? []
-  const showIps = lod === 'detail' && ipRows.length > 0
+  const showIfs = (lod === 'near' || lod === 'detail') && ifRows.length > 0
+  const [openIfs, setOpenIfs] = useState<Set<string>>(() => new Set())
+  const toggleIf = (key: string) => setOpenIfs(prev => {
+    const next = new Set(prev)
+    if (!next.delete(key)) next.add(key)
+    return next
+  })
 
   // SVI (VLAN IF): この機器が持つ VLAN IF を機器カードに表示
   //   通常: L2+L3 overlay ON かつ near 以上で全 SVI タグ
@@ -182,15 +195,30 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
         </div>
       )}
 
-      {showIps && (
-        <div className="card-ips">
-          {ipRows.slice(0, 6).map(({ ifName, ip }) => (
-            <div key={ifName + ip} className="ip-row-grid">
-              <span className="if-col">{ifName}</span>
-              <span className="ip-col">{ip}</span>
-            </div>
-          ))}
-          {ipRows.length > 6 && <div className="ip-more">{t.moreIfs(ipRows.length - 6)}</div>}
+      {/* IF チップ: 押すとその IF の IP を開く（もう一度押すと閉じる）*/}
+      {showIfs && (
+        <div className="card-ifs">
+          {ifRows.slice(0, MAX_IF_CHIPS).map(r => {
+            const open = openIfs.has(r.key)
+            return (
+              <button key={r.key} type="button"
+                className={`if-chip nodrag${open ? ' is-open' : ''}`}
+                title={open ? t.hideIp : t.showIp}
+                onClick={e => {
+                  e.stopPropagation()
+                  toggleIf(r.key)
+                }}>
+                <span className="if-name">{r.ifName}</span>
+                {open && <span className="if-ip">{r.ip}</span>}
+                {open && r.ipv6 && <span className="if-ip">{r.ipv6}</span>}
+              </button>
+            )
+          })}
+          {ifRows.length > MAX_IF_CHIPS && (
+            <span className="ip-more" title={ifRows.slice(MAX_IF_CHIPS).map(r => r.ifName).join(', ')}>
+              …+{ifRows.length - MAX_IF_CHIPS}
+            </span>
+          )}
         </div>
       )}
     </div>
