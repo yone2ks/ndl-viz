@@ -2,7 +2,8 @@
  * DeviceNode — ネットワーク機器の HTML カードノード
  *
  * グラスモーフィズムカード: role 色のアクセント、ステータスドット、
- * LOD に応じて代表アドレス / AS / VRF チップを出し分ける。
+ * LOD に応じて AS / VRF チップを出し分ける。ノードの代表アドレスは出さない
+ * （どれが代表かは MLNDL に書かれていない。IP は IF チップで見る）。
  * near 以上では L3 IF の名前をチップで並べ、押した IF の IP を開く。
  */
 
@@ -16,7 +17,7 @@ import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
 import type { CyNodeData, NodeVtep } from '../types/topology'
 import type { VlanEndpoint } from './layout'
-import { l3Name, isVlanIf, primaryAddress } from './l3'
+import { l3Name, isVlanIf } from './l3'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
@@ -44,11 +45,9 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
     ? (nd.l3_interfaces ?? []).filter(e =>
         (e.ip + ' ' + l3Name(e)).toLowerCase().includes(query.toLowerCase()))
     : []
-  const primary = primaryAddress(nd)
-  const showIp  = lod !== 'far' && overlays.has('l3') && primary
-  // ループバックを持たない端末（ホスト等）は、唯一の L3 IF のアドレスをオーバーレイによらず出す
+  // L3 IF が 1 つだけの端末（ホスト等）は、そのアドレスをオーバーレイによらず出す
   const ownIfs = (nd.l3_interfaces ?? []).filter(e => e.ip)
-  const hostIp = !primary && ownIfs.length === 1 && lod !== 'far' ? ownIfs[0].ip : undefined
+  const hostIp = ownIfs.length === 1 && lod !== 'far' ? ownIfs[0].ip : undefined
   // 選択中の VLAN の端点なら、その IF と IP をカードに出す（hostIp はそちらに任せる。ADR-0013 D7）
   const endpoints = groupEndpoints(focusVlanId ? vlanEndpoints.get(focusVlanId)?.get(id) ?? [] : [])
   const showHostIp = !!hostIp && !endpoints.some(g => g.ip)
@@ -152,9 +151,8 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
         </div>
       )}
 
-      {(showIp || showHostIp || vrfs.length > 0) && (
+      {(showHostIp || vrfs.length > 0) && (
         <div className="card-net">
-          {showIp && <span className="ip-mono">{primary}</span>}
           {showHostIp && <span className="ip-mono" title={l3Name(ownIfs[0])}>{hostIp}</span>}
           {vrfs.map(v => (
             <span key={v} className="badge badge-vrf"

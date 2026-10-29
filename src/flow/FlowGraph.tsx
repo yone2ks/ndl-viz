@@ -18,7 +18,7 @@ import { GraphOverlays } from './GraphOverlays'
 import { VxlanTunnels } from './VxlanTunnels'
 import { FlowCtx, type FlowCtxValue } from './FlowCtx'
 import { roleStyle } from './palette'
-import { l3Name, primaryAddress } from './l3'
+import { l3Name } from './l3'
 import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData } from '../types/topology'
 import './flow.css'
 
@@ -35,7 +35,7 @@ interface Props {
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
   const parts: (string | number | undefined)[] = [
-    d.id, d.label, d.role, primaryAddress(d), d.subnet, d.gateway, d.vrf_name, d.vlan_id, d.vni, d.local_as,
+    d.id, d.label, d.role, d.lo_ip, d.subnet, d.gateway, d.vrf_name, d.vlan_id, d.vni, d.local_as,
     ...(d.vrfs ?? []), ...(d.vlans ?? []), ...(d.ips ?? []),
     ...(d.l3_interfaces ?? []).flatMap(e => [l3Name(e), e.ip, e.ipv6, e.vrf, e.vlan]),
   ]

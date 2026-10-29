@@ -35,7 +35,7 @@ export interface CyNodeData {
   vlan_id?: number
   vni?: number
   // L3 埋め込みデータ
-  lo_ip?: string     // 旧キー: 代表アドレス。新しい出力では flow/l3.ts の primaryAddress で選ぶ
+  lo_ip?: string     // 旧キー: exporter が選んだ代表アドレス。カードには出さない（検索の対象にだけ入れる）
   /** 構造化 L3 IF 一覧（mlndl exporter 新形式）*/
   l3_interfaces?: L3IfEntry[]
   /** 旧形式 "ifname:ip" 文字列配列（後方互換フォールバック）*/
