@@ -135,6 +135,8 @@ body {
   outline: none;
   font-family: 'SF Mono', monospace;
 }
+/* 検索語は残っているが強調を外している状態（キャンバスを押した後）*/
+.search-box input.is-inactive { color: var(--text-muted); }
 .search-box input::placeholder { color: var(--text-dim); font-family: -apple-system, sans-serif; }
 .search-clear {
   border: none;

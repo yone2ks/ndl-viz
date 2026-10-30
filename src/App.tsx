@@ -22,6 +22,9 @@ export default function App() {
   const [selected, setSelected] = useState<{ data: CyNodeData | CyEdgeData } | null>(null)
   const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [query, setQuery] = useState('')
+  // 検索の強調（非マッチの減光・マッチへのセンタリング）を効かせるか。キャンバスを押したら外し、
+  // 検索語は残す（検索欄に戻れば同じ語で強調し直せる）
+  const [searchActive, setSearchActive] = useState(true)
   const [lang, setLang] = useState<Lang>(initialLang)
   const t = MESSAGES[lang]
 
@@ -97,9 +100,12 @@ export default function App() {
           <span className="search-icon">⌕</span>
           <input
             type="text"
+            className={query && !searchActive ? 'is-inactive' : undefined}
             placeholder={t.searchPlaceholder}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onFocus={() => setSearchActive(true)}
+            onChange={e => { setQuery(e.target.value); setSearchActive(true) }}
+            onKeyDown={e => { if (e.key === 'Escape') { setSearchActive(false); e.currentTarget.blur() } }}
           />
           {query && (
             <button className="search-clear" onClick={() => setQuery('')} data-tip={t.clear} aria-label={t.clear}>×</button>
@@ -139,7 +145,8 @@ export default function App() {
 
       <div className="main">
         {data ? (
-          <FlowGraph data={data} overlays={overlays} query={query} onSelect={setSelected} />
+          <FlowGraph data={data} overlays={overlays} query={searchActive ? query : ''} onSelect={setSelected}
+            onCanvasClick={() => setSearchActive(false)} />
         ) : (
           <div className="graph-container">
             <div className="drop-overlay">

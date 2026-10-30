@@ -30,6 +30,8 @@ interface Props {
   overlays: Set<OverlayKey>
   query: string
   onSelect: (el: { data: CyNodeData | CyEdgeData } | null) => void
+  /** ノード・エッジ・空白を押したとき（検索の強調を外すのに使う）*/
+  onCanvasClick?: () => void
 }
 
 /** ノード data から検索対象テキストを連結（小文字）*/
@@ -42,7 +44,7 @@ function nodeSearchText(d: CyNodeData): string {
   return parts.filter(Boolean).join(' ').toLowerCase()
 }
 
-function FlowGraphInner({ data, overlays, query, onSelect }: Props) {
+function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Props) {
   const graph = useMemo(() => buildFlow(data), [data])
   const { setCenter, getZoom, fitView } = useReactFlow()
 
@@ -125,6 +127,7 @@ function FlowGraphInner({ data, overlays, query, onSelect }: Props) {
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
+    onCanvasClick?.()
     setFocusVlanId(node.type === 'vlan' ? node.id : null)
     setFocusVniId(null)
     // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる
@@ -133,13 +136,14 @@ function FlowGraphInner({ data, overlays, query, onSelect }: Props) {
       setCenter(node.position.x + w / 2, node.position.y + h / 2,
         { zoom: Math.max(getZoom(), 1.1), duration: 450 })
     }
-  }, [onSelect, setCenter, getZoom])
+  }, [onSelect, onCanvasClick, setCenter, getZoom])
 
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
     onSelect({ data: edge.data as unknown as CyEdgeData })
+    onCanvasClick?.()
     setFocusVlanId(null)
     setFocusVniId(null)
-  }, [onSelect])
+  }, [onSelect, onCanvasClick])
 
   return (
     <FlowCtx.Provider value={ctx}>
@@ -156,7 +160,7 @@ function FlowGraphInner({ data, overlays, query, onSelect }: Props) {
         proOptions={{ hideAttribution: true }}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
-        onPaneClick={() => { onSelect(null); setFocusVlanId(null); setFocusVniId(null) }}
+        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}
