@@ -41,7 +41,7 @@ export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps
             return (
               <button key={v.id} type="button"
                 className={`vni-tab${v.type === 'l3vni' ? ' is-l3' : ''}${active ? ' is-active' : ''}`}
-                title={t.vniTunnel(v.id)}
+                data-tip={t.vniTunnel(v.id)}
                 onClick={e => {
                   e.stopPropagation()
                   setFocusVniId(active ? null : v.id)

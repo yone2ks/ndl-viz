@@ -413,3 +413,28 @@ body {
   .fog-able, .ov-able { transition: none; }
   .sel-pulse, .lod-enter, .lod-fade, .build-in, .build-line { animation: none; }
 }
+
+/* ── ツールチップ（components/Tooltip.tsx。data-tip を持つ要素に出す）── */
+.app-tooltip {
+  position: fixed;
+  z-index: 1000;
+  transform: translateX(-50%);
+  max-width: 320px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  color: #e2e8f0;
+  font: 500 11px/1.5 'Inter', -apple-system, 'SF Pro', sans-serif;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.app-tooltip.is-above { transform: translate(-50%, -100%); }
+[data-theme="light"] .app-tooltip {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(100, 116, 139, 0.3);
+  box-shadow: 0 6px 18px rgba(30, 41, 80, 0.15);
+  color: #1e293b;
+}

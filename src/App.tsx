@@ -3,13 +3,16 @@ import { I18nCtx, MESSAGES, initialLang, saveLang, type Lang } from './i18n'
 import FlowGraph from './flow/FlowGraph'
 import PropertiesPanel from './components/PropertiesPanel'
 import FileLoader from './components/FileLoader'
+import Tooltip from './components/Tooltip'
 import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData } from './types/topology'
 import './styles/index.css'
 
-const OVERLAY_DEFS: { key: OverlayKey; label: string; color: string }[] = [
-  { key: 'l2',  label: 'L2 VLAN',  color: '#FBBF24' },
-  { key: 'l3',  label: 'L3 Routing', color: '#34D399' },
-  { key: 'bgp', label: 'BGP',      color: '#FB923C' },
+// ボタンは MLNDL の YAML の区分（layer1 / layer2 / layer3 / protocols.bgp）で切る。中身はツールチップで示す
+// （"Layer" と番号の間はノーブレークスペース。狭い幅でも 2 行に割らない）
+const OVERLAY_DEFS: { key: OverlayKey; label: string; color: string; tip: 'tipLayer2' | 'tipLayer3' | 'tipBgp' }[] = [
+  { key: 'l2',  label: 'Layer\u00a02', color: '#FBBF24', tip: 'tipLayer2' },
+  { key: 'l3',  label: 'Layer\u00a03', color: '#34D399', tip: 'tipLayer3' },
+  { key: 'bgp', label: 'BGP',     color: '#FB923C', tip: 'tipBgp' },
 ]
 
 export default function App() {
@@ -99,21 +102,22 @@ export default function App() {
             onChange={e => setQuery(e.target.value)}
           />
           {query && (
-            <button className="search-clear" onClick={() => setQuery('')} title={t.clear}>×</button>
+            <button className="search-clear" onClick={() => setQuery('')} data-tip={t.clear} aria-label={t.clear}>×</button>
           )}
         </div>
 
         <div className="layer-selector">
-          <span className="layer-btn layer-fixed">
+          <span className="layer-btn layer-fixed" data-tip={t.tipLayer1}>
             <span className="dot" style={{ background: '#60A5FA' }} />
-            L1 Physical
+            Layer&nbsp;1
           </span>
-          {OVERLAY_DEFS.map(({ key, label, color }) => {
+          {OVERLAY_DEFS.map(({ key, label, color, tip }) => {
             const active = overlays.has(key)
             return (
               <button key={key}
                 className={`layer-btn ${active ? 'active' : ''}`}
                 style={active ? ({ '--chip': color } as React.CSSProperties) : undefined}
+                data-tip={t[tip]}
                 onClick={() => toggleOverlay(key)}>
                 <span className="dot" style={{ background: color, opacity: active ? 1 : 0.35 }} />
                 {label}
@@ -123,11 +127,11 @@ export default function App() {
         </div>
 
         <button className="theme-btn" onClick={() => setTheme(th => th === 'dark' ? 'light' : 'dark')}
-          title={t.toggleTheme}>
+          data-tip={t.toggleTheme} aria-label={t.toggleTheme}>
           {theme === 'light' ? '🌙' : '☀️'}
         </button>
         <button className="theme-btn lang-btn" onClick={() => setLang(l => l === 'ja' ? 'en' : 'ja')}
-          title={t.switchLang}>
+          data-tip={t.switchLang} aria-label={t.switchLang}>
           {lang === 'ja' ? 'EN' : 'JA'}
         </button>
         <FileLoader onLoad={handleLoad} />
@@ -151,6 +155,7 @@ export default function App() {
         {selected && <PropertiesPanel selected={selected} />}
       </div>
     </div>
+    <Tooltip />
     </I18nCtx.Provider>
   )
 }

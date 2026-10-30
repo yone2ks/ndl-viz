@@ -122,7 +122,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
                 <button key={r.vlanId} type="button"
                   className={`vlan-rail-chip${focusVlanId === r.vlanId ? ' is-focused' : ''}`}
                   style={{ '--rail': `hsl(${r.hue}, 75%, 48%)` } as React.CSSProperties}
-                  title={t.vlanFocus(r.vlanNum)}
+                  data-tip={t.vlanFocus(r.vlanNum)}
                   onClick={e => {
                     e.stopPropagation()
                     setFocusVlanId(focusVlanId === r.vlanId ? null : r.vlanId)
