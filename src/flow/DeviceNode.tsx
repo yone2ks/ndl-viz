@@ -5,10 +5,13 @@
  * LOD に応じて AS / VRF チップを出し分ける。ノードの代表アドレスは出さない
  * （どれが代表かは MLNDL に書かれていない。IP は IF チップで見る）。
  * near 以上では L3 IF の名前をチップで並べ、押した IF の IP を開く。
+ * カードの中の要素にはツールチップを付けない（カードの下の要素に重なって邪魔になる）。
  */
 
 /** カードに並べる IF チップの上限（超えた分は …+n にまとめ、ツールチップに名前を出す）*/
 const MAX_IF_CHIPS = 6
+/** SVI（vl）チップの上限。選択中の VLAN のチップは上限を超えていても出す */
+const MAX_SVI_CHIPS = 6
 import { memo, useState } from 'react'
 import { Handle, Position, useStore, type NodeProps } from '@xyflow/react'
 import { roleStyle, vrfColor } from './palette'
@@ -82,6 +85,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
     : focusVlanId
       ? sviEntries.filter(([v]) => v === focusVlanId)
       : []
+  const shownSvis = svis.filter(([v], i) => i < MAX_SVI_CHIPS || v === focusVlanId)
 
   return (
     <div
@@ -110,8 +114,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       {vteps.length > 0 && (
         <div className="card-vteps">
           {vteps.map(v => (
-            <span key={v.id} className={`badge badge-vtep${vniFocusNodes?.has(id) ? ' is-focused' : ''}`}
-              data-tip={`${v.id} (${v.source})${v.shared_with ? ` — ${t.sharedWith(v.shared_with.join(', '))}` : ''}`}>
+            <span key={v.id} className={`badge badge-vtep${vniFocusNodes?.has(id) ? ' is-focused' : ''}`}>
               VTEP {(v.address ?? v.address_v6 ?? v.source).replace(/\/(32|128)$/, '')}
             </span>
           ))}
@@ -119,17 +122,11 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       )}
 
       {focusVlanId && endpoints.map(g => {
-        const via = g.via.join(', ')
-        const why = g.resolution === 'direct' ? t.epDirect(via)
-          : g.resolution === 'tag_match' ? t.epTagMatch(via)
-          : g.resolution === 'ambiguous' ? t.epAmbiguous(g.candidates?.length ?? 0)
-          : t.epNoL3(via)
         return (
           <div key={g.key} className={`card-vlan-endpoint is-${g.resolution}`}
-            style={{ '--vh': vlanHue.get(focusVlanId) ?? 40 } as React.CSSProperties}
-            data-tip={`${t.epOnVlan(focusVlanId.replace(/^vlan-/, ''))} — ${why}\n${t.epPhysical(g.interfaceNames.join(', '))}`}>
+            style={{ '--vh': vlanHue.get(focusVlanId) ?? 40 } as React.CSSProperties}>
             {/* ホストの IF は VLAN を設定しているわけではない (VLAN のポートはスイッチ側。ADR-0013 D7) ので、
-                VLAN 番号は出さず、枠の色とツールチップで VLAN との対応を示す */}
+                VLAN 番号は出さず、枠の色で VLAN との対応を、枠線の種類で確かさ（推定は破線）を示す */}
             <code>{g.name ?? g.interfaceNames.join(', ')}</code>
             {g.ip && <span className="vlan-ep-ip">{g.ip}</span>}
             {g.ipv6 && <span className="vlan-ep-ip">{g.ipv6}</span>}
@@ -153,7 +150,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
 
       {(showHostIp || vrfs.length > 0) && (
         <div className="card-net">
-          {showHostIp && <span className="ip-mono" data-tip={l3Name(ownIfs[0])}>{hostIp}</span>}
+          {showHostIp && <span className="ip-mono">{hostIp}</span>}
           {vrfs.map(v => (
             <span key={v} className="badge badge-vrf"
               style={{ '--vrf': vrfColor(v) } as React.CSSProperties}>
@@ -167,11 +164,8 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
           IP はフォーカス時にレール端点へ表示するため、ここでは VLAN タグのみ */}
       {svis.length > 0 && (
         <div className="card-svis">
-          {svis
-            // フォーカス中はその VLAN のチップを先頭に（IP を併記して目立たせる）
-            .sort(([a], [b]) => (a === focusVlanId ? -1 : b === focusVlanId ? 1 : 0))
-            .slice(0, focusVlanId ? 8 : 6)
-            .map(([vlanId, ip]) => {
+          {/* 並びは固定（選んだチップを先頭に動かすと、押した場所からチップが逃げる）*/}
+          {shownSvis.map(([vlanId, ip]) => {
               const hue = vlanHue.get(vlanId)!
               const num = vlanId.replace(/^vlan-/, '')
               const focused = focusVlanId === vlanId
@@ -179,7 +173,6 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
                 <button key={vlanId} type="button"
                   className={`svi-chip${focused ? ' is-focused' : ''}`}
                   style={{ '--vh': hue } as React.CSSProperties}
-                  data-tip={t.sviFocus(num, ip)}
                   onClick={e => {
                     e.stopPropagation()
                     setFocusVlanId(focused ? null : vlanId)
@@ -189,7 +182,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
                 </button>
               )
             })}
-          {!focusVlanId && svis.length > 6 && <span className="ip-more">…+{svis.length - 6}</span>}
+          {svis.length > shownSvis.length && <span className="ip-more">…+{svis.length - shownSvis.length}</span>}
         </div>
       )}
 
@@ -201,7 +194,6 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
             return (
               <button key={r.key} type="button"
                 className={`if-chip nodrag${open ? ' is-open' : ''}`}
-                data-tip={open ? t.hideIp : t.showIp}
                 onClick={e => {
                   e.stopPropagation()
                   toggleIf(r.key)
@@ -213,7 +205,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
             )
           })}
           {ifRows.length > MAX_IF_CHIPS && (
-            <span className="ip-more" data-tip={ifRows.slice(MAX_IF_CHIPS).map(r => r.ifName).join(', ')}>
+            <span className="ip-more">
               …+{ifRows.length - MAX_IF_CHIPS}
             </span>
           )}
