@@ -92,14 +92,13 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   // ── サイト検出: WAN リンクを除いた L1 物理リンクの連結成分 ──
   const intraLinks = allEdges.filter(d =>
     d.type === 'link' && d.link_role !== 'wan' && idSet.has(d.source) && idSet.has(d.target))
-  // dagre レイアウト用: peer-link（横断リンク）は除外。同一ティアノード間の辺が
-  // dagre に渡ると一方が1ランク下に落ちるため。
-  const layoutLinks = intraLinks.filter(d => d.link_role !== 'peer-link')
-  const adjL1 = new Map<string, string[]>()
-  l1Nodes.forEach(nd => adjL1.set(nd.id, []))
+  // 段の決め方はリンクの書き順（source / target）を見ない（ADR-0006: 物理リンクは無向）
+  const adjL1 = new Map<string, Set<string>>()
+  l1Nodes.forEach(nd => adjL1.set(nd.id, new Set()))
   intraLinks.forEach(d => {
-    adjL1.get(d.source)!.push(d.target)
-    adjL1.get(d.target)!.push(d.source)
+    if (d.source === d.target) return
+    adjL1.get(d.source)!.add(d.target)
+    adjL1.get(d.target)!.add(d.source)
   })
   const siteOf = new Map<string, number>()
   let siteCount = 0
@@ -116,48 +115,28 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     }
   }
 
-  // ── サイトごとに独立 dagre レイアウト → 横並びに配置 ──
+  // ── サイトごとに段とファブリックを決めて配置 → 横並びに配置 ──
+  const roleOf = new Map(l1Nodes.map(nd => [nd.id, nd.role ?? '']))
+  const mlagClients = findMlagClients(allEdges)
   const pos = new Map<string, { x: number; y: number }>()   // 全体中心座標
-  const rankOf = new Map<string, number>()
+  const tierOf = new Map<string, number>()
   const sites: SiteInfo[] = []
   let offsetX = 0
   let globalMaxY = 0
 
   for (let si = 0; si < siteCount; si++) {
-    const g = new Dagre.graphlib.Graph()
-    g.setGraph({ rankdir: 'TB', nodesep: 90, ranksep: 170, marginx: 40, marginy: 40 })
-    g.setDefaultEdgeLabel(() => ({}))
-    const siteNodes = l1Nodes.filter(nd => siteOf.get(nd.id) === si)
-    siteNodes.forEach(nd => g.setNode(nd.id, { width: CARD_W + 50, height: CARD_H + 40 }))
-    const seen = new Set<string>()
-    layoutLinks.forEach(d => {
-      if (siteOf.get(d.source) !== si) return
-      const key = [d.source, d.target].sort().join('|')
-      if (!seen.has(key)) { seen.add(key); g.setEdge(d.source, d.target) }
-    })
-    Dagre.layout(g)
-
-    let minX = Infinity, maxX = -Infinity, minY = Infinity
-    siteNodes.forEach(nd => {
-      const dn = g.node(nd.id) as { x: number; y: number } | undefined
-      if (!dn) return
-      minX = Math.min(minX, dn.x); maxX = Math.max(maxX, dn.x); minY = Math.min(minY, dn.y)
-    })
-    if (!Number.isFinite(minX)) { minX = 0; maxX = 0; minY = 0 }
-
+    const siteIds = l1Nodes.filter(nd => siteOf.get(nd.id) === si).map(nd => nd.id)
+    const laid = layoutSite(siteIds, roleOf, adjL1, mlagClients)
     const roleSet = new Set<string>()
-    let siteMaxY = 0
-    siteNodes.forEach(nd => {
-      const dn = g.node(nd.id) as { x: number; y: number; rank?: number } | undefined
-      if (!dn) return
-      const x = dn.x - minX + offsetX + CARD_W / 2  // 左端を offsetX へ
-      const y = dn.y - minY + CARD_H / 2 + 40        // 上端を 40 へ
-      pos.set(nd.id, { x, y })
-      if (dn.rank != null) rankOf.set(nd.id, dn.rank)
-      roleSet.add(nd.role ?? 'unknown')
-      siteMaxY = Math.max(siteMaxY, y + CARD_H / 2)
+    let siteW = 0, siteMaxY = 0
+    siteIds.forEach(id => {
+      const c = laid.pos.get(id)!
+      pos.set(id, { x: c.x + offsetX, y: c.y })
+      tierOf.set(id, laid.tierOf.get(id)!)
+      roleSet.add(roleOf.get(id) || 'unknown')
+      siteW = Math.max(siteW, c.x + CARD_W / 2)
+      siteMaxY = Math.max(siteMaxY, c.y + CARD_H / 2)
     })
-    const siteW = (maxX - minX) + CARD_W
     sites.push({
       id: si, label: deriveSiteLabel(roleSet, si),
       xLeft: offsetX, yTop: 0, xRight: offsetX + siteW, yBot: siteMaxY,
@@ -181,7 +160,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   // ── Tier 帯（サイト × rank ごと。X 範囲はサイト幅）──
   const tierGroups = new Map<string, { ys: number[]; roles: string[]; site: number; rank: number }>()
   l1Nodes.forEach(nd => {
-    const rank = rankOf.get(nd.id)
+    const rank = tierOf.get(nd.id)
     const c = pos.get(nd.id)
     if (rank == null || !c) return
     const site = siteOf.get(nd.id)!
@@ -214,9 +193,19 @@ export function buildFlow(data: TopologyData): FlowGraphData {
       pairMap.get(key)!.push(d)
     })
 
+  // 同じ段の離れた機器どうしのリンク（間に同じ段の別の機器がある）は、カードを突き抜けないよう上を回して描く
+  const detour = (a: string, b: string) => {
+    const t = tierOf.get(a)
+    if (t == null || t !== tierOf.get(b) || siteOf.get(a) !== siteOf.get(b)) return false
+    const [lo, hi] = [centerOf(a).x, centerOf(b).x].sort((p, q) => p - q)
+    return l1Nodes.some(nd => nd.id !== a && nd.id !== b && tierOf.get(nd.id) === t
+      && siteOf.get(nd.id) === siteOf.get(a) && centerOf(nd.id).x > lo && centerOf(nd.id).x < hi)
+  }
+
   const adjacency = new Map<string, Set<string>>()
   const edges: Edge[] = []
   pairMap.forEach(links => {
+    const around = detour(links[0].source, links[0].target)
     links.forEach((d, i) => {
       if (!adjacency.has(d.source)) adjacency.set(d.source, new Set())
       if (!adjacency.has(d.target)) adjacency.set(d.target, new Set())
@@ -225,7 +214,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
       edges.push({
         id: d.id, source: d.source, target: d.target, type: 'link',
         data: { ...d, offsetIndex: i, offsetCount: links.length,
-          showLabel: i === Math.floor((links.length - 1) / 2) },
+          showLabel: i === Math.floor((links.length - 1) / 2), detour: around },
       })
     })
   })
@@ -447,34 +436,288 @@ function packPills(pills: Pill[]): { pill: Pill; x: number }[][] {
     row.right = Math.max(row.right, p.want + p.w / 2)
     row.width += p.w
   })
-  return rows.map(r => spreadRow(r.pills))
+  return rows.map(r => spreadRow(r.pills, PILL_GAP_X).map(({ item, x }) => ({ pill: item, x })))
 }
 
 /**
- * 1 段の札を、順序を保ったまま重ならないよう横に並べる。重なる札はまとめて 1 つの塊にし、
- * 塊の位置は各札の本来の位置からのずれの平均が 0 になる所に置く（片側にだけずれない）。
+ * 1 列に並ぶものを、順序を保ったまま重ならないよう横に並べる（VLAN の札・同じ段の機器）。
+ * want は置きたい中心、w は幅、gap は隣との間隔。重なるものはまとめて 1 つの塊にし、
+ * 塊の位置は各要素の本来の位置からのずれの平均が 0 になる所に置く（片側にだけずれない）。
+ * 返す x は左端。row は want の順に並んでいること。
  */
-function spreadRow(row: Pill[]): { pill: Pill; x: number }[] {
-  const blocks: { pills: Pill[]; w: number; left: number }[] = []
+function spreadRow<T extends { want: number; w: number }>(row: T[], gap: number): { item: T; x: number }[] {
+  const blocks: { items: T[]; w: number; left: number }[] = []
   row.forEach(p => {
-    let b = { pills: [p], w: p.w, left: p.want - p.w / 2 }
+    let b = { items: [p], w: p.w, left: p.want - p.w / 2 }
     while (blocks.length) {
       const prev = blocks[blocks.length - 1]
-      if (prev.left + prev.w + PILL_GAP_X <= b.left) break
+      if (prev.left + prev.w + gap <= b.left) break
       blocks.pop()
-      const pills = [...prev.pills, ...b.pills]
+      const items = [...prev.items, ...b.items]
       let off = 0, sum = 0
-      pills.forEach(q => { sum += q.want - q.w / 2 - off; off += q.w + PILL_GAP_X })
-      b = { pills, w: off - PILL_GAP_X, left: sum / pills.length }
+      items.forEach(q => { sum += q.want - q.w / 2 - off; off += q.w + gap })
+      b = { items, w: off - gap, left: sum / items.length }
     }
     blocks.push(b)
   })
   return blocks.flatMap(b => {
     let x = b.left
-    return b.pills.map(pill => {
-      const placed = { pill, x }
-      x += pill.w + PILL_GAP_X
+    return b.items.map(item => {
+      const placed = { item, x }
+      x += item.w + gap
       return placed
     })
   })
+}
+
+// ── 機器の配置: 段（上から何段目か）とファブリックを決めて並べる ──
+
+/**
+ * 最上段にするロール（推奨語彙の解釈。ビューアーの判断で、MLNDL の仕様ではない）。
+ * 数が大きいほど上。サイトに複数あれば、いちばん大きいものだけを最上段にする（super-spine があれば spine は 2 段目）。
+ */
+const TOP_ROLE_LEVEL: Record<string, number> = { 'super-spine': 2, spine: 1, core: 1 }
+/** 段の間隔（カードの高さ + 余白 + 段の間） */
+const ROW_PITCH = CARD_H + 40 + 170
+/** 同じ段の機器の中心どうしの最小間隔 */
+const NODE_PITCH = CARD_W + 50 + 90
+/** ファブリックどうしの間隔（カードの端から端まで） */
+const FABRIC_GAP = 160
+
+type Adj = Map<string, Set<string>>
+
+/** MLAG のクライアント側の機器。MLAG の LAG のすべてのリンクに現れる機器（ペア側は片方のリンクにしか現れない）*/
+function findMlagClients(edges: CyEdgeData[]): Set<string> {
+  const byLag = new Map<string, CyEdgeData[]>()
+  edges.filter(d => d.type === 'link' && d.lag_type === 'mlag' && d.lag_id).forEach(d => {
+    if (!byLag.has(d.lag_id!)) byLag.set(d.lag_id!, [])
+    byLag.get(d.lag_id!)!.push(d)
+  })
+  const clients = new Set<string>()
+  byLag.forEach(links => {
+    const ends = new Set(links.flatMap(d => [d.source, d.target]))
+    if (ends.size < 3) return
+    ends.forEach(n => { if (links.every(d => d.source === n || d.target === n)) clients.add(n) })
+  })
+  return clients
+}
+
+/** srcs からのリンクの段数（set の中だけをたどる）*/
+function hops(srcs: string[], set: Set<string>, adj: Adj): Map<string, number> {
+  const dist = new Map(srcs.map(s => [s, 0]))
+  const queue = [...srcs]
+  for (let i = 0; i < queue.length; i++) {
+    const cur = queue[i]
+    adj.get(cur)?.forEach(n => {
+      if (set.has(n) && !dist.has(n)) { dist.set(n, dist.get(cur)! + 1); queue.push(n) }
+    })
+  }
+  return dist
+}
+
+/**
+ * サイトの段。最上段からのリンクの段数で決める（リンクの書き順は見ない）。最上段は次の順で決める。
+ * 1. ロールが TOP_ROLE_LEVEL にある機器
+ * 2. なければ、端末（つながる相手が 1 台だけの機器と MLAG のクライアント）から上へ数えて最も高い機器
+ * 3. 端末がない・全部が端末（リング・メッシュ・直結だけ等）なら、全部を 1 段に並べる
+ */
+function siteTiers(ids: string[], roleOf: Map<string, string>, adj: Adj, mlagClients: Set<string>): Map<string, number> {
+  const set = new Set(ids)
+  const levelOf = (id: string) => TOP_ROLE_LEVEL[roleOf.get(id) ?? ''] ?? 0
+  const top = Math.max(0, ...ids.map(levelOf))
+  let roots: string[]
+  if (top > 0) {
+    roots = ids.filter(id => levelOf(id) === top)
+  } else {
+    const ends = ids.filter(id => [...adj.get(id)!].filter(n => set.has(n)).length <= 1 || mlagClients.has(id))
+    if (ends.length === 0 || ends.length === ids.length) {
+      roots = ids
+    } else {
+      const height = hops(ends, set, adj)
+      const max = Math.max(...height.values())
+      roots = ids.filter(id => height.get(id) === max)
+    }
+  }
+  return hops(roots, set, adj)
+}
+
+/**
+ * サイトをファブリックに分ける。最上段の機器のうち、直接つながるもの・下の段の相手の半分以上を共有するもの
+ * （同じ leaf につながる spine どうし）を 1 つのファブリックにする。ほかの機器は、1 つ上の段の相手が
+ * 最も多く属するファブリックに入れる（どの機器も、同じファブリックに 1 つ上の段の相手を持つ）。
+ */
+function siteFabrics(ids: string[], tierOf: Map<string, number>, adj: Adj): Map<string, number> {
+  const roots = ids.filter(id => tierOf.get(id) === 0)
+  const children = new Map(roots.map(r => [r, [...adj.get(r)!].filter(n => tierOf.get(n) === 1)]))
+  const parent = new Map(roots.map(r => [r, r]))
+  const find = (r: string): string => parent.get(r) === r ? r : find(parent.get(r)!)
+  roots.forEach((a, i) => roots.slice(i + 1).forEach(b => {
+    const ca = children.get(a)!, cb = children.get(b)!
+    const shared = ca.filter(n => cb.includes(n)).length
+    const small = Math.min(ca.length, cb.length)
+    if (adj.get(a)!.has(b) || (small > 0 && shared * 2 >= small)) parent.set(find(b), find(a))
+  }))
+  const fabricOf = new Map<string, number>()
+  const index = new Map<string, number>()
+  roots.forEach(r => {
+    const k = find(r)
+    if (!index.has(k)) index.set(k, index.size)
+    fabricOf.set(r, index.get(k)!)
+  })
+  ;[...ids].filter(id => tierOf.get(id)! > 0)
+    .sort((a, b) => tierOf.get(a)! - tierOf.get(b)!)
+    .forEach(id => {
+      const count = new Map<number, number>()
+      adj.get(id)!.forEach(n => {
+        if (tierOf.get(n) !== tierOf.get(id)! - 1) return
+        const f = fabricOf.get(n)!
+        count.set(f, (count.get(f) ?? 0) + 1)
+      })
+      const best = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]
+      fabricOf.set(id, best?.[0] ?? 0)
+    })
+  return fabricOf
+}
+
+/** 段ごとに、x の小さい順に並べた機器 */
+function rowsOf(ids: string[], tierOf: Map<string, number>, x: Map<string, number>): string[][] {
+  const rows: string[][] = []
+  ids.forEach(id => (rows[tierOf.get(id)!] ??= []).push(id))
+  return rows.map(r => (r ?? []).sort((a, b) => x.get(a)! - x.get(b)!))
+}
+
+/** 段の並びを order に置き換える（位置は今の位置の組をそのまま使う）*/
+function reorderRow(row: string[], order: string[], x: Map<string, number>): boolean {
+  if (order.every((id, i) => id === row[i])) return false
+  const slots = row.map(id => x.get(id)!)
+  order.forEach((id, i) => x.set(id, slots[i]))
+  return true
+}
+
+/**
+ * ファブリックの中の横の位置。dagre で並び（線の交差が少ない順）を決め、左右の向きをそろえてから、
+ * 上の段を下の段の幅に均等に広げる。side(id) は、その機器のファブリック間のリンクの相手がいる向き
+ * （左なら負、右なら正、なければ 0）。
+ */
+function layoutFabric(ids: string[], tierOf: Map<string, number>, adj: Adj,
+  side: (id: string) => number): Map<string, number> {
+  const set = new Set(ids)
+  const below = (id: string) => [...adj.get(id)!].filter(n => set.has(n) && tierOf.get(n) === tierOf.get(id)! + 1)
+  const above = (id: string) => [...adj.get(id)!].filter(n => set.has(n) && tierOf.get(n) === tierOf.get(id)! - 1)
+
+  // dagre: 1 段下の相手にだけ辺を張る（同じ段どうしのリンク・ほかのファブリックへのリンクは渡さない）
+  const g = new Dagre.graphlib.Graph()
+  g.setGraph({ rankdir: 'TB', nodesep: 90, ranksep: 170 })
+  g.setDefaultEdgeLabel(() => ({}))
+  ids.forEach(id => g.setNode(id, { width: CARD_W + 50, height: CARD_H + 40 }))
+  ids.forEach(id => below(id).forEach(n => g.setEdge(id, n)))
+  Dagre.layout(g)
+  const x = new Map(ids.map(id => [id, (g.node(id) as { x: number }).x]))
+
+  // 名前の順（leaf1, leaf2, …）と逆に並んだら左右を反転する。比べるのは末尾の番号だけが違う機器どうし
+  const natural = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+  const stem = (id: string) => id.replace(/\d+$/, '')
+  let score = 0
+  rowsOf(ids, tierOf, x).forEach(row => row.forEach((a, i) => row.slice(i + 1).forEach(b => {
+    if (stem(a) === stem(b)) score += natural(a, b) < 0 ? 1 : -1
+  })))
+  if (score < 0) ids.forEach(id => x.set(id, -x.get(id)!))
+
+  // ファブリック間のリンクを持つ機器を、相手のファブリックに面した端へ寄せる。
+  // 並びが変わった段より下は、1 つ上の段の相手の平均の位置に置き直す（子が親についていく）
+  let changed = false
+  rowsOf(ids, tierOf, x).forEach(row => {
+    if (changed) {
+      const want = (id: string) => {
+        const ps = above(id)
+        return ps.length ? ps.reduce((s, p) => s + x.get(p)!, 0) / ps.length : x.get(id)!
+      }
+      const items = row.map(id => ({ id, want: want(id), w: NODE_PITCH }))
+        .sort((a, b) => a.want - b.want || x.get(a.id)! - x.get(b.id)!)
+      spreadRow(items, 0).forEach(({ item, x: left }) => x.set(item.id, left + NODE_PITCH / 2))
+      row.sort((a, b) => x.get(a)! - x.get(b)!)
+    }
+    const order = [...row.filter(id => side(id) < 0), ...row.filter(id => side(id) === 0), ...row.filter(id => side(id) > 0)]
+    if (reorderRow(row, order, x)) changed = true
+  })
+
+  // 下の段から順に、上の段を下の段の幅に広げる。下の段の相手の組が同じ機器（同じ leaf につながる spine）は
+  // その相手の幅に均等に並べ、1 台なら相手の真ん中に置く。下に相手がない機器は今の位置のまま
+  const rows = rowsOf(ids, tierOf, x)
+  for (let t = rows.length - 2; t >= 0; t--) {
+    const groups = new Map<string, string[]>()
+    rows[t].forEach(id => {
+      const key = below(id).sort().join('|')
+      if (!groups.has(key)) groups.set(key, [])
+      groups.get(key)!.push(id)
+    })
+    const want = new Map<string, number>()
+    groups.forEach((members, key) => {
+      if (!key) { members.forEach(id => want.set(id, x.get(id)!)); return }
+      const xs = below(members[0]).map(n => x.get(n)!)
+      const lo = Math.min(...xs), hi = Math.max(...xs)
+      members.forEach((id, i) => want.set(id, lo + (hi - lo) * (i + 0.5) / members.length))
+    })
+    const items = rows[t].map(id => ({ id, want: want.get(id)!, w: NODE_PITCH }))
+      .sort((a, b) => a.want - b.want || x.get(a.id)! - x.get(b.id)!)
+    spreadRow(items, 0).forEach(({ item, x: left }) => x.set(item.id, left + NODE_PITCH / 2))
+    rows[t].sort((a, b) => x.get(a)! - x.get(b)!)
+  }
+  return x
+}
+
+/**
+ * ファブリックを横に並べる順。隣り合うファブリックどうしのリンクの数が最も多くなる順を選ぶ
+ * （数珠つなぎなら順に、離れたものどうしのリンクは間を回る線になる）。同じなら番号の順。
+ */
+function fabricOrder(n: number, weight: (a: number, b: number) => number): number[] {
+  const base = [...Array(n).keys()]
+  if (n <= 2) return base
+  if (n > 7) return base
+  let best = base, bestScore = -1
+  const permute = (prefix: number[], rest: number[]) => {
+    if (!rest.length) {
+      const score = prefix.slice(1).reduce((s, f, i) => s + weight(prefix[i], f), 0)
+      if (score > bestScore) { best = prefix; bestScore = score }
+      return
+    }
+    rest.forEach((f, i) => permute([...prefix, f], [...rest.slice(0, i), ...rest.slice(i + 1)]))
+  }
+  permute([], base)
+  return best
+}
+
+/**
+ * サイトの機器の位置（中心）。x は左端の機器のカードの左端が 0、y は最上段のカードの上端が 40。
+ * 段はロール・端末から決め（siteTiers）、ファブリックごとに並べてから横に並べる。
+ * ファブリックどうしは、つながる相手に border を向けて隣り合わせる。
+ */
+function layoutSite(ids: string[], roleOf: Map<string, string>, adj: Adj, mlagClients: Set<string>) {
+  const tierOf = siteTiers(ids, roleOf, adj, mlagClients)
+  const fabricOf = siteFabrics(ids, tierOf, adj)
+  const nFabric = Math.max(...ids.map(id => fabricOf.get(id)!)) + 1
+  const members = [...Array(nFabric)].map((_, f) => ids.filter(id => fabricOf.get(id) === f))
+  const links = (a: number, b: number) => members[a].reduce((s, id) =>
+    s + [...adj.get(id)!].filter(n => fabricOf.get(n) === b).length, 0)
+  const order = fabricOrder(nFabric, links)
+  const slot = new Map(order.map((f, i) => [f, i]))
+  const side = (id: string) => [...adj.get(id)!].reduce((s, n) => {
+    const d = slot.get(fabricOf.get(n)!)! - slot.get(fabricOf.get(id)!)!
+    return s + Math.sign(d)
+  }, 0)
+
+  const pos = new Map<string, { x: number; y: number }>()
+  let cursor = 0
+  order.forEach(f => {
+    const x = layoutFabric(members[f], tierOf, adj, side)
+    const left = Math.min(...members[f].map(id => x.get(id)!)) - CARD_W / 2
+    let right = cursor
+    members[f].forEach(id => {
+      const cx = x.get(id)! - left + cursor
+      pos.set(id, { x: cx, y: tierOf.get(id)! * ROW_PITCH + 40 + CARD_H / 2 })
+      right = Math.max(right, cx + CARD_W / 2)
+    })
+    cursor = right + FABRIC_GAP
+  })
+  return { pos, tierOf }
 }

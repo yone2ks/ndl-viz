@@ -6,7 +6,7 @@
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
-import { edgeGeometry } from './edgeGeometry'
+import { edgeGeometry, arcGeometry } from './edgeGeometry'
 import { EDGE_COLOR } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
@@ -14,7 +14,8 @@ import type { CyEdgeData } from '../types/topology'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
-type LinkData = CyEdgeData & { offsetIndex: number; offsetCount: number; showLabel: boolean }
+/** detour: 同じ段の離れた機器どうしのリンク。間のカードを避けて上を回る弧で描く */
+type LinkData = CyEdgeData & { offsetIndex: number; offsetCount: number; showLabel: boolean; detour?: boolean }
 
 export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selected }: EdgeProps) {
   const d = data as unknown as LinkData
@@ -26,7 +27,8 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
     query, matchedIds } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
-  const geo = edgeGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount)
+  const arc = d.detour ? arcGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount) : null
+  const geo = arc ?? edgeGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount)
   const isLag = !!d.lag_id
   const role = d.link_role ?? ''
   const color = isLag ? EDGE_COLOR.lag
@@ -38,8 +40,8 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
     : role === 'wan' ? '14 7'
     : role === 'management' ? '2 5' : undefined
 
-  // このリンクを通る VLAN レール（L2 overlay ON 時）
-  const rails = overlays.has('l2') ? (vlanOnLink.get(id) ?? []) : []
+  // このリンクを通る VLAN レール（L2 overlay ON 時）。弧のリンクには並走させない（直線に沿って描くため）
+  const rails = overlays.has('l2') && !arc ? (vlanOnLink.get(id) ?? []) : []
   // VLAN カードをホバー中: その VLAN が通るリンクは残す
   const hoveredRail = hoveredId !== null && rails.some(r => r.vlanId === hoveredId)
   const touches = hoveredId !== null
@@ -59,12 +61,13 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   // のいずれかでのみ表示し、IF が多くても一度に見えるのは手元の数本だけにする
   const nodeHovered = hoveredId === source || hoveredId === target
   const showIf = lod === 'detail' || nodeHovered || !!selected || searchHit
-  const path = `M ${geo.sx},${geo.sy} L ${geo.tx},${geo.ty}`
+  const path = arc?.path ?? `M ${geo.sx},${geo.sy} L ${geo.tx},${geo.ty}`
 
   // IF ラベル位置 (端点から内側。IP 併記時は広め)
   const ifOff = overlays.has('l3') ? 46 : 34
-  const ifS = { x: geo.sx + geo.nx * ifOff, y: geo.sy + geo.ny * ifOff }
-  const ifT = { x: geo.tx - geo.nx * ifOff, y: geo.ty - geo.ny * ifOff }
+  // 弧のリンクは端点から真上に出るので、IF ラベルも真上に置く
+  const ifS = arc ? { x: geo.sx, y: geo.sy - ifOff } : { x: geo.sx + geo.nx * ifOff, y: geo.sy + geo.ny * ifOff }
+  const ifT = arc ? { x: geo.tx, y: geo.ty - ifOff } : { x: geo.tx - geo.nx * ifOff, y: geo.ty - geo.ny * ifOff }
 
   // LAG ティック (//)
   const ticks = isLag ? [-7, 7].map(off => {

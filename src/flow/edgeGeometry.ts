@@ -60,3 +60,33 @@ export function edgeGeometry(
     nx, ny, px, py,
   }
 }
+
+/**
+ * 上を回る弧の高さ（カードの上端から弧の頂点まで）。遠くを結ぶ弧ほど高くし、
+ * 同じ機器から出る弧どうしが重ならないようにする。上限は段の間（約 210px）に収まる高さ
+ */
+const arcRise = (span: number) => 70 + Math.min(span / 12, 120)
+
+/**
+ * 同じ段の離れた機器どうしのリンク（間に別の機器がある）: 間のカードを突き抜けないよう、
+ * カードの上端の中央から出て上を回る弧（3 次ベジェ）。並列リンクは弧の高さと出る位置をずらす。
+ * mx / my は弧の頂点、n は左右方向、p は上向き。
+ */
+export function arcGeometry(
+  source: InternalNode, target: InternalNode,
+  offsetIndex = 0, offsetCount = 1, spacing = 14,
+): EdgeGeom & { path: string } {
+  const sr = nodeRect(source), tr = nodeRect(target)
+  const off = (offsetIndex - (offsetCount - 1) / 2) * spacing
+  const dir = Math.sign(tr.x - sr.x) || 1
+  const sx = sr.x + sr.w / 2 + off * dir, sy = sr.y
+  const tx = tr.x + tr.w / 2 - off * dir, ty = tr.y
+  // 3 次ベジェの頂点は端点と制御点の 1/4 : 3/4 の所なので、制御点を高さの 4/3 だけ上に置く
+  const cy = Math.min(sy, ty) - (arcRise(Math.abs(tx - sx)) + off) * 4 / 3
+  return {
+    sx, sy, tx, ty,
+    mx: (sx + tx) / 2, my: (sy + ty) / 8 + cy * 3 / 4,
+    nx: dir, ny: 0, px: 0, py: -1,
+    path: `M ${sx},${sy} C ${sx},${cy} ${tx},${cy} ${tx},${ty}`,
+  }
+}
