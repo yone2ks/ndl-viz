@@ -11,8 +11,14 @@ import { l3Name, isVlanIf } from './l3'
 
 export const CARD_W = 184
 export const CARD_H = 92
-export const VLAN_W = 200
-export const VLAN_H = 96
+/** VLAN の札（VLAN 番号 + サブネット）の高さ。押すとカードに広がるが、配置は札の大きさで決める */
+export const VLAN_PILL_H = 26
+const PILL_GAP_X = 10
+const PILL_GAP_Y = 6
+/** ポートを持ついちばん下の機器の下端から、札の帯の上端まで */
+const PILL_BAND_TOP = 34
+/** 帯の段数の上限（超える分は横に並べる）。3 段なら dagre の段の間（約 210px）に収まる */
+const PILL_MAX_ROWS = 3
 
 export interface TierInfo {
   yTop: number; yBot: number; label: string; roles: Record<string, number>
@@ -294,19 +300,32 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     })
   })
 
+  // ── VLAN の札: ポートを持ついちばん下の機器の直下の帯に、重ならないよう並べる ──
   const vlanNodes = data.nodes.map(n => n.data as CyNodeData).filter(nd => nd.type === 'vlan')
   let maxY = Math.max(...nodes.map(n => n.position.y + CARD_H), 0)
+  const bands = new Map<string, { top: number; pills: Pill[] }>()
   vlanNodes.forEach(vd => {
-    const members = (vlanMembers.get(vd.id) ?? []).map(centerOf)
-    if (members.length === 0) return
-    const cx = members.reduce((s, p) => s + p.x, 0) / members.length
-    const my = Math.max(...members.map(p => p.y)) + 190
-    maxY = Math.max(maxY, my + VLAN_H)
-    nodes.push({
-      id: vd.id, type: 'vlan',
-      position: { x: cx - VLAN_W / 2, y: my - VLAN_H / 2 },
-      data: { ...vd, hue: vlanHue.get(vd.id) ?? 40 },
-    })
+    const memberIds = vlanMembers.get(vd.id) ?? []
+    if (memberIds.length === 0) return
+    const members = memberIds.map(centerOf)
+    const want = members.reduce((s, p) => s + p.x, 0) / members.length
+    const deepest = memberIds.reduce((a, b) => centerOf(b).y > centerOf(a).y ? b : a)
+    const anchorY = centerOf(deepest).y
+    const key = `${siteOf.get(deepest)}:${anchorY}`
+    if (!bands.has(key)) bands.set(key, { top: anchorY + CARD_H / 2 + PILL_BAND_TOP, pills: [] })
+    bands.get(key)!.pills.push({ vd, want, w: vlanPillWidth(vd) })
+  })
+  bands.forEach(band => {
+    const rows = packPills(band.pills)
+    rows.forEach((row, ri) => row.forEach(({ pill, x }) => {
+      const y = band.top + ri * (VLAN_PILL_H + PILL_GAP_Y)
+      maxY = Math.max(maxY, y + VLAN_PILL_H)
+      nodes.push({
+        id: pill.vd.id, type: 'vlan',
+        position: { x, y },
+        data: { ...pill.vd, hue: vlanHue.get(pill.vd.id) ?? 40, pillW: pill.w },
+      })
+    }))
   })
 
   // ── VLAN ↔ VNI バインディング ──
@@ -397,4 +416,65 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     graphW: totalW,
     graphH: Math.max(globalMaxY, maxY) + 80,
   }
+}
+
+/** 帯に並べる VLAN の札。want はポートを持つ機器の x の平均（札の中心をここに置きたい）*/
+interface Pill { vd: CyNodeData; want: number; w: number }
+
+/** VLAN の札の幅。VLAN 番号とサブネットの文字数から見積もる（VlanNode もこの幅で描く）*/
+export function vlanPillWidth(nd: CyNodeData): number {
+  const title = nd.label?.split('\n')[0] ?? nd.id
+  const sub = nd.subnet ?? nd.subnet_v6
+  return Math.round(26 + title.length * 7 + (sub ? 10 + sub.length * 6.3 : 0))
+}
+
+/**
+ * 札を段に振り分けて並べる。本来の位置で重ならない最初の段に入れ、
+ * どの段でも重なり段も増やせなければ、幅の合計が最も小さい段に入れる。
+ * 同じ機器にだけポートを持つ VLAN（本来の位置が同じ）は縦に積まれる。
+ */
+function packPills(pills: Pill[]): { pill: Pill; x: number }[][] {
+  const rows: { pills: Pill[]; right: number; width: number }[] = []
+  ;[...pills].sort((a, b) => a.want - b.want).forEach(p => {
+    const left = p.want - p.w / 2
+    let row = rows.find(r => r.right + PILL_GAP_X <= left)
+    if (!row && rows.length < PILL_MAX_ROWS) {
+      row = { pills: [], right: -Infinity, width: 0 }
+      rows.push(row)
+    }
+    row ??= rows.reduce((a, b) => a.width <= b.width ? a : b)
+    row.pills.push(p)
+    row.right = Math.max(row.right, p.want + p.w / 2)
+    row.width += p.w
+  })
+  return rows.map(r => spreadRow(r.pills))
+}
+
+/**
+ * 1 段の札を、順序を保ったまま重ならないよう横に並べる。重なる札はまとめて 1 つの塊にし、
+ * 塊の位置は各札の本来の位置からのずれの平均が 0 になる所に置く（片側にだけずれない）。
+ */
+function spreadRow(row: Pill[]): { pill: Pill; x: number }[] {
+  const blocks: { pills: Pill[]; w: number; left: number }[] = []
+  row.forEach(p => {
+    let b = { pills: [p], w: p.w, left: p.want - p.w / 2 }
+    while (blocks.length) {
+      const prev = blocks[blocks.length - 1]
+      if (prev.left + prev.w + PILL_GAP_X <= b.left) break
+      blocks.pop()
+      const pills = [...prev.pills, ...b.pills]
+      let off = 0, sum = 0
+      pills.forEach(q => { sum += q.want - q.w / 2 - off; off += q.w + PILL_GAP_X })
+      b = { pills, w: off - PILL_GAP_X, left: sum / pills.length }
+    }
+    blocks.push(b)
+  })
+  return blocks.flatMap(b => {
+    let x = b.left
+    return b.pills.map(pill => {
+      const placed = { pill, x }
+      x += pill.w + PILL_GAP_X
+      return placed
+    })
+  })
 }

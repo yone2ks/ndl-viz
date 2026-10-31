@@ -300,46 +300,66 @@
   pointer-events: none !important;
 }
 
-/* ── VLAN カード（--vhue でレールと同色相に着色） ── */
-.vlan-card {
+/* ── VLAN の札とカード（--vhue でレールと同色相に着色） ──
+   普段は札（VLAN 番号 + サブネット）。選んだ VLAN だけ札の上にカードを広げる */
+.vlan-node {
   --vhue: 40;
   position: relative;
-  width: 200px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: hsl(var(--vhue), 75%, 78%);
+  cursor: pointer;
+  transition: opacity 250ms ease-out;
+}
+.vlan-node.is-hidden { opacity: 0; pointer-events: none; }
+.vlan-node.is-dim { opacity: 0.16; }
+/* 広げたカードを周りの機器・札より前に出す（React Flow がノードに付ける z-index より優先）*/
+.react-flow__node-vlan:has(.vlan-node.is-open) { z-index: 1000 !important; }
+
+.vlan-pill {
+  height: 26px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 11px;
+  border-radius: 13px;
+  white-space: nowrap;
+  background: hsla(var(--vhue), 42%, 12%, 0.94);
+  border: 1.5px solid hsla(var(--vhue), 75%, 55%, 0.55);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 200ms ease-out;
+}
+.vlan-pill-title { font-size: 11px; font-weight: 800; letter-spacing: 0.02em; }
+.vlan-pill code { font-family: 'SF Mono', monospace; font-size: 10px; opacity: 0.8; }
+.vlan-node:hover .vlan-pill,
+.vlan-node.is-selected .vlan-pill {
+  box-shadow: 0 0 0 1.5px hsla(var(--vhue), 75%, 55%, 0.5), 0 0 18px hsla(var(--vhue), 75%, 55%, 0.25);
+}
+
+.vlan-card {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  box-sizing: border-box;
   padding: 11px 14px 12px;
   border-radius: 14px;
   background: linear-gradient(150deg,
-    hsla(var(--vhue), 45%, 16%, 0.92), hsla(var(--vhue), 40%, 8%, 0.96));
-  border: 1.5px solid hsla(var(--vhue), 75%, 55%, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45),
-    0 0 22px hsla(var(--vhue), 75%, 55%, 0.12);
-  color: hsl(var(--vhue), 75%, 78%);
-  font-family: 'Inter', -apple-system, sans-serif;
-  cursor: pointer;
-  transition: opacity 250ms ease-out, box-shadow 200ms ease-out;
-}
-.vlan-card.is-hidden { opacity: 0; pointer-events: none; }
-.vlan-card.is-dim { opacity: 0.16; }
-.vlan-card.is-selected {
-  box-shadow: 0 0 0 2px hsla(var(--vhue), 75%, 55%, 0.6), 0 12px 36px rgba(0,0,0,0.5);
-}
-.vlan-card:hover {
-  box-shadow: 0 0 0 1.5px hsla(var(--vhue), 75%, 55%, 0.5),
-    0 14px 36px rgba(0, 0, 0, 0.5),
-    0 0 28px hsla(var(--vhue), 75%, 55%, 0.22);
+    hsla(var(--vhue), 45%, 16%, 0.97), hsla(var(--vhue), 40%, 8%, 0.98));
+  border: 1.5px solid hsla(var(--vhue), 75%, 55%, 0.75);
+  box-shadow: 0 0 0 2px hsla(var(--vhue), 75%, 55%, 0.35), 0 14px 36px rgba(0, 0, 0, 0.55);
+  cursor: default;
 }
 
-.vlan-vni-tabs {
-  position: absolute;
-  top: -11px; right: 10px;
-  display: flex;
-  gap: 5px;
-}
+.vlan-vnis { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 5px; }
 .vni-tab {
   font-size: 9px;
   font-weight: 700;
   font-family: 'SF Mono', monospace;
   padding: 2.5px 8px;
-  border-radius: 6px 6px 0 6px;
+  border-radius: 6px;
   background: hsla(var(--vhue, 40), 45%, 10%, 1);
   color: hsl(var(--vhue, 40), 80%, 62%);
   border: 1px solid hsla(var(--vhue, 40), 75%, 55%, 0.55);
@@ -652,6 +672,12 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 }
 [data-theme="light"] .if-chip .if-ip { color: #0f766e; border-left-color: rgba(15, 118, 110, 0.3); }
 
+[data-theme="light"] .vlan-node { color: hsl(var(--vhue), 70%, 28%); }
+[data-theme="light"] .vlan-pill {
+  background: hsla(var(--vhue), 70%, 96%, 0.97);
+  border-color: hsla(var(--vhue), 65%, 38%, 0.5);
+  box-shadow: 0 4px 12px hsla(var(--vhue), 50%, 30%, 0.12);
+}
 [data-theme="light"] .vlan-card {
   background: linear-gradient(150deg,
     hsla(var(--vhue), 70%, 97%, 0.97), hsla(var(--vhue), 60%, 92%, 0.95));

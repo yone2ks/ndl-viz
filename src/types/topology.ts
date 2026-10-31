@@ -45,6 +45,7 @@ export interface CyNodeData {
   vlans?: string[]
   // VLAN node 専用（type=vlan の場合）
   subnet?: string    // "192.168.100.0/24"
+  subnet_v6?: string // "2001:db8:100::/64"
   gateway?: string   // "192.168.100.254" (anycast VIP / VRRP VIP)
   vrf_name?: string  // VRF 名
   // VNI node 専用（type=l2vni / l3vni の場合）
