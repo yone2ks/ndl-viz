@@ -1,0 +1,586 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "dc1-spine1",
+        "label": "dc1-spine1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc1-spine2",
+        "label": "dc1-spine2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc1-leaf1",
+        "label": "dc1-leaf1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc1-leaf2",
+        "label": "dc1-leaf2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc1-host1",
+        "label": "dc1-host1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc1-host2",
+        "label": "dc1-host2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-spine1",
+        "label": "dc2-spine1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-spine2",
+        "label": "dc2-spine2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-leaf1",
+        "label": "dc2-leaf1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-leaf2",
+        "label": "dc2-leaf2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-host1",
+        "label": "dc2-host1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc2-host2",
+        "label": "dc2-host2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-spine1",
+        "label": "dc3-spine1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-spine2",
+        "label": "dc3-spine2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-leaf1",
+        "label": "dc3-leaf1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-leaf2",
+        "label": "dc3-leaf2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "leaf",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-host1",
+        "label": "dc3-host1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "dc3-host2",
+        "label": "dc3-host2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "server",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "super-spine1",
+        "label": "super-spine1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "super-spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    },
+    {
+      "data": {
+        "id": "super-spine2",
+        "label": "super-spine2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "super-spine",
+        "implementation": "vm",
+        "device_type": "cumulus_linux"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "link-dc1-spine1-dc1-leaf1",
+        "source": "dc1-spine1",
+        "target": "dc1-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp1",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine1-dc1-leaf2",
+        "source": "dc1-leaf2",
+        "target": "dc1-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine2-dc1-leaf1",
+        "source": "dc1-spine2",
+        "target": "dc1-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine2-dc1-leaf2",
+        "source": "dc1-leaf2",
+        "target": "dc1-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-host1-dc1-leaf1",
+        "source": "dc1-leaf1",
+        "target": "dc1-host1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-host2-dc1-leaf2",
+        "source": "dc1-leaf2",
+        "target": "dc1-host2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine1-dc2-leaf1",
+        "source": "dc2-spine1",
+        "target": "dc2-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp1",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine1-dc2-leaf2",
+        "source": "dc2-leaf2",
+        "target": "dc2-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine2-dc2-leaf1",
+        "source": "dc2-spine2",
+        "target": "dc2-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine2-dc2-leaf2",
+        "source": "dc2-leaf2",
+        "target": "dc2-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-host1-dc2-leaf1",
+        "source": "dc2-leaf1",
+        "target": "dc2-host1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-host2-dc2-leaf2",
+        "source": "dc2-leaf2",
+        "target": "dc2-host2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine1-dc3-leaf1",
+        "source": "dc3-spine1",
+        "target": "dc3-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp1",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine1-dc3-leaf2",
+        "source": "dc3-leaf2",
+        "target": "dc3-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine2-dc3-leaf1",
+        "source": "dc3-spine2",
+        "target": "dc3-leaf1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp1",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine2-dc3-leaf2",
+        "source": "dc3-leaf2",
+        "target": "dc3-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp2",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-host1-dc3-leaf1",
+        "source": "dc3-leaf1",
+        "target": "dc3-host1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-host2-dc3-leaf2",
+        "source": "dc3-leaf2",
+        "target": "dc3-host2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "access"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine1-super-spine1",
+        "source": "dc1-spine1",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp1",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine2-super-spine1",
+        "source": "dc1-spine2",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine1-super-spine1",
+        "source": "dc2-spine1",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp3",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine2-super-spine1",
+        "source": "dc2-spine2",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp4",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine1-super-spine1",
+        "source": "dc3-spine1",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp5",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine2-super-spine1",
+        "source": "dc3-spine2",
+        "target": "super-spine1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp3",
+        "target_if": "swp6",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine1-super-spine2",
+        "source": "dc1-spine1",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp1",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc1-spine2-super-spine2",
+        "source": "dc1-spine2",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp2",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine1-super-spine2",
+        "source": "dc2-spine1",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp3",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc2-spine2-super-spine2",
+        "source": "dc2-spine2",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp4",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine1-super-spine2",
+        "source": "dc3-spine1",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp5",
+        "link_role": "underlay"
+      }
+    },
+    {
+      "data": {
+        "id": "link-dc3-spine2-super-spine2",
+        "source": "dc3-spine2",
+        "target": "super-spine2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "swp4",
+        "target_if": "swp6",
+        "link_role": "underlay"
+      }
+    }
+  ]
+}
