@@ -7,7 +7,7 @@
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
 import { edgeGeometry, arcGeometry } from './edgeGeometry'
-import { EDGE_COLOR } from './palette'
+import { linkStyle } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
 import type { CyEdgeData } from '../types/topology'
@@ -30,15 +30,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   const arc = d.detour ? arcGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount) : null
   const geo = arc ?? edgeGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount)
   const isLag = !!d.lag_id
-  const role = d.link_role ?? ''
-  const color = isLag ? EDGE_COLOR.lag
-    : role === 'underlay' ? EDGE_COLOR.underlay
-    : role === 'peer-link' ? EDGE_COLOR.peerlink
-    : role === 'wan' ? EDGE_COLOR.wan
-    : EDGE_COLOR.access
-  const dash = !isLag && role === 'peer-link' ? '8 5'
-    : role === 'wan' ? '14 7'
-    : role === 'management' ? '2 5' : undefined
+  const { color, dash } = linkStyle(d.link_role ?? '', isLag)
 
   // このリンクを通る VLAN レール（L2 overlay ON 時）。弧のリンクには並走させない（直線に沿って描くため）
   const rails = overlays.has('l2') && !arc ? (vlanOnLink.get(id) ?? []) : []
