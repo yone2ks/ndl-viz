@@ -80,6 +80,8 @@ export interface CyEdgeData {
   target: string
   layer: string
   type: 'link' | 'attaches_to' | 'vlan_member' | 'routing_adjacency' | 'bgp_session'
+    /** ndl-viz が bgp_session と routing_adjacency（bgp）を機器の組ごとにまとめたもの */
+    | 'bgp_pair'
   // L1
   link_speed?: string
   mtu?: number
@@ -107,6 +109,25 @@ export interface CyEdgeData {
   process_role?: string
   bfd?: boolean
   address_families?: string[]
+  // type=bgp_pair（ndl-viz が機器の組ごとにまとめた BGP。layout.ts）
+  /** protocols.bgp のプロセスごとの neighbor（両側の宣言をまとめたもの）*/
+  bgp_processes?: BgpPairProcess[]
+  /** layer3.routing_adjacencies（type: bgp）の id */
+  routing_adjacencies?: string[]
+}
+
+/** 機器の組 1 つについての protocols.bgp の 1 プロセス */
+export interface BgpPairProcess {
+  process: string
+  role?: string
+  /** ebgp / ibgp */
+  type?: string
+  /** node id → その機器の AS（自分の local_as。対向しか書いていなければ対向の remote_as）*/
+  as: Record<string, number>
+  address_families?: string[]
+  bfd?: boolean
+  /** neighbor を書いている機器（両側なら 2 つ）*/
+  declared_by: string[]
 }
 
 export interface CyElement {

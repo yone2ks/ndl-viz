@@ -342,15 +342,54 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
 
   // ── オーバーレイエッジ ──
+  // BGP は機器の組ごとに 1 本にまとめる。protocols.bgp（両側の neighbor が向き違いで 1 本ずつ）と
+  // layer3.routing_adjacencies（type: bgp）は同じ組に重なるが、書いてあることが違う
+  // （AS・アドレスファミリー / 隣接ごとの id）ので、どちらも捨てずに 1 本の辺に載せる。
+  // どの隣接がどのプロセスに当たるかは書かれていないので、対応づけはしない
   const nodeIds = new Set(nodes.map(n => n.id))
+  const bgpPairs = new Map<string, CyEdgeData>()
+  const bgpPairOf = (d: CyEdgeData): CyEdgeData => {
+    const [a, b] = [d.source, d.target].sort()
+    const key = `${a}|${b}`
+    if (!bgpPairs.has(key)) {
+      bgpPairs.set(key, { id: `bgp-pair-${a}-${b}`, source: a, target: b, type: 'bgp_pair',
+        layer: 'protocols', bgp_processes: [], routing_adjacencies: [] })
+    }
+    return bgpPairs.get(key)!
+  }
   allEdges.forEach(d => {
     if (d.type === 'link') return
     if (!nodeIds.has(d.source) || !nodeIds.has(d.target)) return
+    if (d.type === 'bgp_session') {
+      const procs = bgpPairOf(d).bgp_processes!
+      const name = d.process ?? ''
+      let p = procs.find(x => x.process === name)
+      if (!p) {
+        p = { process: name, role: d.process_role, type: d.bgp_type, as: {}, declared_by: [] }
+        procs.push(p)
+      }
+      // 自分の AS は自分の local_as。対向がまだ書いていなければ、こちらの remote_as を使う
+      if (d.local_as != null) p.as[d.source] = d.local_as
+      if (d.remote_as != null && p.as[d.target] == null) p.as[d.target] = d.remote_as
+      if (!p.declared_by.includes(d.source)) p.declared_by.push(d.source)
+      d.address_families?.forEach(af => {
+        p!.address_families ??= []
+        if (!p!.address_families.includes(af)) p!.address_families.push(af)
+      })
+      if (d.bfd) p.bfd = true
+      return
+    }
+    if (d.type === 'routing_adjacency' && d.adj_type === 'bgp') {
+      // エクスポーターは隣接の id に "l3-" を付けて辺の id にしている
+      bgpPairOf(d).routing_adjacencies!.push(d.id.replace(/^l3-/, ''))
+      return
+    }
     edges.push({
       id: d.id, source: d.source, target: d.target, type: 'overlay',
       data: { ...d },
     })
   })
+  bgpPairs.forEach(d => edges.push({ id: d.id, source: d.source, target: d.target, type: 'overlay', data: { ...d } }))
 
   // ── IF → IP マップ（リンク端点の IP 表示用）＋ SVI 抽出 ──
   // ips は "IF名:IP" 形式。IF 名が VLAN ノード id に一致するものは SVI。

@@ -16,6 +16,7 @@ import { LinkEdge } from './LinkEdge'
 import { OverlayEdge } from './OverlayEdge'
 import { GraphOverlays } from './GraphOverlays'
 import { VxlanTunnels } from './VxlanTunnels'
+import { FlowLegend } from './FlowLegend'
 import { FlowCtx, type FlowCtxValue } from './FlowCtx'
 import { roleStyle } from './palette'
 import { l3Name } from './l3'
@@ -106,6 +107,13 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const [focusVlanId, setFocusVlanId] = useState<string | null>(null)
   // VNI タブ選択中は、その VNI が載る VTEP 間のトンネルを描く
   const [focusVniId, setFocusVniId] = useState<string | null>(null)
+  // 凡例で外した BGP の役割
+  const [hiddenBgpRoles, setHiddenBgpRoles] = useState<Set<string>>(() => new Set())
+  const toggleBgpRole = useCallback((role: string) => setHiddenBgpRoles(prev => {
+    const next = new Set(prev)
+    if (!next.delete(role)) next.add(role)
+    return next
+  }), [])
   const vniFocusNodes = useMemo(() => {
     const vni = focusVniId ? graph.vniById.get(focusVniId) : undefined
     if (!vni) return null
@@ -122,8 +130,8 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
-    query: q, matchedIds,
-  }), [overlays, hoveredId, focusVlanId, focusVniId, vniFocusNodes, graph, q, matchedIds])
+    query: q, matchedIds, hiddenBgpRoles,
+  }), [overlays, hoveredId, focusVlanId, focusVniId, vniFocusNodes, graph, q, matchedIds, hiddenBgpRoles])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
@@ -170,6 +178,8 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         <GraphOverlays tiers={graph.tiers} sites={graph.sites} mlagDomains={graph.mlagDomains}
           graphW={graphWOf(graph.graphW)} />
         <VxlanTunnels />
+        <FlowLegend edges={graph.edges} overlays={overlays}
+          hiddenBgpRoles={hiddenBgpRoles} onToggleBgpRole={toggleBgpRole} />
         <MiniMap
           pannable zoomable
           className="flow-minimap"

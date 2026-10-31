@@ -40,6 +40,8 @@ export interface FlowCtxValue {
   query: string
   /** クエリにマッチしたノード/VLAN/エッジの id 集合 */
   matchedIds: Set<string>
+  /** 凡例で外した BGP の役割（protocols.bgp の role）。その役割のプロセスしかない組の線は出さない */
+  hiddenBgpRoles: Set<string>
 }
 
 export const FlowCtx = createContext<FlowCtxValue | null>(null)

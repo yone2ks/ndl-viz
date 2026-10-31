@@ -29,6 +29,12 @@ const ja = {
   moreNodes:         (n: number) => `…他 ${n} 台`,
   candidatesShort:   (n: number) => `候補 ${n}`,
   outsideSubnet:     'SVI と別サブネット',
+  legend:            '凡例',
+  legendNoRole:      'link_role なし',
+  legendVlanPort:    'VLAN のポート',
+  legendBgpUntyped:  'BGP（eBGP / iBGP の記述なし）',
+  bgpRolesTip:       'protocols.bgp の role。押すと、その役割のセッションを隠す / 出す',
+  onlyDeclaredBy:    (node: string) => `${node} だけが neighbor を記述`,
 }
 
 export type Messages = typeof ja
@@ -53,6 +59,12 @@ const en: Messages = {
   moreNodes:         (n: number) => `…${n} more`,
   candidatesShort:   (n: number) => `${n} candidates`,
   outsideSubnet:     'outside SVI subnet',
+  legend:            'Legend',
+  legendNoRole:      'no link_role',
+  legendVlanPort:    'VLAN port',
+  legendBgpUntyped:  'BGP (eBGP / iBGP not stated)',
+  bgpRolesTip:       'protocols.bgp role. Click to hide / show sessions of that role',
+  onlyDeclaredBy:    (node: string) => `neighbor stated only by ${node}`,
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }

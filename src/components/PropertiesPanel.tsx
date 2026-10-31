@@ -14,6 +14,7 @@ const TYPE_CLASS: Record<string, string> = {
   vrf: 'type-vrf',
   l3interface: 'type-l3interface',
   bgp_session: 'type-bgp_session',
+  bgp_pair: 'type-bgp_session',
   routing_adjacency: 'type-routing_adjacency',
   attaches_to: 'type-attaches_to',
 }
@@ -34,6 +35,7 @@ const TYPE_LABEL: Record<string, string> = {
   routing_adjacency: 'Routing Adj.',
   vrf_l3if: 'VRF ↔ IF',
   bgp_session: 'BGP Session',
+  bgp_pair: 'BGP',
 }
 
 // lo_ip / lo_ipv6 は mlndl が選んだ代表アドレスで、MLNDL に書かれた情報ではないので出さない
@@ -44,6 +46,9 @@ const KEY_LABEL: Record<string, string> = {
   target:    'node_b',
   source_if: 'interface_a',
   target_if: 'interface_b',
+  // BGP の組: どこに書かれた情報かを示す
+  bgp_processes:       'protocols.bgp',
+  routing_adjacencies: 'routing_adjacencies',
 }
 
 type Obj = Record<string, unknown>
@@ -64,6 +69,18 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
       : (['vlan', 'subinterface', 'lag'] as const).map(k => [k, o[k]] as const).find(([, v]) => v)
     const notes = [at && `${at[0]}: ${String(at[1])}`, o.vrf].filter(Boolean)
     return <><code>{String(o.name ?? o.interface)}</code> {addrs}
+      {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+  }
+  if (key === 'bgp_processes') {
+    // 1 行目: プロセス名・役割・eBGP / iBGP・両側の AS。2 行目: アドレスファミリー・BFD・片側だけの記述
+    const types: Record<string, string> = { ebgp: 'eBGP', ibgp: 'iBGP' }
+    const head = [o.role, o.type && (types[String(o.type)] ?? o.type)].filter(Boolean)
+    const as = Object.entries(o.as as Record<string, number>).map(([n, a]) => `${n} AS${a}`)
+    const declared = o.declared_by as string[]
+    const notes = [...((o.address_families as string[] | undefined) ?? []), o.bfd && 'BFD',
+      declared.length === 1 && t.onlyDeclaredBy(declared[0])].filter(Boolean)
+    return <><code>{String(o.process)}</code> {segs(head, ' · ')}
+      <div>{segs(as, ' ↔ ')}</div>
       {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
   }
   if (key === 'vteps') {
@@ -109,8 +126,10 @@ export default function PropertiesPanel({ selected }: Props) {
   const cls = TYPE_CLASS[typeKey] ?? 'type-default'
   const label = TYPE_LABEL[typeKey] ?? typeKey
 
+  // BGP の組は ndl-viz がまとめたもので、type / layer は MLNDL に書かれた値ではないので出さない（種別は見出しで示す）
+  const skip = (k: string) => SKIP_KEYS.has(k) || (typeKey === 'bgp_pair' && (k === 'type' || k === 'layer'))
   const entries = Object.entries(data).filter(
-    ([k, v]) => !SKIP_KEYS.has(k) && v !== undefined && v !== null && v !== ''
+    ([k, v]) => !skip(k) && v !== undefined && v !== null && v !== ''
   )
 
   return (
