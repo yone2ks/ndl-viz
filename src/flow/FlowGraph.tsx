@@ -74,7 +74,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     const bySite = matchedNodes.size === 0
     if (bySite) {
       graph.nodes.forEach(n => {
-        if (graph.siteLabelOf.get(n.id)?.toLowerCase().includes(q)) {
+        if (graph.sites[graph.siteIdOf.get(n.id) ?? -1]?.label.toLowerCase().includes(q)) {
           ids.add(n.id); matchedNodes.add(n.id)
         }
       })
@@ -201,7 +201,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         <Background variant={BackgroundVariant.Dots} gap={26} size={1.2}
           color="rgba(148,163,184,0.14)" />
         <GraphOverlays tiers={graph.tiers} sites={graph.sites} mlagDomains={graph.mlagDomains}
-          graphW={graphWOf(graph.graphW)} />
+          siteIdOf={graph.siteIdOf} cardHeights={graph.cardHeights} graphW={graphWOf(graph.graphW)} />
         <VxlanTunnels />
         <FlowLegend edges={graph.edges} overlays={overlays}
           hiddenAfs={hiddenAfs} onToggleAf={toggleAf} />

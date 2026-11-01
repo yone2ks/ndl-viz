@@ -26,10 +26,10 @@ const PILL_MAX_ROWS = 4
 const TIER_GAP = 150
 
 export interface TierInfo {
+  site: number
   yTop: number; yBot: number; label: string; roles: Record<string, number>
   /** この段の下の VLAN の札の帯の下端（帯がなければ yBot）。段の区切り線はここと次の段の間に引く */
   yEnd: number
-  xLeft: number; xRight: number   // この帯を描く X 範囲（サイト幅）
 }
 
 /** サイト境界ボックス */
@@ -61,7 +61,8 @@ export interface FlowGraphData {
   vlanHue: Map<string, number>           // vlan id → 色相
   ifIp: Map<string, Map<string, string>> // node id → (IF 名 → IP)
   sviByVlan: Map<string, { node: string; label: string; ip: string }[]>
-  siteLabelOf: Map<string, string>       // 機器・VLAN の札の id → サイトの名前（検索用）
+  siteIdOf: Map<string, number>          // 機器・VLAN の札の id → サイトの id
+  cardHeights: Map<string, number>       // 機器の id → カードがいちばん高くなるときの高さ（サイトの枠はこの高さで囲む）
   graphW: number
   graphH: number
 }
@@ -244,12 +245,11 @@ export function buildFlow(data: TopologyData): FlowGraphData {
       const freq: Record<string, number> = {}
       grp.roles.forEach(r => { freq[r] = (freq[r] ?? 0) + 1 })
       const dom = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
-      const site = sites[grp.site]
       const yBot = Math.max(...grp.ys)
       return {
+        site: grp.site,
         yTop: Math.min(...grp.ys), yBot, yEnd: bandOf.get(`${grp.site}:${grp.rank}`)?.bottom ?? yBot,
         label: TIER_LABEL[dom] ?? dom, roles: freq,
-        xLeft: site.xLeft, xRight: site.xRight,
       }
     })
 
@@ -299,8 +299,8 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     if (srcs.size >= 2) mlagDomains.set(lagId, [...srcs])
   })
 
-  const siteLabelOf = new Map(l1Nodes.map(nd => [nd.id, sites[siteOf.get(nd.id)!].label]))
-  packed.forEach(b => b.placed.forEach(({ pill }) => siteLabelOf.set(pill.vd.id, sites[b.site].label)))
+  const siteIdOf = new Map(siteOf)
+  packed.forEach(b => b.placed.forEach(({ pill }) => siteIdOf.set(pill.vd.id, b.site)))
 
   // ── VLAN ⇔ L1 リンクのマッピング（リンク沿いレール表示用）──
   // ポート情報があれば (node, IF) の一致で判定。なければ両端がメンバーのリンク。
@@ -449,7 +449,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   return {
     nodes, edges, tiers, sites, mlagDomains, vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
     adjacency,
-    vlanOnLink, vlanHue, ifIp, sviByVlan, siteLabelOf,
+    vlanOnLink, vlanHue, ifIp, sviByVlan, siteIdOf, cardHeights: cardH,
     graphW: totalW,
     graphH: globalMaxY + 80,
   }
