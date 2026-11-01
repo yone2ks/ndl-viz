@@ -24,7 +24,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   const lod = useStore(lodSelector)
   const t = useT()
   const { hoveredId, overlays, vlanOnLink, ifIp, focusVlanId, setFocusVlanId,
-    query, matchedIds } = useFlowCtx()
+    query, matchedIds, vniFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
   const arc = d.detour ? arcGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount) : null
@@ -34,8 +34,9 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
 
   // このリンクを通る VLAN レール（L2 overlay ON 時）。弧のリンクには並走させない（直線に沿って描くため）
   const rails = overlays.has('l2') && !arc ? (vlanOnLink.get(id) ?? []) : []
-  // VLAN カードをホバー中: その VLAN が通るリンクは残す
-  const hoveredRail = hoveredId !== null && rails.some(r => r.vlanId === hoveredId)
+  // VLAN カードをホバー中・VNI のフォーカスで残す VLAN: その VLAN が通るリンクは残す
+  const isHot = (vlanId: string) => hoveredId === vlanId || !!vniFocusNodes?.has(vlanId)
+  const hoveredRail = hoveredId !== null && rails.some(r => isHot(r.vlanId))
   const touches = hoveredId !== null
     && (source === hoveredId || target === hoveredId || hoveredRail)
   // 検索中は非マッチエッジを減光、マッチエッジは IF/IP を強制表示
@@ -91,7 +92,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
       {rails.map((r, ri) => {
         const base = (isLag ? 11 : 8) + 5 + ri * 5.5
         const ox = geo.px * base, oy = geo.py * base
-        const hot = hoveredId === r.vlanId
+        const hot = isHot(r.vlanId)
         const railDim = hoveredId !== null && !hot
         return (
           <line key={r.vlanId}
@@ -107,7 +108,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
       {/* レールの VLAN ID チップ（near 以上・中央線のみ）。
           クリックでその VLAN にフォーカス。フォーカス中は他 VLAN のチップを消す */}
       {(() => {
-        const chipRails = focusVlanId ? rails.filter(r => r.vlanId === focusVlanId) : rails
+        const chipRails = focusVlanId ? rails.filter(r => r.vlanId === focusVlanId || isHot(r.vlanId)) : rails
         if (chipRails.length === 0 || !(lod === 'near' || lod === 'detail') || !d.showLabel) return null
         return (
           <EdgeLabelRenderer>

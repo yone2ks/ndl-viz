@@ -34,7 +34,7 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const targetNode = useInternalNode(target)
   const lod = useStore(lodSelector)
   const t = useT()
-  const { overlays, hoveredId, hiddenAfs } = useFlowCtx()
+  const { overlays, hoveredId, hiddenAfs, vniFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
   const kind = kindOf(d)
@@ -64,7 +64,9 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   }
   const { color, dash, width: sw } = style
 
-  const touches = hoveredId !== null && (source === hoveredId || target === hoveredId)
+  // L3VNI のフォーカスでは、残す VLAN が複数ある
+  const touches = hoveredId !== null && (source === hoveredId || target === hoveredId
+    || (d.type === 'vlan_member' && !!vniFocusNodes?.has(source)))
   const dim = hoveredId !== null && !touches
   const showLabel = (lod === 'near' || lod === 'detail') && label
   const showBfd = lod === 'detail' && d.bfd

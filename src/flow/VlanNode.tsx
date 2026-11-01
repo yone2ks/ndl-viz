@@ -13,7 +13,7 @@ import type { CyNodeData } from '../types/topology'
 export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps) {
   const nd = data as unknown as CyNodeData & { hue?: number; pillW?: number }
   const { overlays, vniByVlan, sviByVlan, hoveredId, setHoveredId, adjacency,
-    query, matchedIds, focusVlanId, focusVniId, setFocusVniId } = useFlowCtx()
+    query, matchedIds, focusVlanId, focusVniId, setFocusVniId, vniFocusNodes } = useFlowCtx()
   const visible = overlays.has('l2')
   const open = focusVlanId === id
   const title = nd.label?.split('\n')[0] ?? nd.id
@@ -25,7 +25,9 @@ export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps
   const searchActive = query !== ''
   const dim = searchActive
     ? !matchedIds.has(id)
-    : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)
+    : vniFocusNodes
+      ? !vniFocusNodes.has(id)
+      : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)
 
   return (
     <div

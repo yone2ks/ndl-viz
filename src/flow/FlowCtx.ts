@@ -34,7 +34,7 @@ export interface FlowCtxValue {
   /** VNI タブのクリックによるフォーカス。その VNI が載る VTEP 間にトンネルを描く */
   focusVniId: string | null
   setFocusVniId: (id: string | null) => void
-  /** フォーカス中の VNI の VTEP を終端するノード。フォーカスなしなら null */
+  /** VNI のフォーカスで残すノード（VTEP を終端する機器、VLAN とそのポートを持つ機器・端点）。フォーカスなしなら null */
   vniFocusNodes: Set<string> | null
   /** 検索クエリ（IP/ホスト名/VLAN/VRF）。空なら検索なし */
   query: string

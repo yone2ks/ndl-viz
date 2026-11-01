@@ -117,10 +117,15 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const vniFocusNodes = useMemo(() => {
     const vni = focusVniId ? graph.vniById.get(focusVniId) : undefined
     if (!vni) return null
-    // VNI は VLAN カードから選ぶので、その VLAN のポートを持つ機器と端点（ホスト）も残す
+    // VNI は VLAN カードから選ぶので、VLAN とそのポートを持つ機器・端点（ホスト）も残す。
+    // L3VNI は VRF に紐づくので、選んだ VLAN だけでなくその VRF の VLAN をすべて残す
+    const vlans = vni.type === 'l3vni'
+      ? graph.nodes.filter(n => n.type === 'vlan' && (n.data as unknown as CyNodeData).vrf_name === vni.vrf).map(n => n.id)
+      : focusVlanId ? [focusVlanId] : []
     return new Set([
       ...((vni.vteps ?? []) as string[]).flatMap(v => graph.vtepNodes.get(v) ?? []),
-      ...(focusVlanId ? graph.adjacency.get(focusVlanId) ?? [] : []),
+      ...vlans,
+      ...vlans.flatMap(v => [...(graph.adjacency.get(v) ?? [])]),
     ])
   }, [focusVniId, focusVlanId, graph])
   const ctx = useMemo<FlowCtxValue>(() => ({
