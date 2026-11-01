@@ -43,7 +43,9 @@ const TYPE_LABEL: Record<string, string> = {
 const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
 
 // lo_ip / lo_ipv6 は mlndl が選んだ代表アドレスで、MLNDL に書かれた情報ではないので出さない
-const SKIP_KEYS = new Set(['id', 'lo_ip', 'lo_ipv6'])
+// offsetIndex 以下は ndl-viz が描画のために付けた値で、MLNDL の情報ではない
+const SKIP_KEYS = new Set(['id', 'lo_ip', 'lo_ipv6',
+  'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW'])
 
 const KEY_LABEL: Record<string, string> = {
   source:    'node_a',
@@ -134,7 +136,7 @@ export default function PropertiesPanel({ selected }: Props) {
 
   // セッションは見出しでプロトコルを示し、両端は from / to で出す (source / target・type / layer は重複)
   const skip = (k: string) => SKIP_KEYS.has(k) || (typeKey === 'routing_neighbor'
-    && ['type', 'layer', 'source', 'target', 'protocol', 'offsetIndex'].includes(k))
+    && ['type', 'layer', 'source', 'target', 'protocol'].includes(k))
   const entries = Object.entries(data).filter(
     ([k, v]) => !skip(k) && v !== undefined && v !== null && v !== ''
   )
