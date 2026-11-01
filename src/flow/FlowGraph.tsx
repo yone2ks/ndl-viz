@@ -117,8 +117,12 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const vniFocusNodes = useMemo(() => {
     const vni = focusVniId ? graph.vniById.get(focusVniId) : undefined
     if (!vni) return null
-    return new Set(((vni.vteps ?? []) as string[]).flatMap(v => graph.vtepNodes.get(v) ?? []))
-  }, [focusVniId, graph])
+    // VNI は VLAN カードから選ぶので、その VLAN のポートを持つ機器と端点（ホスト）も残す
+    return new Set([
+      ...((vni.vteps ?? []) as string[]).flatMap(v => graph.vtepNodes.get(v) ?? []),
+      ...(focusVlanId ? graph.adjacency.get(focusVlanId) ?? [] : []),
+    ])
+  }, [focusVniId, focusVlanId, graph])
   const ctx = useMemo<FlowCtxValue>(() => ({
     overlays,
     hoveredId: hoveredId ?? focusVlanId,
