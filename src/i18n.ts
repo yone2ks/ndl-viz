@@ -21,8 +21,8 @@ const ja = {
   // オーバーレイのボタン（MLNDL の YAML の区分）
   tipLayer1:         'layer1: ノード・リンク・LAG など（常に表示）',
   tipLayer2:         'layer2: VLAN・VTEP・VNI のトンネルなど',
-  tipLayer3:         'layer3: リンク上の IP・VRF・ルーティング隣接など（Layer 2 と併せると SVI も）',
-  tipBgp:            'protocols.bgp: BGP セッション・AS 番号など',
+  tipLayer3:         'layer3: リンク上の IP・VRF など（Layer 2 と併せると SVI も）。control_plane の OSPF / IS-IS の隣接も',
+  tipBgp:            'control_plane の BGP: セッション・AS 番号など',
   sharedWith:        (nodes: string) => `${nodes} と共有`,
   vlanFocus:         (vlan: number) => `VLAN ${vlan} にフォーカス`,
   sameTunnel:        '同じトンネル',
@@ -32,9 +32,10 @@ const ja = {
   legend:            '凡例',
   legendNoRole:      'link_role なし',
   legendVlanPort:    'VLAN のポート',
-  legendBgpUntyped:  'BGP（eBGP / iBGP の記述なし）',
-  bgpRolesTip:       'protocols.bgp の role。押すと、その役割のセッションを隠す / 出す',
-  onlyDeclaredBy:    (node: string) => `${node} だけが neighbor を記述`,
+  legendBgpUntyped:  'BGP（AS が決まらない）',
+  afFilterTip:       (af: string) => `address_families: ${af}。押すと、この AF だけを運ぶセッションを隠す / 出す`,
+  unnumbered:        'unnumbered',
+  peerOutside:       'トポロジー外の相手',
 }
 
 export type Messages = typeof ja
@@ -51,8 +52,8 @@ const en: Messages = {
   propsEmpty:        'Click a node or an edge',
   tipLayer1:         'layer1: nodes, links, LAGs, etc. (always shown)',
   tipLayer2:         'layer2: VLANs, VTEPs, VNI tunnels, etc.',
-  tipLayer3:         'layer3: IPs on links, VRFs, routing adjacencies, etc. (SVIs too, with Layer 2)',
-  tipBgp:            'protocols.bgp: BGP sessions, AS numbers, etc.',
+  tipLayer3:         'layer3: IPs on links, VRFs, etc. (SVIs too, with Layer 2). Also OSPF / IS-IS adjacencies in control_plane',
+  tipBgp:            'control_plane BGP: sessions, AS numbers, etc.',
   sharedWith:        (nodes: string) => `shared with ${nodes}`,
   vlanFocus:         (vlan: number) => `Focus VLAN ${vlan}`,
   sameTunnel:        'Same tunnel',
@@ -62,9 +63,10 @@ const en: Messages = {
   legend:            'Legend',
   legendNoRole:      'no link_role',
   legendVlanPort:    'VLAN port',
-  legendBgpUntyped:  'BGP (eBGP / iBGP not stated)',
-  bgpRolesTip:       'protocols.bgp role. Click to hide / show sessions of that role',
-  onlyDeclaredBy:    (node: string) => `neighbor stated only by ${node}`,
+  legendBgpUntyped:  'BGP (AS not determined)',
+  afFilterTip:       (af: string) => `address_families: ${af}. Click to hide / show sessions that carry only this AF`,
+  unnumbered:        'unnumbered',
+  peerOutside:       'peer outside the topology',
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }

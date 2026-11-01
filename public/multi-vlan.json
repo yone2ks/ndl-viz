@@ -12,12 +12,101 @@
         "lo_ip": "10.0.0.1/32",
         "l3_interfaces": [
           {
+            "id": "spine1-lo",
+            "name": "lo",
+            "attachment": "unattached",
             "interface": "lo",
-            "ip": "10.0.0.1/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.1/32"
           }
         ],
-        "local_as": 65000
+        "vrfs": [
+          "vrf-default"
+        ],
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-spine1-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf1"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp1-l3",
+              "interface_name": "swp1",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf1",
+              "l3_interface": "leaf1-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65001
+            }
+          },
+          {
+            "id": "bgp-peer-spine1-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf2"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp2-l3",
+              "interface_name": "swp2",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf2",
+              "l3_interface": "leaf2-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65002
+            }
+          },
+          {
+            "id": "bgp-peer-spine1-leaf3",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf3"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp3-l3",
+              "interface_name": "swp3",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf3",
+              "l3_interface": "leaf3-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65003
+            }
+          }
+        ]
       }
     },
     {
@@ -32,12 +121,101 @@
         "lo_ip": "10.0.0.2/32",
         "l3_interfaces": [
           {
+            "id": "spine2-lo",
+            "name": "lo",
+            "attachment": "unattached",
             "interface": "lo",
-            "ip": "10.0.0.2/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.2/32"
           }
         ],
-        "local_as": 65000
+        "vrfs": [
+          "vrf-default"
+        ],
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-spine2-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf1"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp1-l3",
+              "interface_name": "swp1",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf1",
+              "l3_interface": "leaf1-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65001
+            }
+          },
+          {
+            "id": "bgp-peer-spine2-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf2"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp2-l3",
+              "interface_name": "swp2",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf2",
+              "l3_interface": "leaf2-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65002
+            }
+          },
+          {
+            "id": "bgp-peer-spine2-leaf3",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf3"
+            },
+            "bfd": false,
+            "local": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp3-l3",
+              "interface_name": "swp3",
+              "unnumbered": true,
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "leaf3",
+              "l3_interface": "leaf3-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65003
+            }
+          }
+        ]
       }
     },
     {
@@ -50,26 +228,54 @@
         "implementation": "vm",
         "device_type": "cumulus_linux",
         "lo_ip": "10.0.0.11/32",
+        "vteps": [
+          {
+            "id": "vtep-leaf1",
+            "source": "lo",
+            "address": "10.0.0.11/32"
+          }
+        ],
         "l3_interfaces": [
           {
+            "id": "leaf1-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "vtep_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.11/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.11/32"
           },
           {
+            "id": "leaf1-vlan100",
+            "name": "vlan-100",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-100"
+            },
             "interface": "vlan-100",
-            "ip": "192.168.100.1/24",
             "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "ip": "192.168.100.1/24",
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-100"
           },
           {
+            "id": "leaf1-vlan200",
+            "name": "vlan-200",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-200"
+            },
             "interface": "vlan-200",
-            "ip": "192.168.200.1/24",
             "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "ip": "192.168.200.1/24",
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-200"
           }
         ],
         "vrfs": [
+          "vrf-default",
           "vrf-tenant-a"
         ],
         "vlans": [
@@ -77,7 +283,63 @@
           "vlan-200",
           "vlan-900"
         ],
-        "local_as": 65001
+        "local_as": 65001,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-spine1-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf1"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf1",
+              "l3_interface": "leaf1-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp1-l3",
+              "interface_name": "swp1",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-spine2-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf1"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf1",
+              "l3_interface": "leaf1-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp1-l3",
+              "interface_name": "swp1",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -90,34 +352,68 @@
         "implementation": "vm",
         "device_type": "cumulus_linux",
         "lo_ip": "10.0.0.12/32",
+        "vteps": [
+          {
+            "id": "vtep-leaf2",
+            "source": "lo",
+            "address": "10.0.0.12/32"
+          }
+        ],
         "l3_interfaces": [
           {
+            "id": "leaf2-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "vtep_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.12/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.12/32"
           },
           {
+            "id": "leaf2-vlan100",
+            "name": "vlan-100",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-100"
+            },
             "interface": "vlan-100",
+            "kind": "svi",
             "ip": "192.168.100.2/24",
-            "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-100"
           },
           {
+            "id": "leaf2-vlan200",
+            "name": "vlan-200",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-200"
+            },
             "interface": "vlan-200",
-            "ip": "192.168.200.2/24",
             "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "ip": "192.168.200.2/24",
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-200"
           },
           {
+            "id": "leaf2-vlan300",
+            "name": "vlan-300",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-300"
+            },
             "interface": "vlan-300",
-            "ip": "172.16.30.1/24",
             "kind": "svi",
-            "vrf": "vrf-default"
+            "ip": "172.16.30.1/24",
+            "vrf": "vrf-default",
+            "vlan": "vlan-300"
           }
         ],
         "vrfs": [
-          "vrf-tenant-a",
-          "vrf-default"
+          "vrf-default",
+          "vrf-tenant-a"
         ],
         "vlans": [
           "vlan-100",
@@ -125,7 +421,63 @@
           "vlan-300",
           "vlan-900"
         ],
-        "local_as": 65002
+        "local_as": 65002,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-spine1-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf2"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf2",
+              "l3_interface": "leaf2-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp2-l3",
+              "interface_name": "swp2",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-spine2-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf2"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf2",
+              "l3_interface": "leaf2-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp2-l3",
+              "interface_name": "swp2",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -138,17 +490,37 @@
         "implementation": "vm",
         "device_type": "cumulus_linux",
         "lo_ip": "10.0.0.13/32",
+        "vteps": [
+          {
+            "id": "vtep-leaf3",
+            "source": "lo",
+            "address": "10.0.0.13/32"
+          }
+        ],
         "l3_interfaces": [
           {
+            "id": "leaf3-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "vtep_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.13/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.13/32"
           },
           {
+            "id": "leaf3-vlan400",
+            "name": "vlan-400",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-400"
+            },
             "interface": "vlan-400",
-            "ip": "172.16.40.1/24",
             "kind": "svi",
-            "vrf": "vrf-default"
+            "ip": "172.16.40.1/24",
+            "vrf": "vrf-default",
+            "vlan": "vlan-400"
           }
         ],
         "vrfs": [
@@ -159,7 +531,63 @@
           "vlan-400",
           "vlan-900"
         ],
-        "local_as": 65003
+        "local_as": 65003,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-spine1-leaf3",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine1-leaf3"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf3",
+              "l3_interface": "leaf3-swp51-l3",
+              "interface_name": "swp51",
+              "unnumbered": true,
+              "local_as": 65003
+            },
+            "peer": {
+              "node": "spine1",
+              "l3_interface": "spine1-swp3-l3",
+              "interface_name": "swp3",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-spine2-leaf3",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast",
+              "l2vpn_evpn"
+            ],
+            "transport_link": {
+              "link": "link-spine2-leaf3"
+            },
+            "bfd": false,
+            "local": {
+              "node": "leaf3",
+              "l3_interface": "leaf3-swp52-l3",
+              "interface_name": "swp52",
+              "unnumbered": true,
+              "local_as": 65003
+            },
+            "peer": {
+              "node": "spine2",
+              "l3_interface": "spine2-swp3-l3",
+              "interface_name": "swp3",
+              "unnumbered": true,
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -266,7 +694,11 @@
         "id": "vni-10100",
         "label": "L2VNI 10100",
         "type": "l2vni",
-        "vlan": "vlan-100"
+        "vlan": "vlan-100",
+        "vteps": [
+          "vtep-leaf1",
+          "vtep-leaf2"
+        ]
       }
     },
     {
@@ -276,7 +708,11 @@
         "id": "vni-10200",
         "label": "L2VNI 10200",
         "type": "l2vni",
-        "vlan": "vlan-200"
+        "vlan": "vlan-200",
+        "vteps": [
+          "vtep-leaf1",
+          "vtep-leaf2"
+        ]
       }
     },
     {
@@ -286,7 +722,11 @@
         "id": "vni-10300",
         "label": "L2VNI 10300",
         "type": "l2vni",
-        "vlan": "vlan-300"
+        "vlan": "vlan-300",
+        "vteps": [
+          "vtep-leaf2",
+          "vtep-leaf3"
+        ]
       }
     },
     {
@@ -296,7 +736,11 @@
         "id": "vni-10900",
         "label": "L3VNI 10900",
         "type": "l3vni",
-        "vrf": "vrf-tenant-a"
+        "vrf": "vrf-tenant-a",
+        "vteps": [
+          "vtep-leaf1",
+          "vtep-leaf2"
+        ]
       }
     }
   ],
@@ -449,6 +893,19 @@
         "tagged_on": [
           "swp1",
           "swp2"
+        ],
+        "endpoints": [
+          {
+            "node": "server2",
+            "interfaces": [
+              "server2-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -490,6 +947,19 @@
         "tagged_on": [
           "swp1",
           "swp2"
+        ],
+        "endpoints": [
+          {
+            "node": "server2",
+            "interfaces": [
+              "server2-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -504,6 +974,19 @@
         "tagged_on": [
           "swp1",
           "swp2"
+        ],
+        "endpoints": [
+          {
+            "node": "server1",
+            "interfaces": [
+              "server1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -522,19 +1005,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-300-leaf3",
-        "source": "vlan-300",
-        "target": "leaf3",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 300,
-        "tagged_on": [
-          "swp1"
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-300-server2",
         "source": "vlan-300",
         "target": "server2",
@@ -543,6 +1013,32 @@
         "vlan_id": 300,
         "untagged_on": [
           "eth0"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-300-leaf3",
+        "source": "vlan-300",
+        "target": "leaf3",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 300,
+        "tagged_on": [
+          "swp1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -583,6 +1079,19 @@
         "tagged_on": [
           "swp1",
           "swp2"
+        ],
+        "endpoints": [
+          {
+            "node": "server2",
+            "interfaces": [
+              "server2-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -597,6 +1106,19 @@
         "tagged_on": [
           "swp1",
           "swp2"
+        ],
+        "endpoints": [
+          {
+            "node": "server1",
+            "interfaces": [
+              "server1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -610,283 +1132,224 @@
         "vlan_id": 900,
         "tagged_on": [
           "swp1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine1-leaf1",
+        "id": "bgp-peer-spine1-leaf1",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine1-leaf1"
+        },
+        "bfd": false,
         "source": "spine1",
         "target": "leaf1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine1",
+          "l3_interface": "spine1-swp1-l3",
+          "interface_name": "swp1",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf1",
+          "l3_interface": "leaf1-swp51-l3",
+          "interface_name": "swp51",
+          "unnumbered": true,
+          "local_as": 65001
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine1-leaf2",
+        "id": "bgp-peer-spine1-leaf2",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine1-leaf2"
+        },
+        "bfd": false,
         "source": "spine1",
         "target": "leaf2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine1",
+          "l3_interface": "spine1-swp2-l3",
+          "interface_name": "swp2",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf2",
+          "l3_interface": "leaf2-swp51-l3",
+          "interface_name": "swp51",
+          "unnumbered": true,
+          "local_as": 65002
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine1-leaf3",
+        "id": "bgp-peer-spine1-leaf3",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine1-leaf3"
+        },
+        "bfd": false,
         "source": "spine1",
         "target": "leaf3",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine1",
+          "l3_interface": "spine1-swp3-l3",
+          "interface_name": "swp3",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf3",
+          "l3_interface": "leaf3-swp51-l3",
+          "interface_name": "swp51",
+          "unnumbered": true,
+          "local_as": 65003
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine2-leaf1",
+        "id": "bgp-peer-spine2-leaf1",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine2-leaf1"
+        },
+        "bfd": false,
         "source": "spine2",
         "target": "leaf1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine2",
+          "l3_interface": "spine2-swp1-l3",
+          "interface_name": "swp1",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf1",
+          "l3_interface": "leaf1-swp52-l3",
+          "interface_name": "swp52",
+          "unnumbered": true,
+          "local_as": 65001
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine2-leaf2",
+        "id": "bgp-peer-spine2-leaf2",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine2-leaf2"
+        },
+        "bfd": false,
         "source": "spine2",
         "target": "leaf2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine2",
+          "l3_interface": "spine2-swp2-l3",
+          "interface_name": "swp2",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf2",
+          "l3_interface": "leaf2-swp52-l3",
+          "interface_name": "swp52",
+          "unnumbered": true,
+          "local_as": 65002
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-spine2-leaf3",
+        "id": "bgp-peer-spine2-leaf3",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast",
+          "l2vpn_evpn"
+        ],
+        "transport_link": {
+          "link": "link-spine2-leaf3"
+        },
+        "bfd": false,
         "source": "spine2",
         "target": "leaf3",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf1-bgp-underlay",
-        "source": "spine1",
-        "target": "leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65001",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65001,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf2-bgp-underlay",
-        "source": "spine1",
-        "target": "leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65002",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65002,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf3-bgp-underlay",
-        "source": "spine1",
-        "target": "leaf3",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65003",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65003,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf1-bgp-underlay",
-        "source": "spine2",
-        "target": "leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65001",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65001,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf2-bgp-underlay",
-        "source": "spine2",
-        "target": "leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65002",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65002,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf3-bgp-underlay",
-        "source": "spine2",
-        "target": "leaf3",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65003",
-        "process": "bgp-underlay",
-        "process_role": "underlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65003,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf1-bgp-evpn",
-        "source": "spine1",
-        "target": "leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf2-bgp-evpn",
-        "source": "spine1",
-        "target": "leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine1-leaf3-bgp-evpn",
-        "source": "spine1",
-        "target": "leaf3",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf1-bgp-evpn",
-        "source": "spine2",
-        "target": "leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf2-bgp-evpn",
-        "source": "spine2",
-        "target": "leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-spine2-leaf3-bgp-evpn",
-        "source": "spine2",
-        "target": "leaf3",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "spine2",
+          "l3_interface": "spine2-swp3-l3",
+          "interface_name": "swp3",
+          "unnumbered": true,
+          "local_as": 65000
+        },
+        "to": {
+          "node": "leaf3",
+          "l3_interface": "leaf3-swp52-l3",
+          "interface_name": "swp52",
+          "unnumbered": true,
+          "local_as": 65003
+        }
       }
     }
   ]

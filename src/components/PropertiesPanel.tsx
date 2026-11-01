@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { CyNodeData, CyEdgeData } from '../types/topology'
 import { useT, type Messages } from '../i18n'
+import { afShort, bgpTypeLabel, endLabel } from '../flow/session'
 
 interface Props {
   selected: { data: CyNodeData | CyEdgeData } | null
@@ -14,7 +15,7 @@ const TYPE_CLASS: Record<string, string> = {
   vrf: 'type-vrf',
   l3interface: 'type-l3interface',
   bgp_session: 'type-bgp_session',
-  bgp_pair: 'type-bgp_session',
+  routing_neighbor: 'type-bgp_session',
   routing_adjacency: 'type-routing_adjacency',
   attaches_to: 'type-attaches_to',
 }
@@ -35,8 +36,11 @@ const TYPE_LABEL: Record<string, string> = {
   routing_adjacency: 'Routing Adj.',
   vrf_l3if: 'VRF ↔ IF',
   bgp_session: 'BGP Session',
-  bgp_pair: 'BGP',
+  routing_neighbor: 'Session',
 }
+
+/** routing_neighbor の見出し: プロトコルの名前 */
+const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
 
 // lo_ip / lo_ipv6 は mlndl が選んだ代表アドレスで、MLNDL に書かれた情報ではないので出さない
 const SKIP_KEYS = new Set(['id', 'lo_ip', 'lo_ipv6'])
@@ -46,9 +50,6 @@ const KEY_LABEL: Record<string, string> = {
   target:    'node_b',
   source_if: 'interface_a',
   target_if: 'interface_b',
-  // BGP の組: どこに書かれた情報かを示す
-  bgp_processes:       'protocols.bgp',
-  routing_adjacencies: 'routing_adjacencies',
 }
 
 type Obj = Record<string, unknown>
@@ -71,16 +72,13 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
     return <><code>{String(o.name ?? o.interface)}</code> {addrs}
       {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
   }
-  if (key === 'bgp_processes') {
-    // 1 行目: プロセス名・役割・eBGP / iBGP・両側の AS。2 行目: アドレスファミリー・BFD・片側だけの記述
-    const types: Record<string, string> = { ebgp: 'eBGP', ibgp: 'iBGP' }
-    const head = [o.role, o.type && (types[String(o.type)] ?? o.type)].filter(Boolean)
-    const as = Object.entries(o.as as Record<string, number>).map(([n, a]) => `${n} AS${a}`)
-    const declared = o.declared_by as string[]
-    const notes = [...((o.address_families as string[] | undefined) ?? []), o.bfd && 'BFD',
-      declared.length === 1 && t.onlyDeclaredBy(declared[0])].filter(Boolean)
-    return <><code>{String(o.process)}</code> {segs(head, ' · ')}
-      <div>{segs(as, ' ↔ ')}</div>
+  if (key === 'bgp_sessions') {
+    // ノードの BGP セッション: 1 行目に相手・相手の AS・eBGP / iBGP・AF、2 行目にこの機器の端と VRF
+    const peer = o.peer as Obj
+    const afs = ((o.address_families as string[] | undefined) ?? []).map(afShort).join('+')
+    const head = [peer.local_as != null && `AS${peer.local_as}`, bgpTypeLabel(o.bgp_type as string | undefined), afs].filter(Boolean)
+    const notes = [endLabel(o.local as Obj, t.unnumbered), o.vrf, !peer.node && t.peerOutside].filter(Boolean)
+    return <><code>{String(o.id)}</code> → {String(peer.node ?? peer.address ?? '')} {segs(head, ' · ')}
       {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
   }
   if (key === 'vteps') {
@@ -101,6 +99,12 @@ function renderValue(t: Messages, key: string, val: unknown): ReactNode {
     return val.map((v, i) => (
       <div key={i} className="prop-item">{isObj(v) ? summarize(t, key, v) : String(v)}</div>
     ))
+  }
+  if (isObj(val) && (key === 'from' || key === 'to')) {
+    // セッションの端: 機器・IF・アドレス・AS を 1 行に
+    const notes = [val.route_reflector_client && 'route_reflector_client', val.l3_interface ?? val.interface].filter(Boolean)
+    return <><code>{String(val.node ?? val.address ?? '')}</code> {endLabel(val, t.unnumbered)}
+      {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
   }
   if (isObj(val)) {
     return Object.entries(val).map(([k, v]) => (
@@ -124,10 +128,13 @@ export default function PropertiesPanel({ selected }: Props) {
   const data = selected.data
   const typeKey = data.type ?? 'default'
   const cls = TYPE_CLASS[typeKey] ?? 'type-default'
-  const label = TYPE_LABEL[typeKey] ?? typeKey
+  const label = typeKey === 'routing_neighbor'
+    ? PROTOCOL_LABEL[(data as CyEdgeData).protocol ?? ''] ?? TYPE_LABEL[typeKey]
+    : TYPE_LABEL[typeKey] ?? typeKey
 
-  // BGP の組は ndl-viz がまとめたもので、type / layer は MLNDL に書かれた値ではないので出さない（種別は見出しで示す）
-  const skip = (k: string) => SKIP_KEYS.has(k) || (typeKey === 'bgp_pair' && (k === 'type' || k === 'layer'))
+  // セッションは見出しでプロトコルを示し、両端は from / to で出す (source / target・type / layer は重複)
+  const skip = (k: string) => SKIP_KEYS.has(k) || (typeKey === 'routing_neighbor'
+    && ['type', 'layer', 'source', 'target', 'protocol', 'offsetIndex'].includes(k))
   const entries = Object.entries(data).filter(
     ([k, v]) => !skip(k) && v !== undefined && v !== null && v !== ''
   )

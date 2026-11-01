@@ -1,71 +1,64 @@
 /**
- * OverlayEdge — L2/L3/BGP/attaches_to のオーバーレイエッジ
+ * OverlayEdge — L2 / 制御プレーン / attaches_to のオーバーレイエッジ
  *
- * 曲線 (quadratic bezier) で L1 リンクと視覚的に区別する。
- * 表示は opacity フェード。ラベルは YAML に書かれた値から出す（routing_adjacency は type）。
- * BGP は機器の組ごとに 1 本（bgp_pair。layout.ts）で、札は eBGP / iBGP。AS は機器カードに出す。
+ * 曲線 (quadratic bezier) で L1 リンクと視覚的に区別する。表示は opacity フェード。
+ * 制御プレーンは 1 セッション = 1 本 (routing_neighbor。ADR-0010 D11)。中央の札は eBGP / iBGP と運ぶ AF、
+ * 両端の札はその端の AS とアドレス。拡大したとき・線を選んだときは両端、機器に載せたときはその機器の側だけ出す。
+ * 同じ機器の組の複数のセッションは、ふくらみを変えて重ならないようにする。
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
 import { edgeGeometry } from './edgeGeometry'
 import { OVERLAY_STYLE, type LineStyle } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
-import type { CyEdgeData, OverlayKey, BgpPairProcess } from '../types/topology'
+import { endLabel, sessionLabel, sessionStyle } from './session'
+import { useT } from '../i18n'
+import type { CyEdgeData, OverlayKey } from '../types/topology'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
-const KIND_OF: Record<string, OverlayKey | 'always'> = {
-  routing_adjacency: 'l3',
-  bgp_pair: 'bgp',
-  vlan_member: 'l2',
-  attaches_to: 'always',
+/** 線をどの層のボタンで出すか。BGP は BGP、OSPF / IS-IS は Layer 3 */
+function kindOf(d: CyEdgeData): OverlayKey | 'always' | null {
+  if (d.type === 'routing_neighbor') return d.protocol === 'bgp' ? 'bgp' : 'l3'
+  if (d.type === 'vlan_member') return 'l2'
+  if (d.type === 'attaches_to') return 'always'
+  return null
 }
 
-/** routing_adjacencies[].type の表示名。知らない値はそのまま大文字で出す */
-const ADJ_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
-const adjLabel = (t?: string): string => (t ? ADJ_LABEL[t] ?? t.toUpperCase() : '')
-
-const BGP_TYPE_LABEL: Record<string, string> = { ebgp: 'eBGP', ibgp: 'iBGP' }
-
-/**
- * BGP の組の線の見た目と札。札は eBGP / iBGP（両方あれば並べる）。protocols.bgp に書かれていなければ BGP。
- * 隣接（routing_adjacencies）がプロセスより多ければ数を添える（VRF ごとのセッション等。どれが
- * どのプロセスかは書かれていないので、数だけ）
- */
-function bgpPairLook(procs: BgpPairProcess[], adjacencies: number): { style: LineStyle; label: string } {
-  const types = [...new Set(procs.map(p => p.type).filter((x): x is string => !!x))]
-  const style = types.includes('ebgp') ? OVERLAY_STYLE.ebgp
-    : types.includes('ibgp') ? OVERLAY_STYLE.ibgp : OVERLAY_STYLE.routing
-  const name = types.length ? types.map(x => BGP_TYPE_LABEL[x] ?? x).join(' · ') : 'BGP'
-  return { style, label: adjacencies > Math.max(procs.length, 1) ? `${name} ×${adjacencies}` : name }
-}
+/** 同じ組の n 本目のセッションのふくらみ。1 本目が L1 の直線にいちばん近い。中央の札が重ならない間隔 (札の位置はふくらみの半分ずれる) */
+const SESSION_BOW = 28, SESSION_BOW_STEP = 50
 
 export const OverlayEdge = memo(function OverlayEdge({ source, target, data, selected }: EdgeProps) {
-  const d = data as unknown as CyEdgeData
+  const d = data as unknown as CyEdgeData & { offsetIndex?: number }
   const sourceNode = useInternalNode(source)
   const targetNode = useInternalNode(target)
   const lod = useStore(lodSelector)
-  const { overlays, hoveredId, hiddenBgpRoles } = useFlowCtx()
+  const t = useT()
+  const { overlays, hoveredId, hiddenAfs } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
-  const kind = KIND_OF[d.type]
-  // BGP は凡例で外した役割のプロセスを除く。プロセスが書かれていない組（隣接だけ）は役割で絞らない
-  const allProcs = d.bgp_processes ?? []
-  const procs = allProcs.filter(p => !hiddenBgpRoles.has(p.role ?? ''))
-  const visible = kind === 'always'
-    || (overlays.has(kind) && !(d.type === 'bgp_pair' && allProcs.length > 0 && procs.length === 0))
+  const kind = kindOf(d)
+  const session = d.type === 'routing_neighbor'
+  // BGP は凡例で外した AF だけを運ぶセッションを隠す (AF を書いていないセッションは絞らない)
+  const afs = d.address_families ?? []
+  const afHidden = session && d.protocol === 'bgp' && afs.length > 0 && afs.every(af => hiddenAfs.has(af))
+  const visible = kind === 'always' || (kind !== null && overlays.has(kind) && !afHidden)
 
   const geo = edgeGeometry(sourceNode, targetNode)
   // ふくらみ付き曲線で L1 直線と区別
-  const bow = d.type === 'bgp_pair' ? 28 : 16
+  const bow = session ? SESSION_BOW + (d.offsetIndex ?? 0) * SESSION_BOW_STEP : 16
   const cpx = geo.mx + geo.px * bow, cpy = geo.my + geo.py * bow
   const path = `M ${geo.sx},${geo.sy} Q ${cpx},${cpy} ${geo.tx},${geo.ty}`
+  // 曲線上の点 (端の札の位置)
+  const at = (u: number) => ({
+    x: (1 - u) ** 2 * geo.sx + 2 * (1 - u) * u * cpx + u ** 2 * geo.tx,
+    y: (1 - u) ** 2 * geo.sy + 2 * (1 - u) * u * cpy + u ** 2 * geo.ty,
+  })
+  const mid = at(0.5)
 
   let style: LineStyle = OVERLAY_STYLE.attach, label = ''
-  if (d.type === 'routing_adjacency') {
-    style = OVERLAY_STYLE.routing; label = adjLabel(d.adj_type)
-  } else if (d.type === 'bgp_pair') {
-    ({ style, label } = bgpPairLook(procs, d.routing_adjacencies?.length ?? 0))
+  if (session) {
+    style = sessionStyle(d); label = sessionLabel(d)
   } else if (d.type === 'vlan_member') {
     style = OVERLAY_STYLE.vlan
   }
@@ -74,7 +67,14 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const touches = hoveredId !== null && (source === hoveredId || target === hoveredId)
   const dim = hoveredId !== null && !touches
   const showLabel = (lod === 'near' || lod === 'detail') && label
-  const showBfd = lod === 'detail' && procs.some(p => p.bfd)
+  const showBfd = lod === 'detail' && d.bfd
+  // 端の札: 拡大したとき・選んだときは両端、機器に載せたときはその機器の側だけ
+  // (1 台から多くのセッションが出るので、両端を出すと機器のまわりに札が重なる)
+  const bothEnds = session && (lod === 'detail' || !!selected)
+  const ends = !session ? [] : ([[d.from, at(0.22), source], [d.to, at(0.78), target]] as const)
+    .filter(([, , node]) => bothEnds || hoveredId === node)
+    .map(([end, p]) => ({ text: d.protocol === 'bgp' ? endLabel(end, t.unnumbered) : end?.interface_name ?? '', p }))
+    .filter(e => e.text)
 
   return (
     <g className={`ov-edge${visible ? '' : ' is-hidden'}${dim ? ' is-dim' : ''}${selected ? ' is-selected' : ''}`}>
@@ -87,12 +87,19 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
       <EdgeLabelRenderer>
         {visible && showLabel && (
           <div className={`edge-pill ov-pill${dim ? ' is-dim' : ''}`}
-            style={{ transform: `translate(-50%,-50%) translate(${cpx}px,${cpy}px)`,
+            style={{ transform: `translate(-50%,-50%) translate(${mid.x}px,${mid.y}px)`,
               '--pill-accent': color } as React.CSSProperties}>
             {label}
             {showBfd ? <span className="bfd-tag">BFD</span> : null}
           </div>
         )}
+        {visible && ends.map((e, i) => (
+          <div key={i} className={`edge-if session-end${dim ? ' is-dim' : ''}`}
+            style={{ transform: `translate(-50%,-50%) translate(${e.p.x}px,${e.p.y}px)`,
+              '--pill-accent': color } as React.CSSProperties}>
+            {e.text}
+          </div>
+        ))}
       </EdgeLabelRenderer>
     </g>
   )

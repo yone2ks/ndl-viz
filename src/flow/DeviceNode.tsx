@@ -18,9 +18,10 @@ import { roleStyle, vrfColor } from './palette'
 import { Glyph } from './Glyph'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
-import type { CyNodeData, NodeVtep } from '../types/topology'
+import type { CyNodeData, NodeVtep, NodeBgpSession } from '../types/topology'
 import type { VlanEndpoint } from './layout'
 import { l3Name, isVlanIf } from './l3'
+import { afShort, bgpTypeLabel } from './session'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
@@ -55,6 +56,9 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const endpoints = groupEndpoints(focusVlanId ? vlanEndpoints.get(focusVlanId)?.get(id) ?? [] : [])
   const showHostIp = !!hostIp && !endpoints.some(g => g.ip)
   const showAs  = lod !== 'far' && overlays.has('bgp') && nd.local_as
+  // トポロジー外の相手との BGP セッションは線にならないので、カードに出す (ADR-0010 D11。トンネルの destination_ip と同じ)
+  const outsidePeers = lod !== 'far' && overlays.has('bgp')
+    ? ((nd.bgp_sessions ?? []) as NodeBgpSession[]).filter(s => !s.peer.node) : []
   const showVrf = (lod === 'near' || lod === 'detail') && overlays.has('l3')
   const vrfs = showVrf ? (nd.vrfs ?? []).filter(v => v !== 'vrf-default') : []
   // near 以上: IF チップ（YAML に書かれた順。新形式 l3_interfaces 優先、旧 ips にフォールバック）
@@ -135,6 +139,17 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
           </div>
         )
       })}
+
+      {outsidePeers.length > 0 && (
+        <div className="card-peers">
+          {outsidePeers.map(s => (
+            <span key={s.id} className="badge badge-peer">
+              → {s.peer.address} AS{s.peer.local_as} · {bgpTypeLabel(s.bgp_type)}
+              {s.address_families.length > 0 && ` · ${s.address_families.map(afShort).join('+')}`}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* 検索ヒット: 該当 IF / IP を強調表示（IP 検索の答えをカードに出す）*/}
       {hitIfs.length > 0 && (

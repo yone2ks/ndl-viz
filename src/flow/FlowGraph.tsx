@@ -107,11 +107,11 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const [focusVlanId, setFocusVlanId] = useState<string | null>(null)
   // VNI タブ選択中は、その VNI が載る VTEP 間のトンネルを描く
   const [focusVniId, setFocusVniId] = useState<string | null>(null)
-  // 凡例で外した BGP の役割
-  const [hiddenBgpRoles, setHiddenBgpRoles] = useState<Set<string>>(() => new Set())
-  const toggleBgpRole = useCallback((role: string) => setHiddenBgpRoles(prev => {
+  // 凡例で外した BGP の AF
+  const [hiddenAfs, setHiddenAfs] = useState<Set<string>>(() => new Set())
+  const toggleAf = useCallback((af: string) => setHiddenAfs(prev => {
     const next = new Set(prev)
-    if (!next.delete(role)) next.add(role)
+    if (!next.delete(af)) next.add(af)
     return next
   }), [])
   const vniFocusNodes = useMemo(() => {
@@ -130,8 +130,8 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
-    query: q, matchedIds, hiddenBgpRoles,
-  }), [overlays, hoveredId, focusVlanId, focusVniId, vniFocusNodes, graph, q, matchedIds, hiddenBgpRoles])
+    query: q, matchedIds, hiddenAfs,
+  }), [overlays, hoveredId, focusVlanId, focusVniId, vniFocusNodes, graph, q, matchedIds, hiddenAfs])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
@@ -179,7 +179,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
           graphW={graphWOf(graph.graphW)} />
         <VxlanTunnels />
         <FlowLegend edges={graph.edges} overlays={overlays}
-          hiddenBgpRoles={hiddenBgpRoles} onToggleBgpRole={toggleBgpRole} />
+          hiddenAfs={hiddenAfs} onToggleAf={toggleAf} />
         <MiniMap
           pannable zoomable
           className="flow-minimap"

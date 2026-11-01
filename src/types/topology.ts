@@ -53,6 +53,8 @@ export interface CyNodeData {
   vrf?: string       // l3vni: 紐づく VRF 名
   /** type=node: 終端する VTEP / type=l2vni・l3vni: 載る VTEP の id（l3vni は VRF から導出）*/
   vteps?: NodeVtep[] | string[]
+  /** type=node: この機器の BGP セッションすべて (相手がトポロジー外のものを含む。ADR-0010 D11) */
+  bgp_sessions?: NodeBgpSession[]
   // BGP 埋め込みデータ
   local_as?: number
 }
@@ -79,9 +81,9 @@ export interface CyEdgeData {
   source: string
   target: string
   layer: string
-  type: 'link' | 'attaches_to' | 'vlan_member' | 'routing_adjacency' | 'bgp_session'
-    /** ndl-viz が bgp_session と routing_adjacency（bgp）を機器の組ごとにまとめたもの */
-    | 'bgp_pair'
+  type: 'link' | 'attaches_to' | 'vlan_member' | 'routing_neighbor'
+    /** 旧形式 (ADR-0010 以前のエクスポーター。components/topology の旧表示だけが読む) */
+    | 'routing_adjacency' | 'bgp_session'
   // L1
   link_speed?: string
   mtu?: number
@@ -98,36 +100,62 @@ export interface CyEdgeData {
   interfaces?: string[]
   /** このノードの VLAN のポートの対向にいる VLAN の端点 */
   endpoints?: VlanEndpointData[]
-  // L3
-  adj_type?: string
-  // BGP
+  // 制御プレーンのセッション (type=routing_neighbor。ADR-0010 D11)。1 セッション = 1 辺
+  protocol?: 'bgp' | 'ospf' | 'isis'
+  instance?: string
+  /** インスタンスの VRF。default VRF なら出ない */
+  vrf?: string
+  from?: SessionEndData
+  to?: SessionEndData
+  /** ebgp / ibgp。両端の AS から導いた値 */
   bgp_type?: string
+  address_families?: string[]
+  /** single-hop の通り道 (update_source の L3 IF から導いた値)。multihop・SVI・トポロジー外では出ない */
+  transport_link?: TransportLink
+  bfd?: boolean
+  area?: string      // OSPF
+  level?: string     // IS-IS
+  // 旧形式 (routing_adjacency / bgp_session)
+  adj_type?: string
   label?: string
   local_as?: number
   remote_as?: number
   process?: string
   process_role?: string
-  bfd?: boolean
-  address_families?: string[]
-  // type=bgp_pair（ndl-viz が機器の組ごとにまとめた BGP。layout.ts）
-  /** protocols.bgp のプロセスごとの neighbor（両側の宣言をまとめたもの）*/
-  bgp_processes?: BgpPairProcess[]
-  /** layer3.routing_adjacencies（type: bgp）の id */
-  routing_adjacencies?: string[]
 }
 
-/** 機器の組 1 つについての protocols.bgp の 1 プロセス */
-export interface BgpPairProcess {
-  process: string
-  role?: string
-  /** ebgp / ibgp */
-  type?: string
-  /** node id → その機器の AS（自分の local_as。対向しか書いていなければ対向の remote_as）*/
-  as: Record<string, number>
-  address_families?: string[]
-  bfd?: boolean
-  /** neighbor を書いている機器（両側なら 2 つ）*/
-  declared_by: string[]
+/** セッションの片端。トポロジー外の相手は address と local_as だけ */
+export interface SessionEndData {
+  node?: string
+  address?: string
+  l3_interface?: string
+  /** OSPF / IS-IS の端点の IF の id */
+  interface?: string
+  interface_name?: string
+  ip?: string
+  ipv6?: string
+  unnumbered?: boolean
+  local_as?: number
+  route_reflector_client?: boolean
+}
+
+export interface TransportLink {
+  link?: string
+  /** 両端の LAG */
+  lag?: string[]
+}
+
+/** ノードの bgp_sessions の 1 件。local はこの機器の端、peer は相手の端 */
+export interface NodeBgpSession {
+  id: string
+  instance?: string
+  vrf?: string
+  bgp_type?: string
+  address_families: string[]
+  transport_link?: TransportLink
+  bfd: boolean
+  local: SessionEndData
+  peer: SessionEndData
 }
 
 export interface CyElement {

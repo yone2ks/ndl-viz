@@ -797,3 +797,20 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 }
 [data-theme="light"] .legend-role { color: #c2410c; }
 [data-theme="light"] .legend-role.is-off { color: #94a3b8; }
+
+/* ── 制御プレーンのセッション (ADR-0010 D11) ── */
+/* 端の札: その端の AS とアドレス。線と同じ色の枠 */
+.edge-if.session-end {
+  font-size: 9px;
+  color: #cbd5e1;
+  border: 1px solid color-mix(in srgb, var(--pill-accent, #94a3b8) 45%, transparent);
+}
+/* トポロジー外の相手 (線にならない) をカードに出す */
+.card-peers { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+.badge-peer {
+  font-family: 'SF Mono', monospace;
+  color: #fdba74;
+  border-color: rgba(251, 146, 60, 0.45);
+}
+[data-theme="light"] .edge-if.session-end { color: #334155; }
+[data-theme="light"] .badge-peer { color: #c2410c; border-color: rgba(194, 65, 12, 0.4); }

@@ -12,12 +12,167 @@
         "lo_ip": "10.0.0.1/32",
         "l3_interfaces": [
           {
+            "id": "dc-spine1-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.1/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.1/32"
+          },
+          {
+            "id": "dc-spine1-swp1-l3",
+            "name": "swp1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine1-swp1"
+            },
+            "interface": "swp1",
+            "kind": "routed",
+            "ip": "10.1.0.0/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine1-swp2-l3",
+            "name": "swp2",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine1-swp2"
+            },
+            "interface": "swp2",
+            "kind": "routed",
+            "ip": "10.1.0.2/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine1-swp3-l3",
+            "name": "swp3",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine1-swp3"
+            },
+            "interface": "swp3",
+            "kind": "routed",
+            "ip": "10.1.0.4/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine1-swp4-l3",
+            "name": "swp4",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine1-swp4"
+            },
+            "interface": "swp4",
+            "kind": "routed",
+            "ip": "10.1.0.6/31",
+            "vrf": "vrf-default"
           }
         ],
-        "local_as": 65000
+        "vrfs": [
+          "vrf-default"
+        ],
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine1-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-leaf1",
+              "l3_interface": "dc-leaf1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.11/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine1-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-leaf2",
+              "l3_interface": "dc-leaf2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.12/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine1-border1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.21/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine1-border2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.22/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          }
+        ]
       }
     },
     {
@@ -32,12 +187,167 @@
         "lo_ip": "10.0.0.2/32",
         "l3_interfaces": [
           {
+            "id": "dc-spine2-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.2/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.2/32"
+          },
+          {
+            "id": "dc-spine2-swp1-l3",
+            "name": "swp1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine2-swp1"
+            },
+            "interface": "swp1",
+            "kind": "routed",
+            "ip": "10.1.0.8/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine2-swp2-l3",
+            "name": "swp2",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine2-swp2"
+            },
+            "interface": "swp2",
+            "kind": "routed",
+            "ip": "10.1.0.10/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine2-swp3-l3",
+            "name": "swp3",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine2-swp3"
+            },
+            "interface": "swp3",
+            "kind": "routed",
+            "ip": "10.1.0.12/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-spine2-swp4-l3",
+            "name": "swp4",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-spine2-swp4"
+            },
+            "interface": "swp4",
+            "kind": "routed",
+            "ip": "10.1.0.14/31",
+            "vrf": "vrf-default"
           }
         ],
-        "local_as": 65000
+        "vrfs": [
+          "vrf-default"
+        ],
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine2-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-leaf1",
+              "l3_interface": "dc-leaf1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.11/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-leaf2",
+              "l3_interface": "dc-leaf2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.12/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-border1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.21/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-border2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.22/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            }
+          }
+        ]
       }
     },
     {
@@ -50,26 +360,125 @@
         "implementation": "vm",
         "device_type": "cumulus_linux",
         "lo_ip": "10.0.0.11/32",
+        "vteps": [
+          {
+            "id": "vtep-dc-leaf1-leaf2",
+            "source": "lo",
+            "address": "10.0.100.12/32",
+            "shared_with": [
+              "dc-leaf2"
+            ]
+          }
+        ],
         "l3_interfaces": [
           {
+            "id": "dc-leaf1-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source",
+              "vtep_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.11/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.11/32"
           },
           {
+            "id": "dc-leaf1-swp51-l3",
+            "name": "swp51",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-leaf1-swp51"
+            },
+            "interface": "swp51",
+            "kind": "routed",
+            "ip": "10.1.0.1/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-leaf1-swp52-l3",
+            "name": "swp52",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-leaf1-swp52"
+            },
+            "interface": "swp52",
+            "kind": "routed",
+            "ip": "10.1.0.9/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-leaf1-vlan100",
+            "name": "vlan-100",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-100"
+            },
             "interface": "vlan-100",
-            "ip": "192.168.100.1/24",
             "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "ip": "192.168.100.1/24",
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-100"
           }
         ],
         "vrfs": [
+          "vrf-default",
           "vrf-tenant-a"
         ],
         "vlans": [
           "vlan-100"
         ],
-        "local_as": 65001
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine1-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-leaf1",
+              "l3_interface": "dc-leaf1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.11/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-leaf1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-leaf1",
+              "l3_interface": "dc-leaf1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.11/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -82,26 +491,125 @@
         "implementation": "vm",
         "device_type": "cumulus_linux",
         "lo_ip": "10.0.0.12/32",
+        "vteps": [
+          {
+            "id": "vtep-dc-leaf1-leaf2",
+            "source": "lo",
+            "address": "10.0.100.12/32",
+            "shared_with": [
+              "dc-leaf1"
+            ]
+          }
+        ],
         "l3_interfaces": [
           {
+            "id": "dc-leaf2-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source",
+              "vtep_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.12/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.12/32"
           },
           {
+            "id": "dc-leaf2-swp51-l3",
+            "name": "swp51",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-leaf2-swp51"
+            },
+            "interface": "swp51",
+            "kind": "routed",
+            "ip": "10.1.0.3/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-leaf2-swp52-l3",
+            "name": "swp52",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-leaf2-swp52"
+            },
+            "interface": "swp52",
+            "kind": "routed",
+            "ip": "10.1.0.11/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-leaf2-vlan100",
+            "name": "vlan-100",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-100"
+            },
             "interface": "vlan-100",
-            "ip": "192.168.100.2/24",
             "kind": "svi",
-            "vrf": "vrf-tenant-a"
+            "ip": "192.168.100.2/24",
+            "vrf": "vrf-tenant-a",
+            "vlan": "vlan-100"
           }
         ],
         "vrfs": [
+          "vrf-default",
           "vrf-tenant-a"
         ],
         "vlans": [
           "vlan-100"
         ],
-        "local_as": 65002
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine1-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-leaf2",
+              "l3_interface": "dc-leaf2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.12/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-leaf2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-leaf2",
+              "l3_interface": "dc-leaf2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.12/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -116,21 +624,136 @@
         "lo_ip": "10.0.0.21/32",
         "l3_interfaces": [
           {
+            "id": "dc-border1-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.21/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.21/32"
           },
           {
-            "interface": "swp1",
-            "ip": "10.255.0.1/31",
+            "id": "dc-border1-swp51-l3",
+            "name": "swp51",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border1-swp51"
+            },
+            "interface": "swp51",
             "kind": "routed",
+            "ip": "10.1.0.5/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border1-swp52-l3",
+            "name": "swp52",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border1-swp52"
+            },
+            "interface": "swp52",
+            "kind": "routed",
+            "ip": "10.1.0.13/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border1-swp1-l3",
+            "name": "swp1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border1-swp1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "swp1",
+            "kind": "routed",
+            "ip": "10.255.0.1/31",
             "vrf": "vrf-default"
           }
         ],
         "vrfs": [
           "vrf-default"
         ],
-        "local_as": 65011
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine1-border1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.21/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-border1",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.21/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-border1-cm-core1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border1-core1"
+            },
+            "bfd": true,
+            "local": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-swp1-l3",
+              "interface_name": "swp1",
+              "ip": "10.255.0.1/31",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "cm-core1",
+              "l3_interface": "cm-core1-te1-1-l3",
+              "interface_name": "Te1/1",
+              "ip": "10.255.0.0/31",
+              "local_as": 65100
+            }
+          }
+        ]
       }
     },
     {
@@ -145,21 +768,136 @@
         "lo_ip": "10.0.0.22/32",
         "l3_interfaces": [
           {
+            "id": "dc-border2-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.0.22/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.0.22/32"
           },
           {
-            "interface": "swp1",
-            "ip": "10.255.0.3/31",
+            "id": "dc-border2-swp51-l3",
+            "name": "swp51",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border2-swp51"
+            },
+            "interface": "swp51",
             "kind": "routed",
+            "ip": "10.1.0.7/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border2-swp52-l3",
+            "name": "swp52",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border2-swp52"
+            },
+            "interface": "swp52",
+            "kind": "routed",
+            "ip": "10.1.0.15/31",
+            "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border2-swp1-l3",
+            "name": "swp1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "dc-border2-swp1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "swp1",
+            "kind": "routed",
+            "ip": "10.255.0.3/31",
             "vrf": "vrf-default"
           }
         ],
         "vrfs": [
           "vrf-default"
         ],
-        "local_as": 65012
+        "local_as": 65000,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-spine1-border2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.22/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine1",
+              "l3_interface": "dc-spine1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.1/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-spine2-border2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "l2vpn_evpn"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.22/32",
+              "local_as": 65000,
+              "route_reflector_client": true
+            },
+            "peer": {
+              "node": "dc-spine2",
+              "l3_interface": "dc-spine2-lo",
+              "interface_name": "lo",
+              "ip": "10.0.0.2/32",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-border2-cm-core2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border2-core2"
+            },
+            "bfd": true,
+            "local": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-swp1-l3",
+              "interface_name": "swp1",
+              "ip": "10.255.0.3/31",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "cm-core2",
+              "l3_interface": "cm-core2-te1-1-l3",
+              "interface_name": "Te1/1",
+              "ip": "10.255.0.2/31",
+              "local_as": 65100
+            }
+          }
+        ]
       }
     },
     {
@@ -194,32 +932,92 @@
         "lo_ip": "10.0.1.1/32",
         "l3_interfaces": [
           {
+            "id": "cm-core1-lo",
+            "name": "lo",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
             "interface": "lo",
-            "ip": "10.0.1.1/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.1.1/32"
           },
           {
+            "id": "cm-core1-vlan10",
+            "name": "vlan-10",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-10"
+            },
             "interface": "vlan-10",
+            "kind": "svi",
             "ip": "172.16.10.2/24",
-            "kind": "svi",
-            "vrf": "vrf-default"
+            "vrf": "vrf-default",
+            "vlan": "vlan-10",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 10,
+                "vip": "172.16.10.1",
+                "priority": 110
+              }
+            ]
           },
           {
+            "id": "cm-core1-vlan20",
+            "name": "vlan-20",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-20"
+            },
             "interface": "vlan-20",
+            "kind": "svi",
             "ip": "172.16.20.2/24",
-            "kind": "svi",
-            "vrf": "vrf-default"
+            "vrf": "vrf-default",
+            "vlan": "vlan-20",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 20,
+                "vip": "172.16.20.1",
+                "priority": 110
+              }
+            ]
           },
           {
+            "id": "cm-core1-vlan30",
+            "name": "vlan-30",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-30"
+            },
             "interface": "vlan-30",
-            "ip": "172.16.30.2/24",
             "kind": "svi",
-            "vrf": "vrf-default"
+            "ip": "172.16.30.2/24",
+            "vrf": "vrf-default",
+            "vlan": "vlan-30",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 30,
+                "vip": "172.16.30.1",
+                "priority": 110
+              }
+            ]
           },
           {
+            "id": "cm-core1-te1-1-l3",
+            "name": "Te1/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "cm-core1-te1-1"
+            },
+            "roles": [
+              "update_source"
+            ],
             "interface": "Te1/1",
-            "ip": "10.255.0.0/31",
             "kind": "routed",
+            "ip": "10.255.0.0/31",
             "vrf": "vrf-default"
           }
         ],
@@ -231,7 +1029,55 @@
           "vlan-20",
           "vlan-30"
         ],
-        "local_as": 65100
+        "local_as": 65100,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-border1-cm-core1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border1-core1"
+            },
+            "bfd": true,
+            "local": {
+              "node": "cm-core1",
+              "l3_interface": "cm-core1-te1-1-l3",
+              "interface_name": "Te1/1",
+              "ip": "10.255.0.0/31",
+              "local_as": 65100
+            },
+            "peer": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-swp1-l3",
+              "interface_name": "swp1",
+              "ip": "10.255.0.1/31",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-cm-core1-isp",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "cm-core1",
+              "l3_interface": "cm-core1-lo",
+              "interface_name": "lo",
+              "ip": "10.0.1.1/32",
+              "local_as": 65100
+            },
+            "peer": {
+              "address": "203.0.113.1",
+              "local_as": 64500
+            }
+          }
+        ]
       }
     },
     {
@@ -246,32 +1092,89 @@
         "lo_ip": "10.0.1.2/32",
         "l3_interfaces": [
           {
+            "id": "cm-core2-lo",
+            "name": "lo",
+            "attachment": "unattached",
             "interface": "lo",
-            "ip": "10.0.1.2/32",
-            "kind": "loopback"
+            "kind": "loopback",
+            "ip": "10.0.1.2/32"
           },
           {
+            "id": "cm-core2-vlan10",
+            "name": "vlan-10",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-10"
+            },
             "interface": "vlan-10",
+            "kind": "svi",
             "ip": "172.16.10.3/24",
-            "kind": "svi",
-            "vrf": "vrf-default"
+            "vrf": "vrf-default",
+            "vlan": "vlan-10",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 10,
+                "vip": "172.16.10.1",
+                "priority": 90
+              }
+            ]
           },
           {
+            "id": "cm-core2-vlan20",
+            "name": "vlan-20",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-20"
+            },
             "interface": "vlan-20",
+            "kind": "svi",
             "ip": "172.16.20.3/24",
-            "kind": "svi",
-            "vrf": "vrf-default"
+            "vrf": "vrf-default",
+            "vlan": "vlan-20",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 20,
+                "vip": "172.16.20.1",
+                "priority": 90
+              }
+            ]
           },
           {
+            "id": "cm-core2-vlan30",
+            "name": "vlan-30",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-30"
+            },
             "interface": "vlan-30",
-            "ip": "172.16.30.3/24",
             "kind": "svi",
-            "vrf": "vrf-default"
+            "ip": "172.16.30.3/24",
+            "vrf": "vrf-default",
+            "vlan": "vlan-30",
+            "gateway_redundancy": [
+              {
+                "mode": "vrrp",
+                "group_id": 30,
+                "vip": "172.16.30.1",
+                "priority": 90
+              }
+            ]
           },
           {
+            "id": "cm-core2-te1-1-l3",
+            "name": "Te1/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "cm-core2-te1-1"
+            },
+            "roles": [
+              "update_source"
+            ],
             "interface": "Te1/1",
-            "ip": "10.255.0.2/31",
             "kind": "routed",
+            "ip": "10.255.0.2/31",
             "vrf": "vrf-default"
           }
         ],
@@ -283,7 +1186,35 @@
           "vlan-20",
           "vlan-30"
         ],
-        "local_as": 65100
+        "local_as": 65100,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-dc-border2-cm-core2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border2-core2"
+            },
+            "bfd": true,
+            "local": {
+              "node": "cm-core2",
+              "l3_interface": "cm-core2-te1-1-l3",
+              "interface_name": "Te1/1",
+              "ip": "10.255.0.2/31",
+              "local_as": 65100
+            },
+            "peer": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-swp1-l3",
+              "interface_name": "swp1",
+              "ip": "10.255.0.3/31",
+              "local_as": 65000
+            }
+          }
+        ]
       }
     },
     {
@@ -431,7 +1362,10 @@
         "id": "vni-10100",
         "label": "L2VNI 10100",
         "type": "l2vni",
-        "vlan": "vlan-100"
+        "vlan": "vlan-100",
+        "vteps": [
+          "vtep-dc-leaf1-leaf2"
+        ]
       }
     },
     {
@@ -441,7 +1375,10 @@
         "id": "vni-10900",
         "label": "L3VNI 10900",
         "type": "l3vni",
-        "vrf": "vrf-tenant-a"
+        "vrf": "vrf-tenant-a",
+        "vteps": [
+          "vtep-dc-leaf1-leaf2"
+        ]
       }
     }
   ],
@@ -892,20 +1829,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-100-dc-leaf1",
-        "source": "vlan-100",
-        "target": "dc-leaf1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 100,
-        "tagged_on": [
-          "swp1",
-          "swp2"
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-100-dc-leaf2",
         "source": "vlan-100",
         "target": "dc-leaf2",
@@ -913,49 +1836,88 @@
         "type": "vlan_member",
         "vlan_id": 100,
         "tagged_on": [
-          "swp1",
-          "swp2"
+          "lag-dc-mlag-server1",
+          "lag-dc-mlag-server2"
+        ],
+        "endpoints": [
+          {
+            "node": "dc-server1",
+            "interfaces": [
+              "dc-server1-eth1"
+            ],
+            "interface_names": [
+              "eth1"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server1-bond0"
+          },
+          {
+            "node": "dc-server2",
+            "interfaces": [
+              "dc-server2-eth1"
+            ],
+            "interface_names": [
+              "eth1"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server2-bond0"
+          }
         ]
       }
     },
     {
       "data": {
-        "id": "vlan-vlan-10-cm-agg2",
+        "id": "vlan-vlan-100-dc-leaf1",
+        "source": "vlan-100",
+        "target": "dc-leaf1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "lag-dc-mlag-server1",
+          "lag-dc-mlag-server2"
+        ],
+        "endpoints": [
+          {
+            "node": "dc-server1",
+            "interfaces": [
+              "dc-server1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server1-bond0"
+          },
+          {
+            "node": "dc-server2",
+            "interfaces": [
+              "dc-server2-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server2-bond0"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-10-cm-core1",
         "source": "vlan-10",
-        "target": "cm-agg2",
+        "target": "cm-core1",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 10,
         "tagged_on": [
           "Ge1/1",
-          "Ge1/2",
-          "Ge2/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-10-cm-dist2",
-        "source": "vlan-10",
-        "target": "cm-dist2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "tagged_on": [
-          "Ge0/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-10-cm-dist1",
-        "source": "vlan-10",
-        "target": "cm-dist1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "tagged_on": [
-          "Ge0/1"
+          "Ge1/2"
         ]
       }
     },
@@ -969,20 +1931,19 @@
         "vlan_id": 10,
         "untagged_on": [
           "eth0"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-10-cm-core2",
-        "source": "vlan-10",
-        "target": "cm-core2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "tagged_on": [
-          "Ge1/1",
-          "Ge1/2"
+        ],
+        "endpoints": [
+          {
+            "node": "cm-dist1",
+            "interfaces": [
+              "cm-dist1-fa0-1"
+            ],
+            "interface_names": [
+              "Fa0/1"
+            ],
+            "tagged": false,
+            "resolution": "no_l3"
+          }
         ]
       }
     },
@@ -1003,9 +1964,37 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-10-cm-core1",
+        "id": "vlan-vlan-10-cm-agg2",
         "source": "vlan-10",
-        "target": "cm-core1",
+        "target": "cm-agg2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 10,
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2",
+          "Ge2/1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-10-cm-dist1",
+        "source": "vlan-10",
+        "target": "cm-dist1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 10,
+        "tagged_on": [
+          "Ge0/1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-10-cm-core2",
+        "source": "vlan-10",
+        "target": "cm-core2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 10,
@@ -1017,27 +2006,12 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-20-cm-agg2",
-        "source": "vlan-20",
-        "target": "cm-agg2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 20,
-        "tagged_on": [
-          "Ge1/1",
-          "Ge1/2",
-          "Ge2/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-20-cm-dist2",
-        "source": "vlan-20",
+        "id": "vlan-vlan-10-cm-dist2",
+        "source": "vlan-10",
         "target": "cm-dist2",
         "layer": "layer2",
         "type": "vlan_member",
-        "vlan_id": 20,
+        "vlan_id": 10,
         "tagged_on": [
           "Ge0/1"
         ]
@@ -1045,35 +2019,9 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-20-cm-dist1",
+        "id": "vlan-vlan-20-cm-core1",
         "source": "vlan-20",
-        "target": "cm-dist1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 20,
-        "tagged_on": [
-          "Ge0/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-20-cm-host2",
-        "source": "vlan-20",
-        "target": "cm-host2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 20,
-        "untagged_on": [
-          "eth0"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-20-cm-core2",
-        "source": "vlan-20",
-        "target": "cm-core2",
+        "target": "cm-core1",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 20,
@@ -1100,15 +2048,111 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-20-cm-core1",
+        "id": "vlan-vlan-20-cm-agg2",
         "source": "vlan-20",
-        "target": "cm-core1",
+        "target": "cm-agg2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 20,
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2",
+          "Ge2/1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-20-cm-dist1",
+        "source": "vlan-20",
+        "target": "cm-dist1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 20,
+        "tagged_on": [
+          "Ge0/1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-20-cm-core2",
+        "source": "vlan-20",
+        "target": "cm-core2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 20,
         "tagged_on": [
           "Ge1/1",
           "Ge1/2"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-20-cm-host2",
+        "source": "vlan-20",
+        "target": "cm-host2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 20,
+        "untagged_on": [
+          "eth0"
+        ],
+        "endpoints": [
+          {
+            "node": "cm-dist2",
+            "interfaces": [
+              "cm-dist2-fa0-1"
+            ],
+            "interface_names": [
+              "Fa0/1"
+            ],
+            "tagged": false,
+            "resolution": "no_l3"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-20-cm-dist2",
+        "source": "vlan-20",
+        "target": "cm-dist2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 20,
+        "tagged_on": [
+          "Ge0/1"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-30-cm-core1",
+        "source": "vlan-30",
+        "target": "cm-core1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 30,
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-30-cm-agg1",
+        "source": "vlan-30",
+        "target": "cm-agg1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 30,
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2",
+          "Ge2/1"
         ]
       }
     },
@@ -1124,19 +2168,6 @@
           "Ge1/1",
           "Ge1/2",
           "Ge2/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-30-cm-dist2",
-        "source": "vlan-30",
-        "target": "cm-dist2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 30,
-        "tagged_on": [
-          "Ge0/1"
         ]
       }
     },
@@ -1169,457 +2200,505 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-30-cm-agg1",
+        "id": "vlan-vlan-30-cm-dist2",
         "source": "vlan-30",
-        "target": "cm-agg1",
+        "target": "cm-dist2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 30,
         "tagged_on": [
-          "Ge1/1",
-          "Ge1/2",
-          "Ge2/1"
+          "Ge0/1"
         ]
       }
     },
     {
       "data": {
-        "id": "vlan-vlan-30-cm-core1",
-        "source": "vlan-30",
-        "target": "cm-core1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 30,
-        "tagged_on": [
-          "Ge1/1",
-          "Ge1/2"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "l3-bgp-peer-dc-spine1-leaf1",
+        "id": "bgp-peer-dc-spine1-leaf1",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine1",
         "target": "dc-leaf1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine1",
+          "l3_interface": "dc-spine1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.1/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-leaf1",
+          "l3_interface": "dc-leaf1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.11/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine1-leaf2",
+        "id": "bgp-peer-dc-spine1-leaf2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine1",
         "target": "dc-leaf2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine1",
+          "l3_interface": "dc-spine1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.1/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-leaf2",
+          "l3_interface": "dc-leaf2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.12/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine1-border1",
+        "id": "bgp-peer-dc-spine1-border1",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine1",
         "target": "dc-border1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine1",
+          "l3_interface": "dc-spine1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.1/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-border1",
+          "l3_interface": "dc-border1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.21/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine1-border2",
+        "id": "bgp-peer-dc-spine1-border2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine1",
         "target": "dc-border2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine1",
+          "l3_interface": "dc-spine1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.1/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-border2",
+          "l3_interface": "dc-border2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.22/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine2-leaf1",
+        "id": "bgp-peer-dc-spine2-leaf1",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine2",
         "target": "dc-leaf1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine2",
+          "l3_interface": "dc-spine2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.2/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-leaf1",
+          "l3_interface": "dc-leaf1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.11/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine2-leaf2",
+        "id": "bgp-peer-dc-spine2-leaf2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine2",
         "target": "dc-leaf2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine2",
+          "l3_interface": "dc-spine2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.2/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-leaf2",
+          "l3_interface": "dc-leaf2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.12/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine2-border1",
+        "id": "bgp-peer-dc-spine2-border1",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine2",
         "target": "dc-border1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine2",
+          "l3_interface": "dc-spine2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.2/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-border1",
+          "l3_interface": "dc-border1-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.21/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-dc-spine2-border2",
+        "id": "bgp-peer-dc-spine2-border2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "l2vpn_evpn"
+        ],
+        "bfd": false,
         "source": "dc-spine2",
         "target": "dc-border2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-spine2",
+          "l3_interface": "dc-spine2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.2/32",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "dc-border2",
+          "l3_interface": "dc-border2-lo",
+          "interface_name": "lo",
+          "ip": "10.0.0.22/32",
+          "local_as": 65000,
+          "route_reflector_client": true
+        }
       }
     },
     {
       "data": {
-        "id": "l3-bgp-peer-wan-border1-core1",
-        "source": "dc-border1",
-        "target": "cm-core1",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
-      }
-    },
-    {
-      "data": {
-        "id": "l3-bgp-peer-wan-border2-core2",
-        "source": "dc-border2",
-        "target": "cm-core2",
-        "layer": "layer3",
-        "type": "routing_adjacency",
-        "adj_type": "bgp"
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-leaf1-bgp-dc-underlay",
-        "source": "dc-spine1",
-        "target": "dc-leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
+        "id": "bgp-peer-dc-border1-cm-core1",
+        "instance": "bgp-default",
         "bgp_type": "ebgp",
-        "label": "AS65000→65001",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65001,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-leaf2-bgp-dc-underlay",
-        "source": "dc-spine1",
-        "target": "dc-leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65002",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65002,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-border1-bgp-dc-underlay",
-        "source": "dc-spine1",
-        "target": "dc-border1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65011",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65011,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-border2-bgp-dc-underlay",
-        "source": "dc-spine1",
-        "target": "dc-border2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65012",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65012,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-leaf1-bgp-dc-underlay",
-        "source": "dc-spine2",
-        "target": "dc-leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65001",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65001,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-leaf2-bgp-dc-underlay",
-        "source": "dc-spine2",
-        "target": "dc-leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65002",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65002,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-border1-bgp-dc-underlay",
-        "source": "dc-spine2",
-        "target": "dc-border1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65011",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65011,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-border2-bgp-dc-underlay",
-        "source": "dc-spine2",
-        "target": "dc-border2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65000→65012",
-        "process": "bgp-dc-underlay",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65000,
-        "remote_as": 65012,
-        "address_families": []
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-leaf1-bgp-dc-evpn",
-        "source": "dc-spine1",
-        "target": "dc-leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-leaf2-bgp-dc-evpn",
-        "source": "dc-spine1",
-        "target": "dc-leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-border1-bgp-dc-evpn",
-        "source": "dc-spine1",
-        "target": "dc-border1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine1-dc-border2-bgp-dc-evpn",
-        "source": "dc-spine1",
-        "target": "dc-border2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-leaf1-bgp-dc-evpn",
-        "source": "dc-spine2",
-        "target": "dc-leaf1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-leaf2-bgp-dc-evpn",
-        "source": "dc-spine2",
-        "target": "dc-leaf2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-border1-bgp-dc-evpn",
-        "source": "dc-spine2",
-        "target": "dc-border1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-spine2-dc-border2-bgp-dc-evpn",
-        "source": "dc-spine2",
-        "target": "dc-border2",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ibgp",
-        "label": "AS65000→65000",
-        "process": "bgp-dc-evpn",
-        "process_role": "overlay",
-        "bfd": false,
-        "local_as": 65000,
-        "remote_as": 65000,
-        "address_families": [
-          "l2vpn_evpn"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "bgp-dc-border1-cm-core1-bgp-wan",
-        "source": "dc-border1",
-        "target": "cm-core1",
-        "layer": "protocols",
-        "type": "bgp_session",
-        "bgp_type": "ebgp",
-        "label": "AS65011→65100",
-        "process": "bgp-wan",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65011,
-        "remote_as": 65100,
         "address_families": [
           "ipv4_unicast"
-        ]
+        ],
+        "transport_link": {
+          "link": "link-wan-border1-core1"
+        },
+        "bfd": true,
+        "source": "dc-border1",
+        "target": "cm-core1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-border1",
+          "l3_interface": "dc-border1-swp1-l3",
+          "interface_name": "swp1",
+          "ip": "10.255.0.1/31",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "cm-core1",
+          "l3_interface": "cm-core1-te1-1-l3",
+          "interface_name": "Te1/1",
+          "ip": "10.255.0.0/31",
+          "local_as": 65100
+        }
       }
     },
     {
       "data": {
-        "id": "bgp-dc-border2-cm-core2-bgp-wan",
-        "source": "dc-border2",
-        "target": "cm-core2",
-        "layer": "protocols",
-        "type": "bgp_session",
+        "id": "bgp-peer-dc-border2-cm-core2",
+        "instance": "bgp-default",
         "bgp_type": "ebgp",
-        "label": "AS65012→65100",
-        "process": "bgp-wan",
-        "process_role": "underlay",
-        "bfd": true,
-        "local_as": 65012,
-        "remote_as": 65100,
         "address_families": [
           "ipv4_unicast"
-        ]
+        ],
+        "transport_link": {
+          "link": "link-wan-border2-core2"
+        },
+        "bfd": true,
+        "source": "dc-border2",
+        "target": "cm-core2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-border2",
+          "l3_interface": "dc-border2-swp1-l3",
+          "interface_name": "swp1",
+          "ip": "10.255.0.3/31",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "cm-core2",
+          "l3_interface": "cm-core2-te1-1-l3",
+          "interface_name": "Te1/1",
+          "ip": "10.255.0.2/31",
+          "local_as": 65100
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine1-leaf1",
+        "source": "dc-spine1",
+        "target": "dc-leaf1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine1",
+          "interface": "dc-spine1-swp1-l3",
+          "interface_name": "swp1"
+        },
+        "to": {
+          "node": "dc-leaf1",
+          "interface": "dc-leaf1-swp51-l3",
+          "interface_name": "swp51"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine1-leaf2",
+        "source": "dc-spine1",
+        "target": "dc-leaf2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine1",
+          "interface": "dc-spine1-swp2-l3",
+          "interface_name": "swp2"
+        },
+        "to": {
+          "node": "dc-leaf2",
+          "interface": "dc-leaf2-swp51-l3",
+          "interface_name": "swp51"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine1-border1",
+        "source": "dc-spine1",
+        "target": "dc-border1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine1",
+          "interface": "dc-spine1-swp3-l3",
+          "interface_name": "swp3"
+        },
+        "to": {
+          "node": "dc-border1",
+          "interface": "dc-border1-swp51-l3",
+          "interface_name": "swp51"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine1-border2",
+        "source": "dc-spine1",
+        "target": "dc-border2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine1",
+          "interface": "dc-spine1-swp4-l3",
+          "interface_name": "swp4"
+        },
+        "to": {
+          "node": "dc-border2",
+          "interface": "dc-border2-swp51-l3",
+          "interface_name": "swp51"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine2-leaf1",
+        "source": "dc-spine2",
+        "target": "dc-leaf1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine2",
+          "interface": "dc-spine2-swp1-l3",
+          "interface_name": "swp1"
+        },
+        "to": {
+          "node": "dc-leaf1",
+          "interface": "dc-leaf1-swp52-l3",
+          "interface_name": "swp52"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine2-leaf2",
+        "source": "dc-spine2",
+        "target": "dc-leaf2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine2",
+          "interface": "dc-spine2-swp2-l3",
+          "interface_name": "swp2"
+        },
+        "to": {
+          "node": "dc-leaf2",
+          "interface": "dc-leaf2-swp52-l3",
+          "interface_name": "swp52"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine2-border1",
+        "source": "dc-spine2",
+        "target": "dc-border1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine2",
+          "interface": "dc-spine2-swp3-l3",
+          "interface_name": "swp3"
+        },
+        "to": {
+          "node": "dc-border1",
+          "interface": "dc-border1-swp52-l3",
+          "interface_name": "swp52"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
+      }
+    },
+    {
+      "data": {
+        "id": "ospf-adj-dc-spine2-border2",
+        "source": "dc-spine2",
+        "target": "dc-border2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "ospf",
+        "from": {
+          "node": "dc-spine2",
+          "interface": "dc-spine2-swp4-l3",
+          "interface_name": "swp4"
+        },
+        "to": {
+          "node": "dc-border2",
+          "interface": "dc-border2-swp52-l3",
+          "interface_name": "swp52"
+        },
+        "bfd": true,
+        "area": "0.0.0.0"
       }
     }
   ]
