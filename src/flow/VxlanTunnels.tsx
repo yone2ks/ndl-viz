@@ -73,7 +73,7 @@ export const VxlanTunnels = memo(function VxlanTunnels() {
           {feet.map((f, i) => <circle key={i} className="vx-end" cx={f.x} cy={f.y} r={R + 2} />)}
         </g>
       </svg>
-      <div className="vx-pill"
+      <div className="vx-pill" onClick={e => e.stopPropagation()}
         style={{ transform: `translate(-50%, -50%) translate(${hx}px, ${y}px)`,
           '--vx': color } as React.CSSProperties}>
         <span className="vx-pill-main">VXLAN · {vniLabel(vni)}</span>

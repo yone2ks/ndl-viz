@@ -392,7 +392,8 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   border-radius: 8px;
   font-size: 10px;
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: auto;   /* 札を押してもキャンバスの押下にならないように（選択を外さない）*/
+  cursor: default;
   color: #e2e8f0;
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid var(--vx);
