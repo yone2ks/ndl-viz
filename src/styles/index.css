@@ -120,6 +120,7 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(148, 163, 184, 0.06);
   transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 0;   /* 窓が狭いときは検索欄が縮む（ほかのボタンを押しつぶさない）*/
 }
 .search-box:focus-within {
   border-color: rgba(124, 140, 248, 0.6);
@@ -132,6 +133,7 @@ body {
   color: var(--text);
   font-size: 12.5px;
   width: 270px;
+  min-width: 80px;
   outline: none;
   font-family: 'SF Mono', monospace;
 }
@@ -154,6 +156,7 @@ body {
 
 /* ── Layer Selector (v2 chips) ── */
 .layer-selector {
+  flex-shrink: 0;
   display: flex;
   gap: 6px;
   margin-left: auto;
@@ -205,7 +208,9 @@ body {
 }
 
 /* ── File Loader ── */
+.file-loader { flex-shrink: 0; }
 .file-loader label {
+  white-space: nowrap;
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
