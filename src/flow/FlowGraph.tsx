@@ -20,6 +20,7 @@ import { FlowLegend } from './FlowLegend'
 import { FlowCtx, type FlowCtxValue } from './FlowCtx'
 import { roleStyle } from './palette'
 import { l3Name } from './l3'
+import { afsHidden, overlayOf } from './session'
 import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData } from '../types/topology'
 import './flow.css'
 
@@ -37,6 +38,8 @@ interface Props {
 
 /** 毎回同じオブジェクトを渡す（新しいオブジェクトを渡すと、fitView() に渡した nodes が描画のたびに上書きされる）*/
 const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
+/** 機器を押して隣まで見せるときの余白。左は凡例、右はプロパティの枠の分をあける */
+const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340px' } as const
 
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
@@ -110,7 +113,9 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   // ノード位置はドラッグ可能にするためローカル state で管理
   const [nodes, setNodes] = useState<Node[]>(graph.nodes)
   const [prevGraph, setPrevGraph] = useState(graph)
-  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes) }
+  // 押した機器に永続フォーカス（ホバー・VLAN のフォーカスが優先）
+  const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
+  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes); setFocusNodeId(null) }
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes(ns => applyNodeChanges(changes, ns)),
     [],
@@ -144,11 +149,27 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
       ...vlans.flatMap(v => [...(graph.adjacency.get(v) ?? [])]),
     ])
   }, [focusVniId, focusVlanId, graph])
+  // フォーカスで残す隣: L1 の隣と VLAN に、表示中のオーバーレイの線の相手を足す（線だけ残って相手が薄くならないように）
+  const adjacency = useMemo(() => {
+    const adj = new Map([...graph.adjacency].map(([id, set]) => [id, new Set(set)]))
+    const add = (a: string, b: string) => {
+      if (!adj.has(a)) adj.set(a, new Set())
+      adj.get(a)!.add(b)
+    }
+    graph.edges.forEach(e => {
+      const d = e.data as unknown as CyEdgeData
+      const kind = overlayOf(d)
+      if (kind === 'always' || (kind && overlays.has(kind) && !afsHidden(d, hiddenAfs))) {
+        add(e.source, e.target); add(e.target, e.source)
+      }
+    })
+    return adj
+  }, [graph, overlays, hiddenAfs])
   const ctx = useMemo<FlowCtxValue>(() => ({
     overlays,
-    hoveredId: hoveredId ?? focusVlanId,
+    hoveredId: hoveredId ?? focusVlanId ?? focusNodeId,
     setHoveredId,
-    adjacency: graph.adjacency, vniByVlan: graph.vniByVlan,
+    adjacency, vniByVlan: graph.vniByVlan,
     vlanEndpoints: graph.vlanEndpoints,
     vniById: graph.vniById, vtepNodes: graph.vtepNodes, vtepAddress: graph.vtepAddress,
     vlanOnLink: graph.vlanOnLink,
@@ -156,20 +177,26 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
     query: q, matchedIds, hiddenAfs,
-  }), [overlays, hoveredId, focusVlanId, focusVniId, vniFocusNodes, graph, q, matchedIds, hiddenAfs])
+  }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, graph, adjacency, q, matchedIds, hiddenAfs])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
     onCanvasClick?.()
     setFocusVlanId(node.type === 'vlan' ? node.id : null)
     setFocusVniId(null)
-    // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる
+    setFocusNodeId(node.type === 'vlan' ? null : node.id)
+    // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる。機器は隣の機器まで画面に入れる
     if (node.type !== 'vlan') {
-      const w = node.measured?.width ?? 184, h = node.measured?.height ?? 92
-      setCenter(node.position.x + w / 2, node.position.y + h / 2,
-        { zoom: Math.max(getZoom(), 1.1), duration: 450 })
+      // VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）
+      const hosts = new Set(graph.edges
+        .filter(e => (e.data as unknown as CyEdgeData).type === 'attaches_to' && e.source === node.id)
+        .map(e => e.target))
+      const around = graph.nodes.filter(n => n.type === 'device'
+        && (n.id === node.id || (adjacency.get(node.id)?.has(n.id) && !hosts.has(n.id))))
+      fitView({ nodes: around.map(n => ({ id: n.id })), padding: FOCUS_PADDING,
+        maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
     }
-  }, [onSelect, onCanvasClick, setCenter, getZoom])
+  }, [onSelect, onCanvasClick, fitView, getZoom, graph, adjacency])
 
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
     onSelect({ data: edge.data as unknown as CyEdgeData })
@@ -193,7 +220,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         proOptions={{ hideAttribution: true }}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
-        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null) }}
+        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}

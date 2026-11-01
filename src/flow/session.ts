@@ -5,7 +5,21 @@
  * underlay / overlay は出さない (BGP セッションの性質ではない。ADR-0010 D6)。運ぶ AF をそのまま出す。
  */
 import { OVERLAY_STYLE, type LineStyle } from './palette'
-import type { CyEdgeData, SessionEndData } from '../types/topology'
+import type { CyEdgeData, OverlayKey, SessionEndData } from '../types/topology'
+
+/** 線をどの層のボタンで出すか。BGP は BGP、OSPF / IS-IS は Layer 3。attaches_to は常に出す。L1 リンクは null */
+export function overlayOf(d: CyEdgeData): OverlayKey | 'always' | null {
+  if (d.type === 'routing_neighbor') return d.protocol === 'bgp' ? 'bgp' : 'l3'
+  if (d.type === 'vlan_member') return 'l2'
+  if (d.type === 'attaches_to') return 'always'
+  return null
+}
+
+/** BGP は凡例で外した AF だけを運ぶセッションを隠す (AF を書いていないセッションは絞らない) */
+export function afsHidden(d: CyEdgeData, hiddenAfs: Set<string>): boolean {
+  const afs = d.address_families ?? []
+  return d.type === 'routing_neighbor' && d.protocol === 'bgp' && afs.length > 0 && afs.every(af => hiddenAfs.has(af))
+}
 
 /** address_families の値 (YAML) → 表示名 */
 const AF_SHORT: Record<string, string> = {

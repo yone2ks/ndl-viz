@@ -11,19 +11,11 @@ import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@x
 import { edgeGeometry } from './edgeGeometry'
 import { OVERLAY_STYLE, type LineStyle } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
-import { endLabel, sessionLabel, sessionStyle } from './session'
+import { afsHidden, endLabel, overlayOf, sessionLabel, sessionStyle } from './session'
 import { useT } from '../i18n'
-import type { CyEdgeData, OverlayKey } from '../types/topology'
+import type { CyEdgeData } from '../types/topology'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
-
-/** 線をどの層のボタンで出すか。BGP は BGP、OSPF / IS-IS は Layer 3 */
-function kindOf(d: CyEdgeData): OverlayKey | 'always' | null {
-  if (d.type === 'routing_neighbor') return d.protocol === 'bgp' ? 'bgp' : 'l3'
-  if (d.type === 'vlan_member') return 'l2'
-  if (d.type === 'attaches_to') return 'always'
-  return null
-}
 
 /** 同じ組の n 本目のセッションのふくらみ。1 本目が L1 の直線にいちばん近い。中央の札が重ならない間隔 (札の位置はふくらみの半分ずれる) */
 const SESSION_BOW = 28, SESSION_BOW_STEP = 50
@@ -37,12 +29,9 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const { overlays, hoveredId, hiddenAfs, vniFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
-  const kind = kindOf(d)
+  const kind = overlayOf(d)
   const session = d.type === 'routing_neighbor'
-  // BGP は凡例で外した AF だけを運ぶセッションを隠す (AF を書いていないセッションは絞らない)
-  const afs = d.address_families ?? []
-  const afHidden = session && d.protocol === 'bgp' && afs.length > 0 && afs.every(af => hiddenAfs.has(af))
-  const visible = kind === 'always' || (kind !== null && overlays.has(kind) && !afHidden)
+  const visible = kind === 'always' || (kind !== null && overlays.has(kind) && !afsHidden(d, hiddenAfs))
 
   const geo = edgeGeometry(sourceNode, targetNode)
   // ふくらみ付き曲線で L1 直線と区別
