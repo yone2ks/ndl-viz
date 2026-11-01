@@ -20,8 +20,22 @@ export const ROLE_STYLE: Record<string, RoleStyle> = {
 }
 export const ROLE_DEFAULT: RoleStyle = { accent: '#7C8CF8', glyph: 'node', label: 'Node' }
 
-export const roleStyle = (role?: string): RoleStyle =>
-  (role && ROLE_STYLE[role]) || ROLE_DEFAULT
+/** 文字列から決まる色相。同じ文字列は同じ色になる */
+function hueOf(s: string): number {
+  let h = 0
+  for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return h % 360
+}
+
+/**
+ * role の見た目。role は自由文字列 (ADR-0003) なので、語彙にない値も書かれたとおりに出して色で見分ける。
+ * 語彙にない値のアイコンは既定のまま（語彙の role との違いはアイコンで分かる）。未指定は既定の見た目
+ */
+export function roleStyle(role?: string): RoleStyle {
+  if (!role) return ROLE_DEFAULT
+  if (Object.hasOwn(ROLE_STYLE, role)) return ROLE_STYLE[role]
+  return { accent: `hsl(${hueOf(role)}, 65%, 60%)`, glyph: ROLE_DEFAULT.glyph, label: role }
+}
 
 export const EDGE_COLOR = {
   underlay:   '#3B82F6',
