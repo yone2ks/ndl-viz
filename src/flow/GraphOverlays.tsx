@@ -52,8 +52,8 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, mlagDom
             {/* 同サイト内で次の tier との境界に区切り線 */}
             {tiers[i + 1] && tiers[i + 1].xLeft === t.xLeft && (
               <line className="tier-sep"
-                x1={t.xLeft - SP} y1={(t.yBot + tiers[i + 1].yTop) / 2}
-                x2={t.xRight + SP} y2={(t.yBot + tiers[i + 1].yTop) / 2} />
+                x1={t.xLeft - SP} y1={(t.yEnd + tiers[i + 1].yTop) / 2}
+                x2={t.xRight + SP} y2={(t.yEnd + tiers[i + 1].yTop) / 2} />
             )}
           </g>
         ))}

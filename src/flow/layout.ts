@@ -8,6 +8,7 @@ import * as Dagre from '@dagrejs/dagre'
 import type { Node, Edge } from '@xyflow/react'
 import type { TopologyData, CyNodeData, CyEdgeData, NodeVtep, VlanEndpointData } from '../types/topology'
 import { l3Name, isVlanIf } from './l3'
+import { cardHeight } from './cardSize'
 
 export const CARD_W = 184
 export const CARD_H = 92
@@ -15,13 +16,19 @@ export const CARD_H = 92
 export const VLAN_PILL_H = 26
 const PILL_GAP_X = 10
 const PILL_GAP_Y = 6
-/** ポートを持ついちばん下の機器の下端から、札の帯の上端まで */
+/** ポートを持ついちばん下の段のカード（いちばん高くなるときの高さ）の下端から、札の帯の上端まで */
 const PILL_BAND_TOP = 34
-/** 帯の段数の上限（超える分は横に並べる）。3 段なら dagre の段の間（約 210px）に収まる */
-const PILL_MAX_ROWS = 3
+/** 札の帯の下端から、次の段のカードの上端まで */
+const PILL_BAND_BOTTOM = 50
+/** 札の列の段数の上限（超える分は隣に列を足す）*/
+const PILL_MAX_ROWS = 4
+/** 札の帯がない段の、カードの下端から次の段のカードの上端まで */
+const TIER_GAP = 150
 
 export interface TierInfo {
   yTop: number; yBot: number; label: string; roles: Record<string, number>
+  /** この段の下の VLAN の札の帯の下端（帯がなければ yBot）。段の区切り線はここと次の段の間に引く */
+  yEnd: number
   xLeft: number; xRight: number   // この帯を描く X 範囲（サイト幅）
 }
 
@@ -118,33 +125,93 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   // ── サイトごとに段とファブリックを決めて配置 → 横並びに配置 ──
   const roleOf = new Map(l1Nodes.map(nd => [nd.id, nd.role ?? '']))
   const mlagClients = findMlagClients(allEdges)
-  const pos = new Map<string, { x: number; y: number }>()   // 全体中心座標
+  const pos = new Map<string, { x: number; y: number }>()   // 全体中心座標（y は段の位置が決まってから入れる）
   const tierOf = new Map<string, number>()
   const sites: SiteInfo[] = []
   let offsetX = 0
-  let globalMaxY = 0
 
   for (let si = 0; si < siteCount; si++) {
     const siteIds = l1Nodes.filter(nd => siteOf.get(nd.id) === si).map(nd => nd.id)
     const laid = layoutSite(siteIds, roleOf, adjL1, mlagClients)
     const roleSet = new Set<string>()
-    let siteW = 0, siteMaxY = 0
+    let siteW = 0
     siteIds.forEach(id => {
-      const c = laid.pos.get(id)!
-      pos.set(id, { x: c.x + offsetX, y: c.y })
+      const x = laid.x.get(id)!
+      pos.set(id, { x: x + offsetX, y: 0 })
       tierOf.set(id, laid.tierOf.get(id)!)
       roleSet.add(roleOf.get(id) || 'unknown')
-      siteW = Math.max(siteW, c.x + CARD_W / 2)
-      siteMaxY = Math.max(siteMaxY, c.y + CARD_H / 2)
+      siteW = Math.max(siteW, x + CARD_W / 2)
     })
     sites.push({
       id: si, label: deriveSiteLabel(roleSet, si),
-      xLeft: offsetX, yTop: 0, xRight: offsetX + siteW, yBot: siteMaxY,
+      xLeft: offsetX, yTop: 0, xRight: offsetX + siteW, yBot: 0,
     })
-    globalMaxY = Math.max(globalMaxY, siteMaxY)
     offsetX += siteW + SITE_GAP
   }
   const totalW = Math.max(offsetX - SITE_GAP, 1)
+
+  // ── VLAN のメンバー（札の帯の大きさで段の間隔を決めるので、機器の縦の位置より先に求める）──
+  const vlanMemberEdges = allEdges.filter(d => d.type === 'vlan_member')
+  const vlanMembers = new Map<string, string[]>()
+  // vlan id → (node id → そのノード上の trunk/access ポート名)
+  const vlanPorts = new Map<string, Map<string, Set<string>>>()
+  vlanMemberEdges.forEach(e => {
+    if (!idSet.has(e.target)) return
+    if (!vlanMembers.has(e.source)) vlanMembers.set(e.source, [])
+    vlanMembers.get(e.source)!.push(e.target)
+    if (!vlanPorts.has(e.source)) vlanPorts.set(e.source, new Map())
+    // 新形式 tagged_on/untagged_on を優先、旧 interfaces にフォールバック
+    const ifs = [...(e.tagged_on ?? []), ...(e.untagged_on ?? []),
+      ...(e.tagged_on || e.untagged_on ? [] : (e.interfaces ?? []))]
+    vlanPorts.get(e.source)!.set(e.target, new Set(ifs))
+  })
+
+  // ── VLAN の札の帯: ポートを持ついちばん下の段の機器の下に、近い札を縦の列にそろえて並べる ──
+  const vlanNodes = data.nodes.map(n => n.data as CyNodeData).filter(nd => nd.type === 'vlan')
+  const bands = new Map<string, { site: number; tier: number; pills: Pill[] }>()
+  vlanNodes.forEach(vd => {
+    const memberIds = vlanMembers.get(vd.id) ?? []
+    if (memberIds.length === 0) return
+    const want = memberIds.reduce((s, id) => s + pos.get(id)!.x, 0) / memberIds.length
+    const deepest = memberIds.reduce((a, b) => tierOf.get(b)! > tierOf.get(a)! ? b : a)
+    const site = siteOf.get(deepest)!, tier = tierOf.get(deepest)!
+    const key = `${site}:${tier}`
+    if (!bands.has(key)) bands.set(key, { site, tier, pills: [] })
+    bands.get(key)!.pills.push({ vd, want, w: vlanPillWidth(vd) })
+  })
+  const packed = [...bands.values()].map(b => ({ ...b, ...packPills(b.pills) }))
+  const bandH = (rows: number) => rows * VLAN_PILL_H + (rows - 1) * PILL_GAP_Y
+
+  // ── 段の縦の位置: カードがいちばん高くなるときの高さと札の帯が収まるよう、段の間隔を広げる（全サイトで段をそろえる）──
+  const cardH = new Map(l1Nodes.map(nd => [nd.id, cardHeight(nd)]))
+  const tierCardH = new Map<string, number>()   // `${site}:${tier}` → その段のカードの高さの最大
+  l1Nodes.forEach(nd => {
+    const key = `${siteOf.get(nd.id)}:${tierOf.get(nd.id)}`
+    tierCardH.set(key, Math.max(tierCardH.get(key) ?? 0, cardH.get(nd.id)!))
+  })
+  const nTier = Math.max(0, ...tierOf.values()) + 1
+  const tierTop = [40]
+  for (let t = 0; t < nTier - 1; t++) {
+    let pitch = ROW_PITCH
+    tierCardH.forEach((h, key) => { if (key.endsWith(`:${t}`)) pitch = Math.max(pitch, h + TIER_GAP) })
+    packed.filter(b => b.tier === t).forEach(b => {
+      pitch = Math.max(pitch, tierCardH.get(`${b.site}:${t}`)! + PILL_BAND_TOP + bandH(b.rows) + PILL_BAND_BOTTOM)
+    })
+    tierTop.push(tierTop[t] + pitch)
+  }
+  pos.forEach((c, id) => { c.y = tierTop[tierOf.get(id)!] + CARD_H / 2 })
+  /** 段の札の帯の上端と下端 */
+  const bandOf = new Map(packed.map(b => {
+    const top = tierTop[b.tier] + tierCardH.get(`${b.site}:${b.tier}`)! + PILL_BAND_TOP
+    return [`${b.site}:${b.tier}`, { top, bottom: top + bandH(b.rows) }]
+  }))
+  sites.forEach(s => {
+    tierCardH.forEach((h, key) => {
+      const [site, tier] = key.split(':').map(Number)
+      if (site === s.id) s.yBot = Math.max(s.yBot, tierTop[tier] + h, bandOf.get(key)?.bottom ?? 0)
+    })
+  })
+  const globalMaxY = Math.max(0, ...sites.map(s => s.yBot))
 
   // ── RF デバイスノード ──
   const nodes: Node[] = l1Nodes.map(nd => {
@@ -167,7 +234,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     const key = `${site}:${rank}`
     if (!tierGroups.has(key)) tierGroups.set(key, { ys: [], roles: [], site, rank })
     const grp = tierGroups.get(key)!
-    grp.ys.push(c.y - CARD_H / 2, c.y + CARD_H / 2)
+    grp.ys.push(c.y - CARD_H / 2, c.y - CARD_H / 2 + cardH.get(nd.id)!)
     grp.roles.push(nd.role ?? 'unknown')
   })
   const tiers: TierInfo[] = [...tierGroups.values()]
@@ -177,8 +244,9 @@ export function buildFlow(data: TopologyData): FlowGraphData {
       grp.roles.forEach(r => { freq[r] = (freq[r] ?? 0) + 1 })
       const dom = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
       const site = sites[grp.site]
+      const yBot = Math.max(...grp.ys)
       return {
-        yTop: Math.min(...grp.ys), yBot: Math.max(...grp.ys),
+        yTop: Math.min(...grp.ys), yBot, yEnd: bandOf.get(`${grp.site}:${grp.rank}`)?.bottom ?? yBot,
         label: TIER_LABEL[dom] ?? dom, roles: freq,
         xLeft: site.xLeft, xRight: site.xRight,
       }
@@ -230,22 +298,6 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     if (srcs.size >= 2) mlagDomains.set(lagId, [...srcs])
   })
 
-  // ── VLAN ノード + メンバーシップ ──
-  const vlanMemberEdges = allEdges.filter(d => d.type === 'vlan_member')
-  const vlanMembers = new Map<string, string[]>()
-  // vlan id → (node id → そのノード上の trunk/access ポート名)
-  const vlanPorts = new Map<string, Map<string, Set<string>>>()
-  vlanMemberEdges.forEach(e => {
-    if (!idSet.has(e.target)) return
-    if (!vlanMembers.has(e.source)) vlanMembers.set(e.source, [])
-    vlanMembers.get(e.source)!.push(e.target)
-    if (!vlanPorts.has(e.source)) vlanPorts.set(e.source, new Map())
-    // 新形式 tagged_on/untagged_on を優先、旧 interfaces にフォールバック
-    const ifs = [...(e.tagged_on ?? []), ...(e.untagged_on ?? []),
-      ...(e.tagged_on || e.untagged_on ? [] : (e.interfaces ?? []))]
-    vlanPorts.get(e.source)!.set(e.target, new Set(ifs))
-  })
-
   // ── VLAN ⇔ L1 リンクのマッピング（リンク沿いレール表示用）──
   // ポート情報があれば (node, IF) の一致で判定。なければ両端がメンバーのリンク。
   const vlanHue = new Map<string, number>()
@@ -289,31 +341,13 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     })
   })
 
-  // ── VLAN の札: ポートを持ついちばん下の機器の直下の帯に、重ならないよう並べる ──
-  const vlanNodes = data.nodes.map(n => n.data as CyNodeData).filter(nd => nd.type === 'vlan')
-  let maxY = Math.max(...nodes.map(n => n.position.y + CARD_H), 0)
-  const bands = new Map<string, { top: number; pills: Pill[] }>()
-  vlanNodes.forEach(vd => {
-    const memberIds = vlanMembers.get(vd.id) ?? []
-    if (memberIds.length === 0) return
-    const members = memberIds.map(centerOf)
-    const want = members.reduce((s, p) => s + p.x, 0) / members.length
-    const deepest = memberIds.reduce((a, b) => centerOf(b).y > centerOf(a).y ? b : a)
-    const anchorY = centerOf(deepest).y
-    const key = `${siteOf.get(deepest)}:${anchorY}`
-    if (!bands.has(key)) bands.set(key, { top: anchorY + CARD_H / 2 + PILL_BAND_TOP, pills: [] })
-    bands.get(key)!.pills.push({ vd, want, w: vlanPillWidth(vd) })
-  })
-  bands.forEach(band => {
-    const rows = packPills(band.pills)
-    rows.forEach((row, ri) => row.forEach(({ pill, x }) => {
-      const y = band.top + ri * (VLAN_PILL_H + PILL_GAP_Y)
-      maxY = Math.max(maxY, y + VLAN_PILL_H)
-      nodes.push({
-        id: pill.vd.id, type: 'vlan',
-        position: { x, y },
-        data: { ...pill.vd, hue: vlanHue.get(pill.vd.id) ?? 40, pillW: pill.w },
-      })
+  // ── VLAN の札（帯と列は段の位置を決めるときに求めた）──
+  packed.forEach(b => {
+    const top = bandOf.get(`${b.site}:${b.tier}`)!.top
+    b.placed.forEach(({ pill, x, row }) => nodes.push({
+      id: pill.vd.id, type: 'vlan',
+      position: { x, y: top + row * (VLAN_PILL_H + PILL_GAP_Y) },
+      data: { ...pill.vd, hue: vlanHue.get(pill.vd.id) ?? 40, pillW: pill.w },
     }))
   })
 
@@ -413,7 +447,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     adjacency,
     vlanOnLink, vlanHue, ifIp, sviByVlan,
     graphW: totalW,
-    graphH: Math.max(globalMaxY, maxY) + 80,
+    graphH: globalMaxY + 80,
   }
 }
 
@@ -428,25 +462,34 @@ export function vlanPillWidth(nd: CyNodeData): number {
 }
 
 /**
- * 札を段に振り分けて並べる。本来の位置で重ならない最初の段に入れ、
- * どの段でも重なり段も増やせなければ、幅の合計が最も小さい段に入れる。
- * 同じ機器にだけポートを持つ VLAN（本来の位置が同じ）は縦に積まれる。
+ * 札を縦の列にそろえて並べる。列の先頭の札と本来の位置で重なる札（近い札）は同じ列に入れ、
+ * 列の中は VLAN 番号の順に上から積んで左端をそろえる。PILL_MAX_ROWS を超える列は、同じ高さの列に分けて隣に並べる。
+ * 列（分けた列の組）どうしは spreadRow で重ならないよう横に並べる。x は札の左端、row は上から何段目か。
  */
-function packPills(pills: Pill[]): { pill: Pill; x: number }[][] {
-  const rows: { pills: Pill[]; right: number; width: number }[] = []
+function packPills(pills: Pill[]): { placed: { pill: Pill; x: number; row: number }[]; rows: number } {
+  const groups: Pill[][] = []
   ;[...pills].sort((a, b) => a.want - b.want).forEach(p => {
-    const left = p.want - p.w / 2
-    let row = rows.find(r => r.right + PILL_GAP_X <= left)
-    if (!row && rows.length < PILL_MAX_ROWS) {
-      row = { pills: [], right: -Infinity, width: 0 }
-      rows.push(row)
-    }
-    row ??= rows.reduce((a, b) => a.width <= b.width ? a : b)
-    row.pills.push(p)
-    row.right = Math.max(row.right, p.want + p.w / 2)
-    row.width += p.w
+    const g = groups[groups.length - 1]
+    if (g && p.want - g[0].want < (g[0].w + p.w) / 2 + PILL_GAP_X) g.push(p)
+    else groups.push([p])
   })
-  return rows.map(r => spreadRow(r.pills, PILL_GAP_X).map(({ item, x }) => ({ pill: item, x })))
+  const blocks = groups.map(g => {
+    const sorted = [...g].sort((a, b) => (a.vd.vlan_id ?? 0) - (b.vd.vlan_id ?? 0))
+    const perCol = Math.ceil(g.length / Math.ceil(g.length / PILL_MAX_ROWS))
+    const cols: Pill[][] = []
+    for (let i = 0; i < sorted.length; i += perCol) cols.push(sorted.slice(i, i + perCol))
+    const widths = cols.map(c => Math.max(...c.map(p => p.w)))
+    const w = widths.reduce((s, x) => s + x, 0) + (cols.length - 1) * PILL_GAP_X
+    return { cols, widths, w, want: g.reduce((s, p) => s + p.want, 0) / g.length }
+  })
+  const placed: { pill: Pill; x: number; row: number }[] = []
+  spreadRow(blocks, PILL_GAP_X * 2).forEach(({ item, x }) => {
+    item.cols.forEach((col, ci) => {
+      col.forEach((pill, row) => placed.push({ pill, x, row }))
+      x += item.widths[ci] + PILL_GAP_X
+    })
+  })
+  return { placed, rows: Math.max(0, ...blocks.map(b => b.cols[0].length)) }
 }
 
 /**
@@ -487,7 +530,7 @@ function spreadRow<T extends { want: number; w: number }>(row: T[], gap: number)
  * 数が大きいほど上。サイトに複数あれば、いちばん大きいものだけを最上段にする（super-spine があれば spine は 2 段目）。
  */
 const TOP_ROLE_LEVEL: Record<string, number> = { 'super-spine': 2, spine: 1, core: 1 }
-/** 段の間隔（カードの高さ + 余白 + 段の間） */
+/** 段の間隔の最小（カードの上端から次の段のカードの上端まで）。カードが高い・VLAN の札の帯がある段は広げる */
 const ROW_PITCH = CARD_H + 40 + 170
 /** 同じ段の機器の中心どうしの最小間隔 */
 const NODE_PITCH = CARD_W + 50 + 90
@@ -698,7 +741,7 @@ function fabricOrder(n: number, weight: (a: number, b: number) => number): numbe
 }
 
 /**
- * サイトの機器の位置（中心）。x は左端の機器のカードの左端が 0、y は最上段のカードの上端が 40。
+ * サイトの機器の横の位置（中心）と段。x は左端の機器のカードの左端が 0。縦の位置は buildFlow で段ごとに決める。
  * 段はロール・端末から決め（siteTiers）、ファブリックごとに並べてから横に並べる。
  * ファブリックどうしは、つながる相手に border を向けて隣り合わせる。
  */
@@ -716,7 +759,7 @@ function layoutSite(ids: string[], roleOf: Map<string, string>, adj: Adj, mlagCl
     return s + Math.sign(d)
   }, 0)
 
-  const pos = new Map<string, { x: number; y: number }>()
+  const pos = new Map<string, number>()
   let cursor = 0
   order.forEach(f => {
     const x = layoutFabric(members[f], tierOf, adj, side)
@@ -724,10 +767,10 @@ function layoutSite(ids: string[], roleOf: Map<string, string>, adj: Adj, mlagCl
     let right = cursor
     members[f].forEach(id => {
       const cx = x.get(id)! - left + cursor
-      pos.set(id, { x: cx, y: tierOf.get(id)! * ROW_PITCH + 40 + CARD_H / 2 })
+      pos.set(id, cx)
       right = Math.max(right, cx + CARD_W / 2)
     })
     cursor = right + FABRIC_GAP
   })
-  return { pos, tierOf }
+  return { x: pos, tierOf }
 }
