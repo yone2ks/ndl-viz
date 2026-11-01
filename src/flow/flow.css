@@ -382,8 +382,7 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   border-color: rgba(45, 212, 191, 0.45);
 }
 .badge-vtep.is-focused { color: #fff; background: rgba(20, 184, 166, 0.55); border-color: #14b8a6; }
-.vx-shell { stroke: var(--vx); stroke-opacity: 0.16; stroke-linecap: butt; }
-.vx-wall  { stroke: var(--vx); stroke-width: 1.4; stroke-opacity: 0.85; }
+.vx-shell { stroke: var(--vx); stroke-opacity: 0.16; stroke-linecap: round; stroke-linejoin: round; }
 .vx-core  { stroke: var(--vx); stroke-width: 2; stroke-dasharray: 8 5; }
 .vx-end   { fill: var(--vx); stroke: rgba(255, 255, 255, 0.9); stroke-width: 1.5; }
 .vx-pill {

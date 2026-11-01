@@ -1,111 +1,84 @@
 /**
- * VxlanTunnels — フォーカス中の VNI が載る VTEP 間に VXLAN トンネルを描く (L2 overlay)
+ * VxlanTunnels — フォーカス中の VNI に参加する機器を、VNI の札からの 1 本の母線で結ぶ (L2 overlay)
  *
- * 外管 = VTEP の組ごとに 1 本の IP トンネル、内側の線 = フォーカス中の VNI。
- * VNI は VXLAN ヘッダーのフィールドでトンネルは VNI ごとに分かれないので、
- * 同じ VTEP の組に載るほかの VNI はラベルに並べる。
- * トンネルは mlndl の VNI.vteps から導く（トンネル自体はエンティティではない。ADR-0014）。
+ * トンネルはエンティティではなく (ADR-0014)、VNI ごとにも分かれない。VTEP の組ごとの線は「その組で張っている」ように
+ * 読めるので描かず、VNI を 1 つの札にして、L2VNI も L3VNI も参加する機器へ線を落とす。
+ * 参加する機器は mlndl の VNI.vteps から導く。共有 VTEP は終端するノードそれぞれに落とす。
+ * 線は札から横に出て、角を丸めて機器の上端へ下りる。
  */
 import { memo } from 'react'
 import { ViewportPortal, useNodes, type Node } from '@xyflow/react'
 import { useFlowCtx } from './FlowCtx'
-import { useT } from '../i18n'
 import { CARD_W, CARD_H } from './layout'
 import type { CyNodeData } from '../types/topology'
 
 const R = 7   // 管の半径
+/** 母線の高さ（機器の上端から）。上の段のカードまでに収まらなければ低くする */
+const RAIL_MAX = 96, RAIL_MIN = 36
+/** 札の中心と、上の段のカードの間にあける余白 */
+const RAIL_TOP_GAP = 40
+/** 4 分円を 3 次ベジェで描くときの係数 */
+const KAPPA = 0.55
 
-interface Box { x1: number; y1: number; x2: number; y2: number }
-
-/** VTEP を終端するノード群を囲む箱（共有 VTEP は MLAG ペアをまとめた箱）*/
-function unionBox(ns: Node[]): Box | null {
-  if (!ns.length) return null
-  const w = (n: Node) => n.measured?.width ?? CARD_W
-  const h = (n: Node) => n.measured?.height ?? CARD_H
-  return {
-    x1: Math.min(...ns.map(n => n.position.x)),
-    y1: Math.min(...ns.map(n => n.position.y)),
-    x2: Math.max(...ns.map(n => n.position.x + w(n))),
-    y2: Math.max(...ns.map(n => n.position.y + h(n))),
+/** 札 (hx, y) から機器の上端 (fx, fy) までの線。r は角の丸みの半径 */
+function branch(hx: number, y: number, fx: number, fy: number, r: number): string {
+  const dx = fx - hx
+  if (Math.abs(dx) < 1) return `M ${hx},${y} L ${fx},${fy}`
+  // 札のすぐ下の機器は横に出す余地がないので、S 字でつなぐ
+  if (Math.abs(dx) < r) {
+    const my = (y + fy) / 2
+    return `M ${hx},${y} C ${hx},${my} ${fx},${my} ${fx},${fy}`
   }
-}
-
-/** 箱の中心から (tx, ty) へ向かう線が箱の縁と交わる点 */
-function edgePoint(b: Box, tx: number, ty: number) {
-  const cx = (b.x1 + b.x2) / 2, cy = (b.y1 + b.y2) / 2
-  const dx = tx - cx, dy = ty - cy
-  const t = Math.min(dx ? (b.x2 - b.x1) / 2 / Math.abs(dx) : Infinity,
-                     dy ? (b.y2 - b.y1) / 2 / Math.abs(dy) : Infinity)
-  return { x: cx + dx * t, y: cy + dy * t }
+  const s = Math.sign(dx), k = r * (1 - KAPPA)
+  return `M ${hx},${y} L ${fx - s * r},${y} C ${fx - s * k},${y} ${fx},${y + k} ${fx},${y + r} L ${fx},${fy}`
 }
 
 const vniLabel = (v: CyNodeData) => (v.type === 'l3vni' ? `L3VNI ${v.vni}` : `VNI ${v.vni}`)
 
 export const VxlanTunnels = memo(function VxlanTunnels() {
   const nodes = useNodes()
-  const t = useT()
   const { overlays, focusVniId, vniById, vtepNodes, vlanHue } = useFlowCtx()
   const vni = focusVniId ? vniById.get(focusVniId) : undefined
   if (!vni || !overlays.has('l2')) return null
 
   const byId = new Map(nodes.map(n => [n.id, n]))
-  const vteps = (vni.vteps ?? []) as string[]
-  const boxOf = (vtep: string) =>
-    unionBox((vtepNodes.get(vtep) ?? []).map(id => byId.get(id)).filter((n): n is Node => !!n))
+  const members = [...new Set(((vni.vteps ?? []) as string[]).flatMap(v => vtepNodes.get(v) ?? []))]
+    .map(id => byId.get(id)).filter((n): n is Node => !!n)
+  if (members.length === 0) return null
+
   const color = vni.type === 'l3vni'
     ? '#8b5cf6'
     : `hsl(${vlanHue.get(vni.vlan ?? '') ?? 170}, 70%, 48%)`
-
-  // VTEP の組ごとに 1 本。同じ組に載るほかの VNI も添える
-  const pipes: { key: string; a: Box; b: Box; others: CyNodeData[] }[] = []
-  vteps.forEach((va, i) => vteps.slice(i + 1).forEach(vb => {
-    const a = boxOf(va), b = boxOf(vb)
-    if (!a || !b) return
-    const others = [...vniById.values()].filter(v => {
-      const vs = (v.vteps ?? []) as string[]
-      return v.id !== vni.id && vs.includes(va) && vs.includes(vb)
-    })
-    pipes.push({ key: `${va}~${vb}`, a, b, others })
-  }))
+  const heightOf = (n: Node) => n.measured?.height ?? CARD_H
+  const feet = members.map(n => ({ x: n.position.x + (n.measured?.width ?? CARD_W) / 2, y: n.position.y }))
+  const top = Math.min(...feet.map(f => f.y))
+  // 母線の上に使える高さ: 機器の上端から、その上にある機器のカードの下端まで
+  const room = top - Math.max(-Infinity, ...nodes
+    .filter(n => n.type === 'device' && n.position.y + heightOf(n) < top)
+    .map(n => n.position.y + heightOf(n)))
+  const rail = Math.max(RAIL_MIN, Math.min(RAIL_MAX, room - RAIL_TOP_GAP))
+  const y = top - rail
+  const hx = (Math.min(...feet.map(f => f.x)) + Math.max(...feet.map(f => f.x))) / 2
+  // 1 つの path にまとめる（重なる部分の透明度が濃くならず、破線の位置もそろう）
+  const d = feet.map(f => branch(hx, y, f.x, f.y, rail)).join(' ')
+  const about = vni.type === 'l3vni' ? vni.vrf : vni.vlan
 
   return (
     <ViewportPortal>
       <svg className="vx-tunnels" width="1" height="1"
         style={{ overflow: 'visible', position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-        {pipes.map(({ key, a, b }) => {
-          const p = edgePoint(a, (b.x1 + b.x2) / 2, (b.y1 + b.y2) / 2)
-          const q = edgePoint(b, (a.x1 + a.x2) / 2, (a.y1 + a.y2) / 2)
-          const len = Math.hypot(q.x - p.x, q.y - p.y) || 1
-          const nx = -(q.y - p.y) / len * R, ny = (q.x - p.x) / len * R
-          return (
-            <g key={key} style={{ '--vx': color } as React.CSSProperties}>
-              <line className="vx-shell" x1={p.x} y1={p.y} x2={q.x} y2={q.y} strokeWidth={R * 2} />
-              <line className="vx-wall" x1={p.x + nx} y1={p.y + ny} x2={q.x + nx} y2={q.y + ny} />
-              <line className="vx-wall" x1={p.x - nx} y1={p.y - ny} x2={q.x - nx} y2={q.y - ny} />
-              <line className="vx-core" x1={p.x} y1={p.y} x2={q.x} y2={q.y} />
-              <circle className="vx-end" cx={p.x} cy={p.y} r={R + 2} />
-              <circle className="vx-end" cx={q.x} cy={q.y} r={R + 2} />
-            </g>
-          )
-        })}
+        <g style={{ '--vx': color } as React.CSSProperties} fill="none">
+          <path className="vx-shell" d={d} strokeWidth={R * 2} />
+          <path className="vx-core" d={d} />
+          {feet.map((f, i) => <circle key={i} className="vx-end" cx={f.x} cy={f.y} r={R + 2} />)}
+        </g>
       </svg>
-      {pipes.map(({ key, a, b, others }) => {
-        const mx = (a.x1 + a.x2 + b.x1 + b.x2) / 4
-        const my = (a.y1 + a.y2 + b.y1 + b.y2) / 4
-        // 同じ tier の VTEP どうし (横向き) はカードの間が狭いので、ラベルはカードの下に出す
-        const flat = Math.abs(mx - (a.x1 + a.x2) / 2) > Math.abs(my - (a.y1 + a.y2) / 2)
-        const ly = flat ? Math.max(a.y2, b.y2) + 8 : my + R + 10
-        return (
-          <div key={key} className="vx-pill"
-            style={{ transform: `translate(-50%, 0) translate(${mx}px, ${ly}px)`,
-              '--vx': color } as React.CSSProperties}>
-            <span className="vx-pill-main">VXLAN · {vniLabel(vni)}</span>
-            {others.length > 0 && (
-              <span className="vx-pill-sub">{t.sameTunnel}: {others.map(vniLabel).join(' / ')}</span>
-            )}
-          </div>
-        )
-      })}
+      <div className="vx-pill"
+        style={{ transform: `translate(-50%, -50%) translate(${hx}px, ${y}px)`,
+          '--vx': color } as React.CSSProperties}>
+        <span className="vx-pill-main">VXLAN · {vniLabel(vni)}</span>
+        {about && <span className="vx-pill-sub">{about}</span>}
+      </div>
     </ViewportPortal>
   )
 })
