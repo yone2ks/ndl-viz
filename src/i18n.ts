@@ -11,7 +11,7 @@ export type Lang = 'ja' | 'en'
 const ja = {
   loadFailed:        'JSON の読み込みに失敗しました',
   fetchFailed:       (url: string) => `読み込みに失敗しました: ${url}`,
-  searchPlaceholder: 'IP / ホスト名 / VLAN / VRF を検索',
+  searchPlaceholder: 'IP / ホスト名 / VLAN / VRF / サイトを検索',
   clear:             'クリア',
   toggleTheme:       'テーマ切替',
   switchLang:        'Switch to English',
@@ -42,7 +42,7 @@ export type Messages = typeof ja
 const en: Messages = {
   loadFailed:        'Failed to load the JSON file',
   fetchFailed:       (url: string) => `Failed to load: ${url}`,
-  searchPlaceholder: 'Search IP / hostname / VLAN / VRF',
+  searchPlaceholder: 'Search IP / hostname / VLAN / VRF / site',
   clear:             'Clear',
   toggleTheme:       'Toggle theme',
   switchLang:        '日本語に切り替え',

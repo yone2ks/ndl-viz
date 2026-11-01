@@ -61,6 +61,7 @@ export interface FlowGraphData {
   vlanHue: Map<string, number>           // vlan id → 色相
   ifIp: Map<string, Map<string, string>> // node id → (IF 名 → IP)
   sviByVlan: Map<string, { node: string; label: string; ip: string }[]>
+  siteLabelOf: Map<string, string>       // 機器・VLAN の札の id → サイトの名前（検索用）
   graphW: number
   graphH: number
 }
@@ -298,6 +299,9 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     if (srcs.size >= 2) mlagDomains.set(lagId, [...srcs])
   })
 
+  const siteLabelOf = new Map(l1Nodes.map(nd => [nd.id, sites[siteOf.get(nd.id)!].label]))
+  packed.forEach(b => b.placed.forEach(({ pill }) => siteLabelOf.set(pill.vd.id, sites[b.site].label)))
+
   // ── VLAN ⇔ L1 リンクのマッピング（リンク沿いレール表示用）──
   // ポート情報があれば (node, IF) の一致で判定。なければ両端がメンバーのリンク。
   const vlanHue = new Map<string, number>()
@@ -445,7 +449,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   return {
     nodes, edges, tiers, sites, mlagDomains, vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
     adjacency,
-    vlanOnLink, vlanHue, ifIp, sviByVlan,
+    vlanOnLink, vlanHue, ifIp, sviByVlan, siteLabelOf,
     graphW: totalW,
     graphH: globalMaxY + 80,
   }

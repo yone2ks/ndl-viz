@@ -35,6 +35,9 @@ interface Props {
   onCanvasClick?: () => void
 }
 
+/** 毎回同じオブジェクトを渡す（新しいオブジェクトを渡すと、fitView() に渡した nodes が描画のたびに上書きされる）*/
+const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
+
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
   const parts: (string | number | undefined)[] = [
@@ -51,21 +54,31 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
 
   // graph が変わるたびにノード測定完了後に fitView を再実行
   useEffect(() => {
-    const timer = setTimeout(() => fitView({ padding: 0.22, maxZoom: 1.0, duration: 0 }), 50)
+    const timer = setTimeout(() => fitView({ ...FIT_VIEW, duration: 0 }), 50)
     return () => clearTimeout(timer)
   }, [graph, fitView])
 
   // ── 検索マッチ ──
   const q = query.trim().toLowerCase()
-  const matchedIds = useMemo(() => {
+  const { matchedIds, bySite } = useMemo(() => {
     const ids = new Set<string>()
-    if (!q) return ids
+    if (!q) return { matchedIds: ids, bySite: false }
     const matchedNodes = new Set<string>()
     graph.nodes.forEach(n => {
       if (nodeSearchText(n.data as unknown as CyNodeData).includes(q)) {
         ids.add(n.id); matchedNodes.add(n.id)
       }
     })
+    // サイトの名前（DC Fabric 等）は、機器や VLAN に直接当たらないときだけ見る。
+    // 「core」が Core Site の全機器に当たるなど、ふだんの検索を広げないため
+    const bySite = matchedNodes.size === 0
+    if (bySite) {
+      graph.nodes.forEach(n => {
+        if (graph.siteLabelOf.get(n.id)?.toLowerCase().includes(q)) {
+          ids.add(n.id); matchedNodes.add(n.id)
+        }
+      })
+    }
     graph.edges.forEach(e => {
       const ed = e.data as unknown as CyEdgeData
       const txt = [ed.source_if, ed.target_if, ed.link_speed, ed.label, ed.lag_id]
@@ -74,16 +87,19 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         ids.add(e.id)
       }
     })
-    return ids
+    return { matchedIds: ids, bySite: bySite && matchedNodes.size > 0 }
   }, [q, graph])
 
-  // クエリ変更時、最初のマッチノードへセンタリング
+  // クエリ変更時、最初のマッチノードへセンタリング（サイトに当たったらサイト全体が入るようにする）
   const [prevQ, setPrevQ] = useState(q)
   if (q !== prevQ) {
     setPrevQ(q)
     if (q) {
       const first = graph.nodes.find(n => matchedIds.has(n.id))
-      if (first) {
+      if (bySite) {
+        fitView({ ...FIT_VIEW, nodes: graph.nodes.filter(n => matchedIds.has(n.id)).map(n => ({ id: n.id })),
+          duration: 400 })
+      } else if (first) {
         const w = first.measured?.width ?? 184, h = first.measured?.height ?? 92
         setCenter(first.position.x + w / 2, first.position.y + h / 2,
           { zoom: Math.max(getZoom(), 1.0), duration: 400 })
@@ -171,7 +187,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.22, maxZoom: 1.0 }}
+        fitViewOptions={FIT_VIEW}
         minZoom={0.12}
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
