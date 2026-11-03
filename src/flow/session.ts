@@ -5,7 +5,7 @@
  * underlay / overlay は出さない (BGP セッションの性質ではない。ADR-0010 D6)。運ぶ AF をそのまま出す。
  */
 import { OVERLAY_STYLE, type LineStyle } from './palette'
-import type { CyEdgeData, OverlayKey, SessionEndData } from '../types/topology'
+import type { CyEdgeData, OverlayKey, SessionEndData, TransportLink } from '../types/topology'
 
 /** 線をどの層のボタンで出すか。BGP は BGP、OSPF / IS-IS は Layer 3。attaches_to は常に出す。L1 リンクは null */
 export function overlayOf(d: CyEdgeData): OverlayKey | 'always' | null {
@@ -52,4 +52,23 @@ export function endLabel(end: SessionEndData | undefined, unnumbered: string): s
     ?? (end.unnumbered ? `${end.interface_name ?? ''} ${unnumbered}`.trim()
       : [end.ip, end.ipv6].filter(Boolean).join(' ') || end.interface_name || '')
   return [as, where].filter(Boolean).join(' · ')
+}
+
+/** トンネル IF の type (YAML) → 表示名 */
+const TUNNEL_TYPE_LABEL: Record<string, string> = {
+  gre: 'GRE', ipip: 'IPIP', ipsec_vti: 'IPsec VTI', wireguard: 'WireGuard',
+}
+export const tunnelTypeLabel = (t: string): string => TUNNEL_TYPE_LABEL[t] ?? t
+
+/**
+ * 通り道の種類と id。エクスポーターが参照をたどって決めたものをそのまま出す (ADR-0018 D5)。
+ * LAG とトンネルは両端の id (from の側, to の側)
+ */
+export function transportParts(tl?: TransportLink): { kind: string; ids: string[] } | null {
+  if (!tl) return null
+  if (tl.link) return { kind: 'link', ids: [tl.link] }
+  if (tl.lag) return { kind: 'lag', ids: tl.lag }
+  if (tl.bridge) return { kind: 'bridge', ids: [tl.bridge] }
+  if (tl.tunnel) return { kind: 'tunnel', ids: tl.tunnel }
+  return null
 }

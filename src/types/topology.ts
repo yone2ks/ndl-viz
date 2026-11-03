@@ -28,7 +28,7 @@ export interface CyNodeData {
   id: string
   label: string
   layer: 'layer1' | 'layer2' | 'layer3'
-  type: 'node' | 'vlan' | 'l2vni' | 'l3vni'
+  type: 'node' | 'vlan' | 'l2vni' | 'l3vni' | 'bridge'
   role?: string
   implementation?: string
   description?: string    // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
@@ -56,10 +56,46 @@ export interface CyNodeData {
   vrf?: string       // l3vni: 紐づく VRF 名
   /** type=node: 終端する VTEP / type=l2vni・l3vni: 載る VTEP の id（l3vni は VRF から導出）*/
   vteps?: NodeVtep[] | string[]
+  /** type=node: この機器のトンネル IF (ADR-0011 D6) */
+  tunnels?: NodeTunnel[]
   /** type=node: この機器の BGP セッションすべて (相手がトポロジー外のものを含む。ADR-0010 D11) */
   bgp_sessions?: NodeBgpSession[]
   // BGP 埋め込みデータ
   local_as?: number
+  /** type=bridge: 転送するポート (ADR-0018 D1) と、ポートを持つ機器 */
+  ports?: BridgePortData[]
+  nodes?: string[]
+  name?: string
+  /** type=node: この機器のポートで転送する bridge。ndl-viz が type=bridge の要素から集めて載せる */
+  bridges?: NodeBridge[]
+}
+
+/** 機器ノードのトンネル IF。destination はどちらか一方 */
+export interface NodeTunnel {
+  id: string
+  type: string            // gre / ipip / ipsec_vti / wireguard
+  source: string
+  destination_interface?: string
+  destination_ip?: string
+  ip?: string
+  ipv6?: string
+  vrf?: string
+  description?: string
+}
+
+/** bridge のポート。{interface: <L1 IF の id>} か {lag: <LAG の id>} と、その機器 */
+export interface BridgePortData {
+  interface?: string
+  lag?: string
+  nodes: string[]
+}
+
+/** 機器に載せる bridge (type=bridge の要素そのまま) */
+export interface NodeBridge {
+  id: string
+  name?: string
+  ports: BridgePortData[]
+  description?: string
 }
 
 /** VLAN の端点（mlndl exporter が参照をたどって導出。ADR-0013 D7）*/
@@ -143,10 +179,15 @@ export interface SessionEndData {
   route_reflector_client?: boolean
 }
 
+/** セッションの通り道 (ADR-0010 D7 / ADR-0018 D5)。どれか 1 つのキーだけを持つ */
 export interface TransportLink {
   link?: string
   /** 両端の LAG */
   lag?: string[]
+  /** 両端の L1 リンクの対向がポートになっている bridge (事業者網の箱の中の L2 の転送) */
+  bridge?: string
+  /** 両端のトンネル IF (from の側, to の側) */
+  tunnel?: string[]
 }
 
 /** ノードの bgp_sessions の 1 件。local はこの機器の端、peer は相手の端 */

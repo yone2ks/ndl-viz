@@ -12,6 +12,8 @@
 const MAX_IF_CHIPS = 6
 /** SVI（vl）チップの上限。選択中の VLAN のチップは上限を超えていても出す */
 const MAX_SVI_CHIPS = 6
+/** 雲に並べる bridge の上限（雲の大きさは固定。超えた分は …+n。全部はプロパティで見る）*/
+const MAX_CLOUD_BRIDGES = 2
 import { memo, useState } from 'react'
 import { Handle, Position, useStore, type NodeProps } from '@xyflow/react'
 import { roleStyle, vrfColor, PROVIDER_NETWORK } from './palette'
@@ -95,8 +97,10 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       : []
   const shownSvis = svis.filter(([v], i) => i < MAX_SVI_CHIPS || v === focusVlanId)
 
-  // 事業者網の箱は雲で描く。中は書かれていない (ADR-0017 D3) ので、名前と種類だけを出す
+  // 事業者網の箱は雲で描く。中の機器は書かれない (ADR-0017 D3) ので、名前と種類と、
+  // 箱のポートで L2 を転送する bridge (ADR-0018 D1) だけを出す。bridge のない箱は L2 で透過しない
   if (nd.role === PROVIDER_NETWORK) {
+    const bridges = lod !== 'far' ? nd.bridges ?? [] : []
     return (
       <div
         className={`cloud-card${dim ? ' is-dim' : ''}${selected ? ' is-selected' : ''}${searchActive && matched ? ' is-hit' : ''}`}
@@ -109,6 +113,10 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
         <svg className="cloud-shape" viewBox="0 0 184 104" aria-hidden="true"><path d={CLOUD_PATH} /></svg>
         <span className="cloud-name">{nd.label}</span>
         <span className="cloud-kind">{rs.label}</span>
+        {bridges.slice(0, MAX_CLOUD_BRIDGES).map(b => (
+          <span key={b.id} className="cloud-bridge">⇄ {b.name ?? b.id}</span>
+        ))}
+        {bridges.length > MAX_CLOUD_BRIDGES && <span className="cloud-bridge">…+{bridges.length - MAX_CLOUD_BRIDGES}</span>}
       </div>
     )
   }

@@ -3,12 +3,14 @@
  *
  * 曲線 (quadratic bezier) で L1 リンクと視覚的に区別する。表示は opacity フェード。
  * 制御プレーンは 1 セッション = 1 本 (routing_neighbor。ADR-0010 D11)。中央の札は eBGP / iBGP と運ぶ AF、
+ * 通り道が bridge・トンネルなら中央の札にその名前を添える (ADR-0018 D5)。
  * 両端の札はその端の AS とアドレス。拡大したとき・線を選んだときは両端、機器に載せたときはその機器の側だけ出す。
  * 同じ機器の組の複数のセッションは、ふくらみを変えて重ならないようにする。
+ * 間に別の機器のカードがあるセッションは、カードの下を回る弧で描く。
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
-import { edgeGeometry } from './edgeGeometry'
+import { edgeGeometry, arcGeometry } from './edgeGeometry'
 import { OVERLAY_STYLE, type LineStyle } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { afsHidden, endLabel, overlayOf, sessionLabel, sessionStyle } from './session'
@@ -21,7 +23,8 @@ const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s
 const SESSION_BOW = 28, SESSION_BOW_STEP = 50
 
 export const OverlayEdge = memo(function OverlayEdge({ source, target, data, selected }: EdgeProps) {
-  const d = data as unknown as CyEdgeData & { offsetIndex?: number }
+  const d = data as unknown as CyEdgeData & {
+    offsetIndex?: number; crossing?: string; crossingNodes?: string[]; detour?: boolean }
   const sourceNode = useInternalNode(source)
   const targetNode = useInternalNode(target)
   const lod = useStore(lodSelector)
@@ -33,16 +36,19 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const session = d.type === 'routing_neighbor'
   const visible = kind === 'always' || (kind !== null && overlays.has(kind) && !afsHidden(d, hiddenAfs))
 
-  const geo = edgeGeometry(sourceNode, targetNode)
+  // 間の機器のカードを突き抜けるセッションは、カードの下を回る弧で描く (札がカードに隠れないように)
+  const arc = session && d.detour
+    ? arcGeometry(sourceNode, targetNode, d.offsetIndex ?? 0, 1, SESSION_BOW_STEP / 2, true) : null
+  const geo = arc ?? edgeGeometry(sourceNode, targetNode)
   // ふくらみ付き曲線で L1 直線と区別
   const bow = session ? SESSION_BOW + (d.offsetIndex ?? 0) * SESSION_BOW_STEP : 16
   const cpx = geo.mx + geo.px * bow, cpy = geo.my + geo.py * bow
-  const path = `M ${geo.sx},${geo.sy} Q ${cpx},${cpy} ${geo.tx},${geo.ty}`
+  const path = arc?.path ?? `M ${geo.sx},${geo.sy} Q ${cpx},${cpy} ${geo.tx},${geo.ty}`
   // 曲線上の点 (端の札の位置)
-  const at = (u: number) => ({
+  const at = arc?.at ?? ((u: number) => ({
     x: (1 - u) ** 2 * geo.sx + 2 * (1 - u) * u * cpx + u ** 2 * geo.tx,
     y: (1 - u) ** 2 * geo.sy + 2 * (1 - u) * u * cpy + u ** 2 * geo.ty,
-  })
+  }))
   const mid = at(0.5)
 
   let style: LineStyle = OVERLAY_STYLE.attach, label = ''
@@ -54,8 +60,10 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const { color, dash, width: sw } = style
 
   // L3VNI のフォーカスでは、残す VLAN が複数ある
+  // 事業者網の箱に載せたときは、その箱の bridge を通るセッションも残す (ADR-0018 D5)
   const touches = hoveredId !== null && (source === hoveredId || target === hoveredId
-    || (d.type === 'vlan_member' && !!vniFocusNodes?.has(source)))
+    || (d.type === 'vlan_member' && !!vniFocusNodes?.has(source))
+    || !!d.crossingNodes?.includes(hoveredId))
   const dim = hoveredId !== null && !touches
   const showLabel = (lod === 'near' || lod === 'detail') && label
   const showBfd = lod === 'detail' && d.bfd
@@ -81,6 +89,7 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
             style={{ transform: `translate(-50%,-50%) translate(${mid.x}px,${mid.y}px)`,
               '--pill-accent': color } as React.CSSProperties}>
             {label}
+            {d.crossing ? <span className="crossing-tag">{t.crossing(d.crossing)}</span> : null}
             {showBfd ? <span className="bfd-tag">BFD</span> : null}
           </div>
         )}

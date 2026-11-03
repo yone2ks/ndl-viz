@@ -115,6 +115,20 @@
   text-transform: uppercase;
   color: var(--accent);
 }
+.cloud-bridge {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  line-height: 13px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
 [data-theme="light"] .cloud-card { color: #1e293b; }
 [data-theme="light"] .cloud-shape path { fill: color-mix(in srgb, var(--accent) 10%, white); }
 
@@ -514,6 +528,20 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 .ov-pill {
   color: var(--pill-accent, #aebed8);
   border-color: color-mix(in srgb, var(--pill-accent, #94a3b8) 40%, transparent);
+}
+.crossing-tag {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 8px;
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #7dd3fc;
+}
+[data-theme="light"] .crossing-tag {
+  background: rgba(3, 105, 161, 0.08);
+  border-color: rgba(3, 105, 161, 0.4);
+  color: #0369a1;
 }
 .bfd-tag {
   margin-left: 6px;

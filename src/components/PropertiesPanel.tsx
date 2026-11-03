@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import type { CyNodeData, CyEdgeData } from '../types/topology'
+import type { CyNodeData, CyEdgeData, TransportLink } from '../types/topology'
 import { useT, type Messages } from '../i18n'
-import { afShort, bgpTypeLabel, endLabel } from '../flow/session'
+import { afShort, bgpTypeLabel, endLabel, transportParts } from '../flow/session'
 
 interface Props {
   selected: { data: CyNodeData | CyEdgeData } | null
@@ -45,7 +45,7 @@ const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis:
 // lo_ip / lo_ipv6 は mlndl が選んだ代表アドレスで、MLNDL に書かれた情報ではないので出さない
 // offsetIndex 以下は ndl-viz が描画のために付けた値で、MLNDL の情報ではない
 const SKIP_KEYS = new Set(['id', 'lo_ip', 'lo_ipv6',
-  'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW'])
+  'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW', 'crossing', 'crossingNodes'])
 
 const KEY_LABEL: Record<string, string> = {
   source:    'node_a',
@@ -61,6 +61,13 @@ const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !
 /** 項目を区切り文字で並べる。各項目の中（vrf-tenant-a のハイフン等）では折り返さない */
 const segs = (items: unknown[], sep: string) =>
   items.map((x, i) => <span key={i}>{i > 0 && sep}<span className="prop-seg">{String(x)}</span></span>)
+
+/** 通り道 (transport_link): 種類と id。LAG とトンネルは両端の id を ↔ で結ぶ */
+function transport(val: unknown): ReactNode {
+  const tp = transportParts(val as TransportLink)
+  if (!tp) return JSON.stringify(val)
+  return <><code>{tp.kind}</code> {segs(tp.ids, ' ↔ ')}</>
+}
 
 /** オブジェクト 1 件を要約する。既知の形（L3 IF / VTEP）は 1 行目に名前とアドレス、2 行目に補足。ほかは key=value */
 function summarize(t: Messages, key: string, o: Obj): ReactNode {
@@ -79,9 +86,22 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
     const peer = o.peer as Obj
     const afs = ((o.address_families as string[] | undefined) ?? []).map(afShort).join('+')
     const head = [peer.local_as != null && `AS${peer.local_as}`, bgpTypeLabel(o.bgp_type as string | undefined), afs].filter(Boolean)
-    const notes = [endLabel(o.local as Obj, t.unnumbered), o.vrf, !peer.node && t.peerOutside].filter(Boolean)
+    // 通り道は bridge・トンネルのときだけ添える (直結のリンクの id は線を見ればわかる)
+    const tl = o.transport_link as TransportLink | undefined
+    const via = tl?.bridge ?? tl?.tunnel?.[0]
+    const notes = [endLabel(o.local as Obj, t.unnumbered), o.vrf, !peer.node && t.peerOutside,
+      via && t.crossing(via)].filter(Boolean)
     return <><code>{String(o.id)}</code> → {String(peer.node ?? peer.address ?? '')} {segs(head, ' · ')}
       {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+  }
+  if (key === 'bridges') {
+    // 箱のポートで L2 を転送する bridge (ADR-0018 D1): 名前、2 行目にポート (L1 IF / LAG の id) と description
+    // description は文なので、ポートの id と違って途中で折り返してよい
+    const ports = ((o.ports as Obj[] | undefined) ?? []).map(p => p.interface ?? p.lag)
+    return <><code>{String(o.id)}</code> {o.name ? String(o.name) : ''}
+      {(ports.length > 0 || !!o.description) && <span className="prop-note">
+        {segs(ports, ', ')}{ports.length > 0 && !!o.description && ' · '}{o.description ? String(o.description) : ''}
+      </span>}</>
   }
   if (key === 'vteps') {
     const shared = Array.isArray(o.shared_with) ? ` · ${t.sharedWith(o.shared_with.join(', '))}` : ''
@@ -102,6 +122,7 @@ function renderValue(t: Messages, key: string, val: unknown): ReactNode {
       <div key={i} className="prop-item">{isObj(v) ? summarize(t, key, v) : String(v)}</div>
     ))
   }
+  if (isObj(val) && key === 'transport_link') return transport(val)
   if (isObj(val) && (key === 'from' || key === 'to')) {
     // セッションの端: 機器・IF・アドレス・AS を 1 行に
     const notes = [val.route_reflector_client && 'route_reflector_client', val.l3_interface ?? val.interface].filter(Boolean)

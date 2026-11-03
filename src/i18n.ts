@@ -35,6 +35,7 @@ const ja = {
   afFilterTip:       (af: string) => `address_families: ${af}。押すと、この AF だけを運ぶセッションを隠す / 出す`,
   unnumbered:        'unnumbered',
   peerOutside:       'トポロジー外の相手',
+  crossing:          (what: string) => `${what} 経由`,
 }
 
 export type Messages = typeof ja
@@ -65,6 +66,7 @@ const en: Messages = {
   afFilterTip:       (af: string) => `address_families: ${af}. Click to hide / show sessions that carry only this AF`,
   unnumbered:        'unnumbered',
   peerOutside:       'peer outside the topology',
+  crossing:          (what: string) => `via ${what}`,
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }

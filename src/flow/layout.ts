@@ -6,10 +6,11 @@
  */
 import * as Dagre from '@dagrejs/dagre'
 import type { Node, Edge } from '@xyflow/react'
-import type { TopologyData, CyNodeData, CyEdgeData, NodeVtep, VlanEndpointData } from '../types/topology'
+import type { TopologyData, CyNodeData, CyEdgeData, NodeVtep, NodeBridge, VlanEndpointData } from '../types/topology'
 import { l3Name, isVlanIf } from './l3'
 import { cardHeight, CLOUD_H } from './cardSize'
 import { PROVIDER_NETWORK } from './palette'
+import { tunnelTypeLabel } from './session'
 
 export const CARD_W = 184
 export const CARD_H = 92
@@ -240,13 +241,22 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
   const globalMaxY = Math.max(0, ...sites.map(s => s.yBot))
 
+  // ── bridge (ADR-0018 D1): 辺も自分の位置も持たないので、ポートを持つ機器 (ふつうは事業者網の箱) に載せる ──
+  const bridgeEls = data.nodes.map(n => n.data as CyNodeData).filter(nd => nd.type === 'bridge')
+  const bridgesOf = new Map<string, NodeBridge[]>()
+  bridgeEls.forEach(b => (b.nodes ?? []).forEach(n => {
+    if (!bridgesOf.has(n)) bridgesOf.set(n, [])
+    bridgesOf.get(n)!.push({ id: b.id, name: b.name, ports: b.ports ?? [], description: b.description })
+  }))
+
   // ── RF デバイスノード ──
   const nodes: Node[] = l1Nodes.map(nd => {
     const c = pos.get(nd.id) ?? { x: 0, y: 0 }
+    const bridges = bridgesOf.get(nd.id)
     return {
       id: nd.id, type: 'device',
       position: { x: c.x - CARD_W / 2, y: c.y - CARD_H / 2 },
-      data: { ...nd },
+      data: bridges ? { ...nd, bridges } : { ...nd },
     }
   })
   const centerOf = (id: string) => pos.get(id) ?? { x: 0, y: 0 }
@@ -411,6 +421,33 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   // 制御プレーンのセッションは 1 セッション = 1 辺 (ADR-0010 D11)。同じ機器の組に複数あるときは
   // 曲線のふくらみを変えて重ならないようにする (並びの番号を付ける)
   const nodeIds = new Set(nodes.map(n => n.id))
+  // 通り道が bridge・トンネルのセッションの札に添える名前 (ADR-0018 D5)。bridge は名前、トンネルは種類
+  const bridgeById = new Map(bridgeEls.map(b => [b.id, b]))
+  const tunnelType = new Map(l1Nodes.flatMap(nd => (nd.tunnels ?? []).map(tn => [tn.id, tn.type] as const)))
+  const crossingOf = (d: CyEdgeData): { crossing?: string; crossingNodes?: string[] } => {
+    const tl = d.transport_link
+    if (tl?.bridge) {
+      const b = bridgeById.get(tl.bridge)
+      return { crossing: b?.name ?? tl.bridge, crossingNodes: b?.nodes ?? [] }
+    }
+    const tt = tl?.tunnel && tunnelType.get(tl.tunnel[0])
+    return tt ? { crossing: tunnelTypeLabel(tt) } : {}
+  }
+  // 同じ高さの 2 台の中心を結ぶ直線が、間の機器のカードを突き抜けるか (セッションの線をカードの下に回すかを決める)。
+  // 段の違う機器どうし (spine と leaf 等) は斜めの線のままにする (下を回る弧は同じ高さの組のための形)
+  const crossesCard = (a: string, b: string) => {
+    const p = centerOf(a), q = centerOf(b)
+    if (Math.abs(p.y - q.y) > CARD_H / 2) return false
+    return l1Nodes.some(nd => {
+      if (nd.id === a || nd.id === b) return false
+      const c = centerOf(nd.id), hh = cardHeight(nd) / 2
+      for (let i = 1; i < 32; i++) {
+        const x = p.x + (q.x - p.x) * i / 32, y = p.y + (q.y - p.y) * i / 32
+        if (Math.abs(x - c.x) < CARD_W / 2 && Math.abs(y - c.y) < hh) return true
+      }
+      return false
+    })
+  }
   const sessionsOfPair = new Map<string, number>()
   allEdges.forEach(d => {
     if (d.type === 'link') return
@@ -420,7 +457,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
       const key = [d.source, d.target].sort().join('|')
       const n = sessionsOfPair.get(key) ?? 0
       sessionsOfPair.set(key, n + 1)
-      extra = { offsetIndex: n }
+      extra = { offsetIndex: n, detour: crossesCard(d.source, d.target), ...crossingOf(d) }
     }
     edges.push({
       id: d.id, source: d.source, target: d.target, type: 'overlay',

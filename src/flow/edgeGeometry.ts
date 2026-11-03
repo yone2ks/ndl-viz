@@ -70,23 +70,34 @@ const arcRise = (span: number) => 70 + Math.min(span / 12, 120)
 /**
  * 同じ段の離れた機器どうしのリンク（間に別の機器がある）: 間のカードを突き抜けないよう、
  * カードの上端の中央から出て上を回る弧（3 次ベジェ）。並列リンクは弧の高さと出る位置をずらす。
- * mx / my は弧の頂点、n は左右方向、p は上向き。
+ * below なら下端から出て下を回る（セッションの線。上は L1 リンクが回るので分ける）。
+ * mx / my は弧の頂点、n は左右方向、p は弧のふくらむ向き。at(u) は弧の上の点。
  */
 export function arcGeometry(
   source: InternalNode, target: InternalNode,
-  offsetIndex = 0, offsetCount = 1, spacing = 14,
-): EdgeGeom & { path: string } {
+  offsetIndex = 0, offsetCount = 1, spacing = 14, below = false,
+): EdgeGeom & { path: string; at: (u: number) => { x: number; y: number } } {
   const sr = nodeRect(source), tr = nodeRect(target)
   const off = (offsetIndex - (offsetCount - 1) / 2) * spacing
   const dir = Math.sign(tr.x - sr.x) || 1
-  const sx = sr.x + sr.w / 2 + off * dir, sy = sr.y
-  const tx = tr.x + tr.w / 2 - off * dir, ty = tr.y
-  // 3 次ベジェの頂点は端点と制御点の 1/4 : 3/4 の所なので、制御点を高さの 4/3 だけ上に置く
-  const cy = Math.min(sy, ty) - (arcRise(Math.abs(tx - sx)) + off) * 4 / 3
+  const side = below ? 1 : -1
+  const sx = sr.x + sr.w / 2 + off * dir, sy = below ? sr.y + sr.h : sr.y
+  const tx = tr.x + tr.w / 2 - off * dir, ty = below ? tr.y + tr.h : tr.y
+  // 3 次ベジェの頂点は端点と制御点の 1/4 : 3/4 の所なので、制御点を高さの 4/3 だけ外に置く
+  const edge = below ? Math.max(sy, ty) : Math.min(sy, ty)
+  const cy = edge + side * (arcRise(Math.abs(tx - sx)) + off) * 4 / 3
+  const at = (u: number) => {
+    const v = 1 - u
+    return {
+      x: v ** 3 * sx + 3 * v * v * u * sx + 3 * v * u * u * tx + u ** 3 * tx,
+      y: v ** 3 * sy + 3 * v * u * cy + u ** 3 * ty,
+    }
+  }
   return {
     sx, sy, tx, ty,
     mx: (sx + tx) / 2, my: (sy + ty) / 8 + cy * 3 / 4,
-    nx: dir, ny: 0, px: 0, py: -1,
+    nx: dir, ny: 0, px: 0, py: side,
     path: `M ${sx},${sy} C ${sx},${cy} ${tx},${cy} ${tx},${ty}`,
+    at,
   }
 }

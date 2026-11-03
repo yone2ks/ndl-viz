@@ -299,6 +299,33 @@
               "ip": "10.255.0.1/32",
               "local_as": 65001
             }
+          },
+          {
+            "id": "bgp-peer-tokyo-rtr2-fukuoka-gre",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "tunnel": [
+                "tunnel-tokyo-fukuoka",
+                "tunnel-fukuoka-tokyo"
+              ]
+            },
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tunnel-tokyo-fukuoka",
+              "ip": "172.31.0.1/30",
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "fukuoka-rtr",
+              "l3_interface": "tunnel-fukuoka-tokyo",
+              "ip": "172.31.0.2/30",
+              "local_as": 65004
+            }
           }
         ]
       }
@@ -675,6 +702,33 @@
               "address": "100.64.0.13",
               "local_as": 65100
             }
+          },
+          {
+            "id": "bgp-peer-tokyo-rtr2-fukuoka-gre",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "tunnel": [
+                "tunnel-tokyo-fukuoka",
+                "tunnel-fukuoka-tokyo"
+              ]
+            },
+            "bfd": false,
+            "local": {
+              "node": "fukuoka-rtr",
+              "l3_interface": "tunnel-fukuoka-tokyo",
+              "ip": "172.31.0.2/30",
+              "local_as": 65004
+            },
+            "peer": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tunnel-tokyo-fukuoka",
+              "ip": "172.31.0.1/30",
+              "local_as": 65001
+            }
           }
         ]
       }
@@ -727,6 +781,32 @@
         "type": "vlan",
         "vlan_id": 100,
         "name": "office"
+      }
+    },
+    {
+      "data": {
+        "id": "bridge-kddi-wideether",
+        "label": "WE-100",
+        "layer": "layer2",
+        "type": "bridge",
+        "ports": [
+          {
+            "interface": "net-kddi-wideether-tokyo",
+            "nodes": [
+              "net-kddi-wideether"
+            ]
+          },
+          {
+            "interface": "net-kddi-wideether-nagoya",
+            "nodes": [
+              "net-kddi-wideether"
+            ]
+          }
+        ],
+        "nodes": [
+          "net-kddi-wideether"
+        ],
+        "name": "WE-100"
       }
     }
   ],
@@ -1134,6 +1214,40 @@
           "interface_name": "lo0",
           "ip": "10.255.0.12/32",
           "local_as": 65002
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-tokyo-rtr2-fukuoka-gre",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "transport_link": {
+          "tunnel": [
+            "tunnel-tokyo-fukuoka",
+            "tunnel-fukuoka-tokyo"
+          ]
+        },
+        "bfd": false,
+        "source": "tokyo-rtr2",
+        "target": "fukuoka-rtr",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "tokyo-rtr2",
+          "l3_interface": "tunnel-tokyo-fukuoka",
+          "ip": "172.31.0.1/30",
+          "local_as": 65001
+        },
+        "to": {
+          "node": "fukuoka-rtr",
+          "l3_interface": "tunnel-fukuoka-tokyo",
+          "ip": "172.31.0.2/30",
+          "local_as": 65004
         }
       }
     }
