@@ -65,6 +65,59 @@
     0 0 28px rgba(253, 224, 71, 0.4);
 }
 
+/* ── 事業者網の雲 (ADR-0017 D3) ── */
+.cloud-card {
+  --accent: #38bdf8;
+  position: relative;
+  width: 184px;
+  height: 104px;
+  padding: 14px 26px 6px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #e7edf7;
+  font-family: 'Inter', -apple-system, 'SF Pro', sans-serif;
+  text-align: center;
+  cursor: grab;
+  transition: opacity 200ms ease-out;
+}
+.cloud-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.cloud-shape path {
+  fill: color-mix(in srgb, var(--accent) 12%, rgba(13, 19, 34, 0.94));
+  stroke: color-mix(in srgb, var(--accent) 60%, transparent);
+  stroke-width: 1.5;
+  transition: stroke 180ms ease-out, stroke-width 180ms ease-out;
+}
+.cloud-card:hover .cloud-shape path,
+.cloud-card.is-selected .cloud-shape path { stroke: var(--accent); stroke-width: 2.4; }
+.cloud-card.is-hit .cloud-shape path { stroke: #fde047; stroke-width: 2.6; }
+.cloud-card.is-dim { opacity: 0.12; }
+.cloud-name {
+  position: relative;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.cloud-kind {
+  position: relative;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+[data-theme="light"] .cloud-card { color: #1e293b; }
+[data-theme="light"] .cloud-shape path { fill: color-mix(in srgb, var(--accent) 10%, white); }
+
 /* 検索ヒットの IF/IP 行 */
 .card-hits {
   margin-top: 7px;

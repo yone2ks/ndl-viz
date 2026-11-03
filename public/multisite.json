@@ -172,7 +172,10 @@
               "route_reflector_client": true
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -347,7 +350,10 @@
               "route_reflector_client": true
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -478,7 +484,10 @@
               "local_as": 65000
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -609,7 +618,10 @@
               "local_as": 65000
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -753,7 +765,10 @@
               "local_as": 65100
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -897,7 +912,10 @@
               "local_as": 65100
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -907,7 +925,10 @@
         "layer": "layer1",
         "type": "node",
         "role": "server",
-        "implementation": "physical"
+        "implementation": "physical",
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -917,7 +938,10 @@
         "layer": "layer1",
         "type": "node",
         "role": "server",
-        "implementation": "physical"
+        "implementation": "physical",
+        "labels": {
+          "site": "dc"
+        }
       }
     },
     {
@@ -1077,7 +1101,10 @@
               "local_as": 64500
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1214,7 +1241,10 @@
               "local_as": 65000
             }
           }
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1230,7 +1260,10 @@
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1246,7 +1279,10 @@
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1262,7 +1298,10 @@
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1278,7 +1317,10 @@
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1291,7 +1333,10 @@
         "implementation": "physical",
         "vlans": [
           "vlan-10"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {
@@ -1304,7 +1349,10 @@
         "implementation": "physical",
         "vlans": [
           "vlan-20"
-        ]
+        ],
+        "labels": {
+          "site": "campus"
+        }
       }
     },
     {

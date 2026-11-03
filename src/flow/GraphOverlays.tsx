@@ -51,8 +51,8 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, mlagDom
   return (
     <ViewportPortal>
       <svg className="graph-underlay" width="1" height="1" style={{ overflow: 'visible', position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-        {/* ── サイト境界ボックス + ラベル ── */}
-        {siteBoxes.map(s => (
+        {/* ── サイト境界ボックス + ラベル（labels.site があるものだけ。ADR-0017 D1）── */}
+        {siteBoxes.filter(s => s.label).map(s => (
           <g key={`site-${s.id}`} className="site-box">
             <rect x={s.xLeft - SP} y={s.yTop - SP} rx={20}
               width={(s.xRight - s.xLeft) + SP * 2} height={(s.yBot - s.yTop) + SP * 2} />

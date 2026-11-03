@@ -7,7 +7,8 @@
         "layer": "layer1",
         "type": "node",
         "role": "hypervisor",
-        "implementation": "physical"
+        "implementation": "physical",
+        "description": "6 cores / 12 logical processors. Hosts the EVE-NG VM"
       }
     },
     {
@@ -18,7 +19,8 @@
         "type": "node",
         "role": "hypervisor",
         "implementation": "vm",
-        "device_type": "eve_ng_community"
+        "device_type": "eve_ng_community",
+        "description": "EVE-NG Community 6.2.0-4 (192.168.0.229). 8 vCPU / 46 GB RAM"
       }
     },
     {
@@ -2316,6 +2318,7 @@
         "role": "border",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
+        "description": "Border leaf. No hosts attached; carries only the L3VNIs and the external connections",
         "lo_ip": "10.1.0.16/32",
         "subinterfaces": [
           {
@@ -3146,6 +3149,7 @@
         "layer": "layer2",
         "type": "vlan",
         "vlan_id": 40,
+        "description": "Used only by server3 (VNI confined to leaf3 / leaf4)",
         "subnet": "172.16.40.0/24",
         "vrf_name": "vrf-tenant-a"
       }
@@ -3182,6 +3186,7 @@
         "type": "vlan",
         "vlan_id": 3001,
         "name": "transit-tenant-a",
+        "description": "For L3VNI 50001",
         "vrf_name": "vrf-tenant-a"
       }
     },
@@ -3193,6 +3198,7 @@
         "type": "vlan",
         "vlan_id": 3002,
         "name": "transit-tenant-b",
+        "description": "For L3VNI 50002",
         "vrf_name": "vrf-tenant-b"
       }
     },
@@ -3204,6 +3210,7 @@
         "type": "vlan",
         "vlan_id": 3999,
         "name": "vpc-backup",
+        "description": "iBGP between leaf3 / leaf4 (backup path for the underlay). Not mapped to a VNI",
         "subnet": "10.3.0.0/31",
         "vrf_name": "vrf-default"
       }
@@ -3888,35 +3895,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-10-leaf1",
-        "source": "vlan-10",
-        "target": "leaf1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "untagged_on": [
-          "Ethernet1/3"
-        ],
-        "endpoints": [
-          {
-            "node": "host1",
-            "interfaces": [
-              "host1-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": false,
-            "resolution": "direct",
-            "l3_interface": "host1-eth0-l3",
-            "name": "eth0",
-            "ip": "172.16.10.11/24"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-10-leaf4",
         "source": "vlan-10",
         "target": "leaf4",
@@ -3948,6 +3926,35 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-10-leaf1",
+        "source": "vlan-10",
+        "target": "leaf1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 10,
+        "untagged_on": [
+          "Ethernet1/3"
+        ],
+        "endpoints": [
+          {
+            "node": "host1",
+            "interfaces": [
+              "host1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "host1-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.10.11/24"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-10-leaf3",
         "source": "vlan-10",
         "target": "leaf3",
@@ -3973,35 +3980,6 @@
             "l3_interface": "server3-bond0-10",
             "name": "bond0.10",
             "ip": "172.16.10.13/24"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-20-leaf2",
-        "source": "vlan-20",
-        "target": "leaf2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 20,
-        "untagged_on": [
-          "Ethernet1/3"
-        ],
-        "endpoints": [
-          {
-            "node": "host2",
-            "interfaces": [
-              "host2-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": false,
-            "resolution": "direct",
-            "l3_interface": "host2-eth0-l3",
-            "name": "eth0",
-            "ip": "172.16.20.12/24"
           }
         ]
       }
@@ -4040,29 +4018,29 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-30-leaf5",
-        "source": "vlan-30",
-        "target": "leaf5",
+        "id": "vlan-vlan-20-leaf2",
+        "source": "vlan-20",
+        "target": "leaf2",
         "layer": "layer2",
         "type": "vlan_member",
-        "vlan_id": 30,
+        "vlan_id": 20,
         "untagged_on": [
-          "Ethernet1/5"
+          "Ethernet1/3"
         ],
         "endpoints": [
           {
-            "node": "host5",
+            "node": "host2",
             "interfaces": [
-              "host5-eth0"
+              "host2-eth0"
             ],
             "interface_names": [
               "eth0"
             ],
             "tagged": false,
             "resolution": "direct",
-            "l3_interface": "host5-eth0-l3",
+            "l3_interface": "host2-eth0-l3",
             "name": "eth0",
-            "ip": "172.16.30.15/24"
+            "ip": "172.16.20.12/24"
           }
         ]
       }
@@ -4094,6 +4072,35 @@
             "l3_interface": "server3-bond0-30",
             "name": "bond0.30",
             "ip": "172.16.30.13/24"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-30-leaf5",
+        "source": "vlan-30",
+        "target": "leaf5",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 30,
+        "untagged_on": [
+          "Ethernet1/5"
+        ],
+        "endpoints": [
+          {
+            "node": "host5",
+            "interfaces": [
+              "host5-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "host5-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.30.15/24"
           }
         ]
       }
@@ -4272,6 +4279,38 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-120-leaf4",
+        "source": "vlan-120",
+        "target": "leaf4",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 120,
+        "tagged_on": [
+          "lag-vpc-server3",
+          "lag-leaf4-po1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth1"
+            ],
+            "interface_names": [
+              "eth1"
+            ],
+            "tagged": true,
+            "resolution": "tag_match",
+            "lag": "lag-server3-bond0",
+            "l3_interface": "server3-bond0-120",
+            "name": "bond0.120",
+            "ip": "172.17.120.13/24",
+            "ipv6": "2001:db8:120::13/64"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-120-leaf5",
         "source": "vlan-120",
         "target": "leaf5",
@@ -4299,38 +4338,6 @@
             "name": "bond0.120",
             "ip": "172.17.120.15/24",
             "ipv6": "2001:db8:120::15/64"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-120-leaf4",
-        "source": "vlan-120",
-        "target": "leaf4",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 120,
-        "tagged_on": [
-          "lag-vpc-server3",
-          "lag-leaf4-po1"
-        ],
-        "endpoints": [
-          {
-            "node": "server3",
-            "interfaces": [
-              "server3-eth1"
-            ],
-            "interface_names": [
-              "eth1"
-            ],
-            "tagged": true,
-            "resolution": "tag_match",
-            "lag": "lag-server3-bond0",
-            "l3_interface": "server3-bond0-120",
-            "name": "bond0.120",
-            "ip": "172.17.120.13/24",
-            "ipv6": "2001:db8:120::13/64"
           }
         ]
       }

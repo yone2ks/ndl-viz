@@ -72,12 +72,12 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         ids.add(n.id); matchedNodes.add(n.id)
       }
     })
-    // サイトの名前（DC Fabric 等）は、機器や VLAN に直接当たらないときだけ見る。
-    // 「core」が Core Site の全機器に当たるなど、ふだんの検索を広げないため
+    // サイトの名前（labels.site）は、機器や VLAN に直接当たらないときだけ見る。
+    // サイト名を含む機器名に当たったときに、サイトの全機器へ検索を広げないため
     const bySite = matchedNodes.size === 0
     if (bySite) {
       graph.nodes.forEach(n => {
-        if (graph.sites[graph.siteIdOf.get(n.id) ?? -1]?.label.toLowerCase().includes(q)) {
+        if (graph.sites[graph.siteIdOf.get(n.id) ?? -1]?.label?.toLowerCase().includes(q)) {
           ids.add(n.id); matchedNodes.add(n.id)
         }
       })

@@ -8,7 +8,8 @@ import * as Dagre from '@dagrejs/dagre'
 import type { Node, Edge } from '@xyflow/react'
 import type { TopologyData, CyNodeData, CyEdgeData, NodeVtep, VlanEndpointData } from '../types/topology'
 import { l3Name, isVlanIf } from './l3'
-import { cardHeight } from './cardSize'
+import { cardHeight, CLOUD_H } from './cardSize'
+import { PROVIDER_NETWORK } from './palette'
 
 export const CARD_W = 184
 export const CARD_H = 92
@@ -32,9 +33,9 @@ export interface TierInfo {
   yEnd: number
 }
 
-/** サイト境界ボックス */
+/** サイト（labels.site が同じ機器）、または labels.site のない機器のつながり。label は labels.site の値で、ないものは枠を描かない */
 export interface SiteInfo {
-  id: number; label: string
+  id: number; label: string | null
   xLeft: number; yTop: number; xRight: number; yBot: number
 }
 
@@ -74,14 +75,10 @@ const TIER_LABEL: Record<string, string> = {
 }
 
 const SITE_GAP = 260
-
-/** サイト内の role 集合から判別名を付ける */
-function deriveSiteLabel(roles: Set<string>, idx: number): string {
-  if (roles.has('spine') || roles.has('leaf')) return 'DC Fabric'
-  if (roles.has('core') && roles.has('distribution')) return 'Campus'
-  if (roles.has('core')) return 'Core Site'
-  return `Site ${idx + 1}`
-}
+/** 事業者網の箱の列の下端から、最上段のカードの上端まで */
+const PROVIDER_ROW_GAP = 190
+/** 事業者網の箱どうしの間隔 */
+const PROVIDER_GAP = 60
 
 /** (node, IF) が VLAN のポートか。ポートが LAG なら、リンクの lag_id で照合する（ADR-0013）*/
 function onPort(ports: Map<string, Set<string>> | undefined, node: string,
@@ -98,31 +95,49 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   const allEdges = data.edges.map(e => e.data as CyEdgeData)
   const idSet = new Set(l1Nodes.map(n => n.id))
 
-  // ── サイト検出: WAN リンクを除いた L1 物理リンクの連結成分 ──
-  const intraLinks = allEdges.filter(d =>
-    d.type === 'link' && d.link_role !== 'wan' && idSet.has(d.source) && idSet.has(d.target))
-  // 段の決め方はリンクの書き順（source / target）を見ない（ADR-0006: 物理リンクは無向）
+  // ── サイト: labels.site の値ごとにまとめる (ADR-0017 D1)。labels.site のない機器は、そういう機器どうしの
+  //    リンクのつながりごとにまとめて離して置く（枠と名前は出さない。書かれていないサイトを推定しない）。
+  //    事業者網の箱はどのサイトにも入れず、拠点の上の列に置く (ADR-0017 D3) ──
+  const isProvider = (nd: CyNodeData) => nd.role === PROVIDER_NETWORK
+  const l1Links = allEdges.filter(d =>
+    d.type === 'link' && idSet.has(d.source) && idSet.has(d.target) && d.source !== d.target)
+  const siteOf = new Map<string, number>()
+  const siteLabels: (string | null)[] = []
+  const siteByName = new Map<string, number>()
+  l1Nodes.forEach(nd => {
+    const name = nd.labels?.site
+    if (!name || isProvider(nd)) return
+    if (!siteByName.has(name)) { siteByName.set(name, siteLabels.length); siteLabels.push(name) }
+    siteOf.set(nd.id, siteByName.get(name)!)
+  })
+  const unsited = new Map<string, Set<string>>()   // labels.site のない機器 → そういう機器どうしの隣
+  l1Nodes.forEach(nd => { if (!siteOf.has(nd.id) && !isProvider(nd)) unsited.set(nd.id, new Set()) })
+  l1Links.forEach(d => {
+    if (!unsited.has(d.source) || !unsited.has(d.target)) return
+    unsited.get(d.source)!.add(d.target)
+    unsited.get(d.target)!.add(d.source)
+  })
+  unsited.forEach((_, start) => {
+    if (siteOf.has(start)) return
+    const si = siteLabels.length
+    siteLabels.push(null)
+    const queue = [start]
+    siteOf.set(start, si)
+    while (queue.length) {
+      unsited.get(queue.pop()!)!.forEach(nb => {
+        if (!siteOf.has(nb)) { siteOf.set(nb, si); queue.push(nb) }
+      })
+    }
+  })
+  const siteCount = siteLabels.length
+  // 段とファブリックは同じサイトの中のリンクだけで決める（段の決め方はリンクの書き順を見ない。ADR-0006）
   const adjL1 = new Map<string, Set<string>>()
-  l1Nodes.forEach(nd => adjL1.set(nd.id, new Set()))
-  intraLinks.forEach(d => {
-    if (d.source === d.target) return
+  siteOf.forEach((_, id) => adjL1.set(id, new Set()))
+  l1Links.forEach(d => {
+    if (!siteOf.has(d.source) || siteOf.get(d.source) !== siteOf.get(d.target)) return
     adjL1.get(d.source)!.add(d.target)
     adjL1.get(d.target)!.add(d.source)
   })
-  const siteOf = new Map<string, number>()
-  let siteCount = 0
-  for (const nd of l1Nodes) {
-    if (siteOf.has(nd.id)) continue
-    const si = siteCount++
-    const queue = [nd.id]
-    siteOf.set(nd.id, si)
-    while (queue.length) {
-      const cur = queue.pop()!
-      for (const nb of adjL1.get(cur) ?? []) {
-        if (!siteOf.has(nb)) { siteOf.set(nb, si); queue.push(nb) }
-      }
-    }
-  }
 
   // ── サイトごとに段とファブリックを決めて配置 → 横並びに配置 ──
   const roleOf = new Map(l1Nodes.map(nd => [nd.id, nd.role ?? '']))
@@ -135,22 +150,30 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   for (let si = 0; si < siteCount; si++) {
     const siteIds = l1Nodes.filter(nd => siteOf.get(nd.id) === si).map(nd => nd.id)
     const laid = layoutSite(siteIds, roleOf, adjL1, mlagClients)
-    const roleSet = new Set<string>()
     let siteW = 0
     siteIds.forEach(id => {
       const x = laid.x.get(id)!
       pos.set(id, { x: x + offsetX, y: 0 })
       tierOf.set(id, laid.tierOf.get(id)!)
-      roleSet.add(roleOf.get(id) || 'unknown')
       siteW = Math.max(siteW, x + CARD_W / 2)
     })
     sites.push({
-      id: si, label: deriveSiteLabel(roleSet, si),
+      id: si, label: siteLabels[si],
       xLeft: offsetX, yTop: 0, xRight: offsetX + siteW, yBot: 0,
     })
     offsetX += siteW + SITE_GAP
   }
   const totalW = Math.max(offsetX - SITE_GAP, 1)
+
+  // ── 事業者網の箱: つながる機器の x の平均に置き、重ならないよう横に並べる（縦は段の位置を決めてから）──
+  const providerX = new Map<string, number>()
+  const providerWant = l1Nodes.filter(isProvider).map(nd => {
+    const xs = l1Links.filter(d => d.source === nd.id || d.target === nd.id)
+      .map(d => pos.get(d.source === nd.id ? d.target : d.source)?.x)
+      .filter((x): x is number => x != null)
+    return { id: nd.id, want: xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : totalW / 2, w: CARD_W }
+  }).sort((a, b) => a.want - b.want)
+  spreadRow(providerWant, PROVIDER_GAP).forEach(({ item, x }) => providerX.set(item.id, x + CARD_W / 2))
 
   // ── VLAN のメンバー（札の帯の大きさで段の間隔を決めるので、機器の縦の位置より先に求める）──
   const vlanMemberEdges = allEdges.filter(d => d.type === 'vlan_member')
@@ -187,7 +210,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   // ── 段の縦の位置: カードがいちばん高くなるときの高さと札の帯が収まるよう、段の間隔を広げる（全サイトで段をそろえる）──
   const cardH = new Map(l1Nodes.map(nd => [nd.id, cardHeight(nd)]))
   const tierCardH = new Map<string, number>()   // `${site}:${tier}` → その段のカードの高さの最大
-  l1Nodes.forEach(nd => {
+  l1Nodes.filter(nd => siteOf.has(nd.id)).forEach(nd => {
     const key = `${siteOf.get(nd.id)}:${tierOf.get(nd.id)}`
     tierCardH.set(key, Math.max(tierCardH.get(key) ?? 0, cardH.get(nd.id)!))
   })
@@ -202,6 +225,8 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     tierTop.push(tierTop[t] + pitch)
   }
   pos.forEach((c, id) => { c.y = tierTop[tierOf.get(id)!] + CARD_H / 2 })
+  const providerTop = tierTop[0] - PROVIDER_ROW_GAP - CLOUD_H
+  providerX.forEach((x, id) => pos.set(id, { x, y: providerTop + CARD_H / 2 }))
   /** 段の札の帯の上端と下端 */
   const bandOf = new Map(packed.map(b => {
     const top = tierTop[b.tier] + tierCardH.get(`${b.site}:${b.tier}`)! + PILL_BAND_TOP
@@ -299,8 +324,11 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     if (srcs.size >= 2) mlagDomains.set(lagId, [...srcs])
   })
 
+  // VLAN の札は、ポートを持つ機器がすべて同じサイトにあるときだけそのサイトの枠に入れる（広域イーサで延ばした VLAN 等は入れない）
   const siteIdOf = new Map(siteOf)
-  packed.forEach(b => b.placed.forEach(({ pill }) => siteIdOf.set(pill.vd.id, b.site)))
+  packed.forEach(b => b.placed.forEach(({ pill }) => {
+    if ((vlanMembers.get(pill.vd.id) ?? []).every(id => siteOf.get(id) === b.site)) siteIdOf.set(pill.vd.id, b.site)
+  }))
 
   // ── VLAN ⇔ L1 リンクのマッピング（リンク沿いレール表示用）──
   // ポート情報があれば (node, IF) の一致で判定。なければ両端がメンバーのリンク。

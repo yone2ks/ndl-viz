@@ -31,6 +31,9 @@ export interface CyNodeData {
   type: 'node' | 'vlan' | 'l2vni' | 'l3vni'
   role?: string
   implementation?: string
+  description?: string    // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
+  /** 多軸の分類 (ADR-0009)。サイトは labels.site (ADR-0017 D1) */
+  labels?: Record<string, string>
   device_type?: string
   vlan_id?: number
   vni?: number
@@ -88,6 +91,7 @@ export interface CyEdgeData {
   link_speed?: string
   mtu?: number
   link_role?: string
+  description?: string       // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
   source_if?: string
   target_if?: string
   lag_id?: string

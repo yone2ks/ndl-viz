@@ -1,0 +1,1141 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "tokyo-core",
+        "label": "Tokyo-Core",
+        "layer": "layer1",
+        "type": "node",
+        "role": "core",
+        "implementation": "physical",
+        "labels": {
+          "site": "tokyo"
+        },
+        "vlans": [
+          "vlan-100"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "tokyo-rtr1",
+        "label": "Tokyo-RTR-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "tokyo"
+        },
+        "lo_ip": "10.255.0.1/32",
+        "subinterfaces": [
+          {
+            "id": "subif-tokyo-rtr1-ge3-101",
+            "parent": "tokyo-rtr1-ge3",
+            "vlan_id": 101,
+            "name": "Ge0/3.101"
+          }
+        ],
+        "l3_interfaces": [
+          {
+            "id": "tokyo-rtr1-lo",
+            "name": "lo0",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
+            "interface": "lo0",
+            "kind": "loopback",
+            "ip": "10.255.0.1/32"
+          },
+          {
+            "id": "tokyo-rtr1-ge1-l3",
+            "name": "Ge0/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "tokyo-rtr1-ge1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/1",
+            "kind": "routed",
+            "ip": "10.0.0.1/30"
+          },
+          {
+            "id": "tokyo-rtr1-ge2-l3",
+            "name": "Ge0/2",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "tokyo-rtr1-ge2"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/2",
+            "kind": "routed",
+            "ip": "100.64.0.2/30"
+          },
+          {
+            "id": "tokyo-rtr1-vif-prod",
+            "name": "Ge0/3.101",
+            "attachment": "subinterface",
+            "attaches_to": {
+              "subinterface": "subif-tokyo-rtr1-ge3-101"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/3.101",
+            "kind": "subinterface",
+            "ip": "169.254.100.1/30",
+            "subinterface": "subif-tokyo-rtr1-ge3-101",
+            "vlan_id": 101
+          }
+        ],
+        "local_as": 65001,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-tokyo-rtr1-osaka-rtr1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-tokyo-osaka-kddi"
+            },
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.1/30",
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "osaka-rtr1",
+              "l3_interface": "osaka-rtr1-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.2/30",
+              "local_as": 65002
+            }
+          },
+          {
+            "id": "bgp-peer-tokyo-rtr1-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.1/32",
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tokyo-rtr2-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.2/32",
+              "local_as": 65001
+            }
+          },
+          {
+            "id": "bgp-peer-tokyo-ipvpn",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-ge2-l3",
+              "interface_name": "Ge0/2",
+              "ip": "100.64.0.2/30",
+              "local_as": 65001
+            },
+            "peer": {
+              "address": "100.64.0.1",
+              "local_as": 65100
+            }
+          },
+          {
+            "id": "bgp-peer-tokyo-aws",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-vif-prod",
+              "interface_name": "Ge0/3.101",
+              "ip": "169.254.100.1/30",
+              "local_as": 65001
+            },
+            "peer": {
+              "address": "169.254.100.2",
+              "local_as": 64512
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "tokyo-rtr2",
+        "label": "Tokyo-RTR-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "tokyo"
+        },
+        "lo_ip": "10.255.0.2/32",
+        "tunnels": [
+          {
+            "id": "tunnel-tokyo-fukuoka",
+            "type": "gre",
+            "source": "tokyo-rtr2-ge2-l3",
+            "destination_interface": "fukuoka-rtr-ge1-l3",
+            "ip": "172.31.0.1/30",
+            "vrf": "vrf-default",
+            "transport_vrf": "vrf-default",
+            "mtu": 1400
+          }
+        ],
+        "l3_interfaces": [
+          {
+            "id": "tokyo-rtr2-lo",
+            "name": "lo0",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
+            "interface": "lo0",
+            "kind": "loopback",
+            "ip": "10.255.0.2/32"
+          },
+          {
+            "id": "tokyo-rtr2-ge1-l3",
+            "name": "Ge0/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "tokyo-rtr2-ge1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/1",
+            "kind": "routed",
+            "ip": "10.0.0.5/30"
+          },
+          {
+            "id": "tokyo-rtr2-ge2-l3",
+            "name": "Ge0/2",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "tokyo-rtr2-ge2"
+            },
+            "interface": "Ge0/2",
+            "kind": "routed",
+            "ip": "203.0.113.2/30"
+          }
+        ],
+        "local_as": 65001,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-tokyo-rtr2-osaka-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-tokyo-osaka-ntt"
+            },
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tokyo-rtr2-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.5/30",
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "osaka-rtr2",
+              "l3_interface": "osaka-rtr2-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.6/30",
+              "local_as": 65002
+            }
+          },
+          {
+            "id": "bgp-peer-tokyo-rtr1-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tokyo-rtr2-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.2/32",
+              "local_as": 65001
+            },
+            "peer": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.1/32",
+              "local_as": 65001
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "osaka-core",
+        "label": "Osaka-Core",
+        "layer": "layer1",
+        "type": "node",
+        "role": "core",
+        "implementation": "physical",
+        "labels": {
+          "site": "osaka"
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "osaka-rtr1",
+        "label": "Osaka-RTR-1",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "osaka"
+        },
+        "lo_ip": "10.255.0.11/32",
+        "l3_interfaces": [
+          {
+            "id": "osaka-rtr1-lo",
+            "name": "lo0",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
+            "interface": "lo0",
+            "kind": "loopback",
+            "ip": "10.255.0.11/32"
+          },
+          {
+            "id": "osaka-rtr1-ge1-l3",
+            "name": "Ge0/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "osaka-rtr1-ge1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/1",
+            "kind": "routed",
+            "ip": "10.0.0.2/30"
+          }
+        ],
+        "local_as": 65002,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-tokyo-rtr1-osaka-rtr1",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-tokyo-osaka-kddi"
+            },
+            "bfd": false,
+            "local": {
+              "node": "osaka-rtr1",
+              "l3_interface": "osaka-rtr1-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.2/30",
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "tokyo-rtr1",
+              "l3_interface": "tokyo-rtr1-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.1/30",
+              "local_as": 65001
+            }
+          },
+          {
+            "id": "bgp-peer-osaka-rtr1-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "osaka-rtr1",
+              "l3_interface": "osaka-rtr1-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.11/32",
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "osaka-rtr2",
+              "l3_interface": "osaka-rtr2-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.12/32",
+              "local_as": 65002
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "osaka-rtr2",
+        "label": "Osaka-RTR-2",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "osaka"
+        },
+        "lo_ip": "10.255.0.12/32",
+        "l3_interfaces": [
+          {
+            "id": "osaka-rtr2-lo",
+            "name": "lo0",
+            "attachment": "unattached",
+            "roles": [
+              "update_source"
+            ],
+            "interface": "lo0",
+            "kind": "loopback",
+            "ip": "10.255.0.12/32"
+          },
+          {
+            "id": "osaka-rtr2-ge1-l3",
+            "name": "Ge0/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "osaka-rtr2-ge1"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/1",
+            "kind": "routed",
+            "ip": "10.0.0.6/30"
+          },
+          {
+            "id": "osaka-rtr2-ge2-l3",
+            "name": "Ge0/2",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "osaka-rtr2-ge2"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/2",
+            "kind": "routed",
+            "ip": "100.64.0.6/30"
+          }
+        ],
+        "local_as": 65002,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-tokyo-rtr2-osaka-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-tokyo-osaka-ntt"
+            },
+            "bfd": false,
+            "local": {
+              "node": "osaka-rtr2",
+              "l3_interface": "osaka-rtr2-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.6/30",
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "tokyo-rtr2",
+              "l3_interface": "tokyo-rtr2-ge1-l3",
+              "interface_name": "Ge0/1",
+              "ip": "10.0.0.5/30",
+              "local_as": 65001
+            }
+          },
+          {
+            "id": "bgp-peer-osaka-rtr1-rtr2",
+            "instance": "bgp-default",
+            "bgp_type": "ibgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "osaka-rtr2",
+              "l3_interface": "osaka-rtr2-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.12/32",
+              "local_as": 65002
+            },
+            "peer": {
+              "node": "osaka-rtr1",
+              "l3_interface": "osaka-rtr1-lo",
+              "interface_name": "lo0",
+              "ip": "10.255.0.11/32",
+              "local_as": 65002
+            }
+          },
+          {
+            "id": "bgp-peer-osaka-ipvpn",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "osaka-rtr2",
+              "l3_interface": "osaka-rtr2-ge2-l3",
+              "interface_name": "Ge0/2",
+              "ip": "100.64.0.6/30",
+              "local_as": 65002
+            },
+            "peer": {
+              "address": "100.64.0.5",
+              "local_as": 65100
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "nagoya-rtr",
+        "label": "Nagoya-RTR",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "nagoya"
+        },
+        "l3_interfaces": [
+          {
+            "id": "nagoya-rtr-ge0-l3",
+            "name": "Ge0/0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "nagoya-rtr-ge0"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/0",
+            "kind": "routed",
+            "ip": "100.64.0.10/30"
+          }
+        ],
+        "local_as": 65003,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-nagoya-ipvpn",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "nagoya-rtr",
+              "l3_interface": "nagoya-rtr-ge0-l3",
+              "interface_name": "Ge0/0",
+              "ip": "100.64.0.10/30",
+              "local_as": 65003
+            },
+            "peer": {
+              "address": "100.64.0.9",
+              "local_as": 65100
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "nagoya-sw",
+        "label": "Nagoya-SW",
+        "layer": "layer1",
+        "type": "node",
+        "role": "access",
+        "implementation": "physical",
+        "labels": {
+          "site": "nagoya"
+        },
+        "vlans": [
+          "vlan-100"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "fukuoka-rtr",
+        "label": "Fukuoka-RTR",
+        "layer": "layer1",
+        "type": "node",
+        "role": "border",
+        "implementation": "physical",
+        "labels": {
+          "site": "fukuoka"
+        },
+        "tunnels": [
+          {
+            "id": "tunnel-fukuoka-tokyo",
+            "type": "gre",
+            "source": "fukuoka-rtr-ge1-l3",
+            "destination_interface": "tokyo-rtr2-ge2-l3",
+            "ip": "172.31.0.2/30",
+            "vrf": "vrf-default",
+            "transport_vrf": "vrf-default",
+            "mtu": 1400
+          }
+        ],
+        "l3_interfaces": [
+          {
+            "id": "fukuoka-rtr-ge0-l3",
+            "name": "Ge0/0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "fukuoka-rtr-ge0"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "interface": "Ge0/0",
+            "kind": "routed",
+            "ip": "100.64.0.14/30"
+          },
+          {
+            "id": "fukuoka-rtr-ge1-l3",
+            "name": "Ge0/1",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "fukuoka-rtr-ge1"
+            },
+            "interface": "Ge0/1",
+            "kind": "routed",
+            "ip": "198.51.100.2/30"
+          }
+        ],
+        "local_as": 65004,
+        "bgp_sessions": [
+          {
+            "id": "bgp-peer-fukuoka-ipvpn",
+            "instance": "bgp-default",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "bfd": false,
+            "local": {
+              "node": "fukuoka-rtr",
+              "l3_interface": "fukuoka-rtr-ge0-l3",
+              "interface_name": "Ge0/0",
+              "ip": "100.64.0.14/30",
+              "local_as": 65004
+            },
+            "peer": {
+              "address": "100.64.0.13",
+              "local_as": 65100
+            }
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "net-ntt-ipvpn",
+        "label": "NTT IP-VPN",
+        "layer": "layer1",
+        "type": "node",
+        "role": "provider-network",
+        "description": "Arcstar Universal One, contract VPN-01, QoS class S"
+      }
+    },
+    {
+      "data": {
+        "id": "net-kddi-wideether",
+        "label": "KDDI Wide-Area Ethernet",
+        "layer": "layer1",
+        "type": "node",
+        "role": "provider-network",
+        "description": "KDDI Wide-Area Ethernet, service ID WE-100, max frame 1522 bytes"
+      }
+    },
+    {
+      "data": {
+        "id": "net-iij-internet",
+        "label": "IIJ Internet",
+        "layer": "layer1",
+        "type": "node",
+        "role": "provider-network",
+        "description": "IIJ business Internet, static IPs on both sites"
+      }
+    },
+    {
+      "data": {
+        "id": "net-aws-dx",
+        "label": "AWS Direct Connect",
+        "layer": "layer1",
+        "type": "node",
+        "role": "provider-network",
+        "description": "Hosted connection dxcon-ab12cd34 via Equinix TY2, 1 Gbps"
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-100",
+        "label": "VLAN 100\noffice",
+        "layer": "layer2",
+        "type": "vlan",
+        "vlan_id": 100,
+        "name": "office"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "link-tokyo-core-rtr1",
+        "source": "tokyo-core",
+        "target": "tokyo-rtr1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/1",
+        "target_if": "Te0/0",
+        "link_speed": "10G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-core-rtr2",
+        "source": "tokyo-core",
+        "target": "tokyo-rtr2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/2",
+        "target_if": "Te0/0",
+        "link_speed": "10G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-osaka-core-rtr1",
+        "source": "osaka-core",
+        "target": "osaka-rtr1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/1",
+        "target_if": "Te0/0",
+        "link_speed": "10G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-osaka-core-rtr2",
+        "source": "osaka-core",
+        "target": "osaka-rtr2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/2",
+        "target_if": "Te0/0",
+        "link_speed": "10G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-nagoya-rtr-sw",
+        "source": "nagoya-rtr",
+        "target": "nagoya-sw",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/1",
+        "target_if": "Gi1/0/1",
+        "link_speed": "1G"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-osaka-kddi",
+        "source": "tokyo-rtr1",
+        "target": "osaka-rtr1",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/1",
+        "target_if": "Ge0/1",
+        "link_speed": "1G",
+        "description": "KDDI leased line, circuit KD-0123-4567, 1 Gbps guaranteed"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-osaka-ntt",
+        "source": "tokyo-rtr2",
+        "target": "osaka-rtr2",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/1",
+        "target_if": "Ge0/1",
+        "link_speed": "1G",
+        "description": "NTT leased line, circuit NT-9876-5432, 1 Gbps guaranteed. Different conduit from the KDDI line"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-ipvpn",
+        "source": "tokyo-rtr1",
+        "target": "net-ntt-ipvpn",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/2",
+        "target_if": "tokyo",
+        "link_speed": "1G",
+        "description": "Access line IPVPN-01-T, metro Ethernet, 300 Mbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-osaka-ipvpn",
+        "source": "osaka-rtr2",
+        "target": "net-ntt-ipvpn",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/2",
+        "target_if": "osaka",
+        "link_speed": "1G",
+        "description": "Access line IPVPN-01-O, metro Ethernet, 300 Mbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-nagoya-ipvpn",
+        "source": "nagoya-rtr",
+        "target": "net-ntt-ipvpn",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/0",
+        "target_if": "nagoya",
+        "link_speed": "1G",
+        "description": "Access line IPVPN-01-N, FLET'S, 100 Mbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-fukuoka-ipvpn",
+        "source": "fukuoka-rtr",
+        "target": "net-ntt-ipvpn",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/0",
+        "target_if": "fukuoka",
+        "link_speed": "1G",
+        "description": "Access line IPVPN-01-F, FLET'S, 100 Mbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-wideether",
+        "source": "tokyo-core",
+        "target": "net-kddi-wideether",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Te1/3",
+        "target_if": "tokyo",
+        "link_speed": "10G",
+        "description": "Access line WE-100-T, 1 Gbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-nagoya-wideether",
+        "source": "nagoya-sw",
+        "target": "net-kddi-wideether",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Gi1/0/48",
+        "target_if": "nagoya",
+        "link_speed": "1G",
+        "description": "Access line WE-100-N, 500 Mbps contracted"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-internet",
+        "source": "tokyo-rtr2",
+        "target": "net-iij-internet",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/2",
+        "target_if": "tokyo",
+        "link_speed": "1G",
+        "description": "IIJ access line IJ-T-0001, best effort"
+      }
+    },
+    {
+      "data": {
+        "id": "link-fukuoka-internet",
+        "source": "fukuoka-rtr",
+        "target": "net-iij-internet",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/1",
+        "target_if": "fukuoka",
+        "link_speed": "1G",
+        "description": "IIJ access line IJ-F-0002, best effort"
+      }
+    },
+    {
+      "data": {
+        "id": "link-tokyo-dx",
+        "source": "tokyo-rtr1",
+        "target": "net-aws-dx",
+        "layer": "layer1",
+        "type": "link",
+        "source_if": "Ge0/3",
+        "target_if": "tokyo",
+        "link_speed": "1G",
+        "description": "Cross-connect at Equinix TY2, rack A3 patch 12"
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-100-tokyo-core",
+        "source": "vlan-100",
+        "target": "tokyo-core",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "Te1/3"
+        ],
+        "endpoints": [
+          {
+            "node": "net-kddi-wideether",
+            "interfaces": [
+              "net-kddi-wideether-tokyo"
+            ],
+            "interface_names": [
+              "tokyo"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-100-nagoya-sw",
+        "source": "vlan-100",
+        "target": "nagoya-sw",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "Gi1/0/48"
+        ],
+        "untagged_on": [
+          "Gi1/0/1"
+        ],
+        "endpoints": [
+          {
+            "node": "nagoya-rtr",
+            "interfaces": [
+              "nagoya-rtr-ge1"
+            ],
+            "interface_names": [
+              "Ge0/1"
+            ],
+            "tagged": false,
+            "resolution": "no_l3"
+          },
+          {
+            "node": "net-kddi-wideether",
+            "interfaces": [
+              "net-kddi-wideether-nagoya"
+            ],
+            "interface_names": [
+              "nagoya"
+            ],
+            "tagged": true,
+            "resolution": "no_l3"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "tunnel-tunnel-tokyo-fukuoka",
+        "source": "tokyo-rtr2",
+        "target": "fukuoka-rtr",
+        "layer": "layer3",
+        "type": "tunnel",
+        "tunnel_type": "gre",
+        "vrf": "vrf-default"
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-tokyo-rtr1-osaka-rtr1",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "transport_link": {
+          "link": "link-tokyo-osaka-kddi"
+        },
+        "bfd": false,
+        "source": "tokyo-rtr1",
+        "target": "osaka-rtr1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "tokyo-rtr1",
+          "l3_interface": "tokyo-rtr1-ge1-l3",
+          "interface_name": "Ge0/1",
+          "ip": "10.0.0.1/30",
+          "local_as": 65001
+        },
+        "to": {
+          "node": "osaka-rtr1",
+          "l3_interface": "osaka-rtr1-ge1-l3",
+          "interface_name": "Ge0/1",
+          "ip": "10.0.0.2/30",
+          "local_as": 65002
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-tokyo-rtr2-osaka-rtr2",
+        "instance": "bgp-default",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "transport_link": {
+          "link": "link-tokyo-osaka-ntt"
+        },
+        "bfd": false,
+        "source": "tokyo-rtr2",
+        "target": "osaka-rtr2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "tokyo-rtr2",
+          "l3_interface": "tokyo-rtr2-ge1-l3",
+          "interface_name": "Ge0/1",
+          "ip": "10.0.0.5/30",
+          "local_as": 65001
+        },
+        "to": {
+          "node": "osaka-rtr2",
+          "l3_interface": "osaka-rtr2-ge1-l3",
+          "interface_name": "Ge0/1",
+          "ip": "10.0.0.6/30",
+          "local_as": 65002
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-tokyo-rtr1-rtr2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "bfd": false,
+        "source": "tokyo-rtr1",
+        "target": "tokyo-rtr2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "tokyo-rtr1",
+          "l3_interface": "tokyo-rtr1-lo",
+          "interface_name": "lo0",
+          "ip": "10.255.0.1/32",
+          "local_as": 65001
+        },
+        "to": {
+          "node": "tokyo-rtr2",
+          "l3_interface": "tokyo-rtr2-lo",
+          "interface_name": "lo0",
+          "ip": "10.255.0.2/32",
+          "local_as": 65001
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-osaka-rtr1-rtr2",
+        "instance": "bgp-default",
+        "bgp_type": "ibgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "bfd": false,
+        "source": "osaka-rtr1",
+        "target": "osaka-rtr2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "osaka-rtr1",
+          "l3_interface": "osaka-rtr1-lo",
+          "interface_name": "lo0",
+          "ip": "10.255.0.11/32",
+          "local_as": 65002
+        },
+        "to": {
+          "node": "osaka-rtr2",
+          "l3_interface": "osaka-rtr2-lo",
+          "interface_name": "lo0",
+          "ip": "10.255.0.12/32",
+          "local_as": 65002
+        }
+      }
+    }
+  ]
+}

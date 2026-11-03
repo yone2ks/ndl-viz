@@ -14,7 +14,7 @@ const MAX_IF_CHIPS = 6
 const MAX_SVI_CHIPS = 6
 import { memo, useState } from 'react'
 import { Handle, Position, useStore, type NodeProps } from '@xyflow/react'
-import { roleStyle, vrfColor } from './palette'
+import { roleStyle, vrfColor, PROVIDER_NETWORK } from './palette'
 import { Glyph } from './Glyph'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
 import { useT } from '../i18n'
@@ -24,6 +24,10 @@ import { l3Name, isVlanIf } from './l3'
 import { afShort, bgpTypeLabel } from './session'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
+
+/** 事業者網の雲の輪郭（184 × 104。cardSize の CLOUD_H と同じ大きさ）*/
+const CLOUD_PATH = 'M46,96 C22,96 6,82 10,64 C0,52 8,30 30,32 C32,14 56,4 76,14 C88,2 116,0 128,16 '
+  + 'C146,6 172,16 170,38 C184,46 184,74 170,82 C166,92 156,96 146,96 Z'
 
 export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeProps) {
   const nd = data as unknown as CyNodeData
@@ -90,6 +94,24 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       ? sviEntries.filter(([v]) => v === focusVlanId)
       : []
   const shownSvis = svis.filter(([v], i) => i < MAX_SVI_CHIPS || v === focusVlanId)
+
+  // 事業者網の箱は雲で描く。中は書かれていない (ADR-0017 D3) ので、名前と種類だけを出す
+  if (nd.role === PROVIDER_NETWORK) {
+    return (
+      <div
+        className={`cloud-card${dim ? ' is-dim' : ''}${selected ? ' is-selected' : ''}${searchActive && matched ? ' is-hit' : ''}`}
+        style={{ '--accent': rs.accent } as React.CSSProperties}
+        onMouseEnter={() => setHoveredId(id)}
+        onMouseLeave={() => setHoveredId(null)}
+      >
+        <Handle type="target" position={Position.Top} className="hidden-handle" />
+        <Handle type="source" position={Position.Bottom} className="hidden-handle" />
+        <svg className="cloud-shape" viewBox="0 0 184 104" aria-hidden="true"><path d={CLOUD_PATH} /></svg>
+        <span className="cloud-name">{nd.label}</span>
+        <span className="cloud-kind">{rs.label}</span>
+      </div>
+    )
+  }
 
   return (
     <div

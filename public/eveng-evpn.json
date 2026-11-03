@@ -7,7 +7,8 @@
         "layer": "layer1",
         "type": "node",
         "role": "hypervisor",
-        "implementation": "physical"
+        "implementation": "physical",
+        "description": "6 cores / 12 logical processors. Hosts the EVE-NG VM"
       }
     },
     {
@@ -18,7 +19,8 @@
         "type": "node",
         "role": "hypervisor",
         "implementation": "vm",
-        "device_type": "eve_ng_community"
+        "device_type": "eve_ng_community",
+        "description": "EVE-NG Community 6.2.0-4 (192.168.0.229). 8 vCPU / 46 GB RAM"
       }
     },
     {
@@ -913,6 +915,7 @@
         "type": "vlan",
         "vlan_id": 3001,
         "name": "transit-tenant-a",
+        "description": "Transit VLAN for L3VNI 50001 (no host ports)",
         "vrf_name": "vrf-tenant-a"
       }
     },
@@ -927,7 +930,8 @@
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
-        ]
+        ],
+        "description": "ingress-replication protocol bgp / suppress-arp. RT 65000:10010 (manual)"
       }
     },
     {
@@ -941,7 +945,8 @@
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
-        ]
+        ],
+        "description": "ingress-replication protocol bgp / suppress-arp. RT 65000:10020 (manual)"
       }
     },
     {

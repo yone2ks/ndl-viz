@@ -14,7 +14,7 @@ import type { CyEdgeData, OverlayKey } from '../types/topology'
 
 const ADJ_LABEL: Record<string, string> = { ospf: 'OSPF', isis: 'IS-IS' }
 /** linkStyle で見た目が分かれる link_role。ほかの値は 1 行にまとめて名前を並べる */
-const STYLED_ROLES = ['underlay', 'peer-link', 'wan', 'management']
+const STYLED_ROLES = ['underlay', 'peer-link', 'management']
 
 interface Row { key: string; style: LineStyle; label: string; lag?: boolean }
 

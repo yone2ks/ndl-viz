@@ -17,7 +17,12 @@ export const ROLE_STYLE: Record<string, RoleStyle> = {
   'load-balancer':{ accent: '#FB923C', glyph: 'lb',        label: 'LB' },
   hypervisor:     { accent: '#22D3EE', glyph: 'hypervisor',label: 'Hypervisor' },
   management:     { accent: '#9CA3AF', glyph: 'mgmt',      label: 'Mgmt' },
+  // 事業者網の箱 (ADR-0017 D3)。DeviceNode は雲で描く
+  'provider-network': { accent: '#38BDF8', glyph: 'node',  label: 'Provider Network' },
 }
+
+/** 事業者網の箱の role (ADR-0017 D3)。配置では拠点の上の列に置き、雲で描く */
+export const PROVIDER_NETWORK = 'provider-network'
 export const ROLE_DEFAULT: RoleStyle = { accent: '#7C8CF8', glyph: 'node', label: 'Node' }
 
 /** 文字列から決まる色相。同じ文字列は同じ色になる */
@@ -40,7 +45,6 @@ export function roleStyle(role?: string): RoleStyle {
 export const EDGE_COLOR = {
   underlay:   '#3B82F6',
   peerlink:   '#F59E0B',
-  wan:        '#F472B6',
   access:     '#64748B',
   management: '#64748B',
   lag:        '#10B981',
@@ -60,7 +64,6 @@ export function linkStyle(role: string, isLag: boolean): LineStyle {
   switch (role) {
     case 'underlay':   return { color: EDGE_COLOR.underlay, width: 2.2 }
     case 'peer-link':  return { color: EDGE_COLOR.peerlink, dash: '8 5', width: 2.2 }
-    case 'wan':        return { color: EDGE_COLOR.wan, dash: '14 7', width: 2.2 }
     case 'management': return { color: EDGE_COLOR.management, dash: '2 5', width: 2.2 }
     default:           return { color: EDGE_COLOR.access, width: 2.2 }
   }

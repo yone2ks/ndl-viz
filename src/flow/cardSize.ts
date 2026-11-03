@@ -5,9 +5,12 @@
  * VLAN の札の帯の位置を決める（札をカードに重ねない）。押して開くもの（IF の IP・VLAN の端点・検索ヒット）は含めない。
  * DeviceNode と flow.css の .device-card まわりを変えたら、ここも合わせる。
  */
-import { roleStyle } from './palette'
+import { roleStyle, PROVIDER_NETWORK } from './palette'
 import { isVlanIf, l3Name } from './l3'
 import type { CyNodeData, NodeVtep, NodeBgpSession } from '../types/topology'
+
+/** 事業者網の箱（雲）の高さ。幅はカードと同じ。DeviceNode の雲もこの大きさで描く */
+export const CLOUD_H = 104
 
 /** カードの中の幅（184 − 左右の余白 24 − 枠 2）*/
 const INNER_W = 158
@@ -45,6 +48,7 @@ const capped = (names: string[], width: (s: string) => number) =>
   [...names.slice(0, MAX_CHIPS).map(width), ...(names.length > MAX_CHIPS ? [20] : [])]
 
 export function cardHeight(nd: CyNodeData): number {
+  if (nd.role === PROVIDER_NETWORK) return CLOUD_H
   const l3 = nd.l3_interfaces ?? []
   const badges = [badge(roleStyle(nd.role).label)]
   if (nd.implementation) badges.push(badge(nd.implementation))
