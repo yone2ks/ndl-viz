@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# ndl-viz
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[mlndl](https://github.com/yone2ks/mlndl) が出力する Cytoscape.js JSON を読み込み、ネットワークのトポロジーを描くビューワです。
+物理のリンク (L1) をいつも描き、Layer 2 (VLAN・VXLAN)・Layer 3 (IF・VRF・OSPF / IS-IS)・BGP をボタンで重ねます。
 
-Currently, two official plugins are available:
+表示するのは MLNDL に書かれた情報だけです。書かれていないこと (ノードの代表アドレス、セッションの underlay / overlay など) は推定して埋めません。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 使い方
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+```bash
+npm run dev
+```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+http://localhost:5173 を開き、JSON をドロップするか、右上の「JSON を開く」から読み込みます。
+`public/` に置いた JSON は `?data=/wan-sites.json` のように URL で指定して開けます。
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+JSON は mlndl で YAML から作ります。
+
+```bash
+python -m mlndl export --format cytoscape topology.yaml > public/topology.json
+```
+
+## 画面
+
+- サイト (`labels.site`) ごとに枠を描き、事業者網 (`role: provider-network`) は拠点の上に雲で描きます
+- BGP / OSPF / IS-IS はセッション 1 本を 1 本の線で描きます。通り道が事業者網の bridge やトンネルなら、線の札に「… 経由」を添えます
+- 機器・リンク・セッションを選ぶと、右のパネルに MLNDL の値が出ます
+- IP・ホスト名・VLAN・VRF・サイトで検索できます。表示は日本語と英語を切り替えられます
+
+## 開発
+
+```bash
+npm run build
+```
+
+```bash
+npm run lint
 ```
