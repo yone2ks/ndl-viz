@@ -40,3 +40,7 @@ npm run build
 ```bash
 npm run lint
 ```
+
+## ライセンス
+
+MIT License (`LICENSE`)
