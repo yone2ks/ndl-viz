@@ -1,5 +1,7 @@
 # ndl-viz
 
+[![CI](https://github.com/yone2ks/ndl-viz/actions/workflows/ci.yml/badge.svg)](https://github.com/yone2ks/ndl-viz/actions/workflows/ci.yml)
+
 [mlndl](https://github.com/yone2ks/mlndl) が出力する Cytoscape.js JSON を読み込み、ネットワークのトポロジーを描くビューワです。
 物理のリンク (L1) をいつも描き、Layer 2 (VLAN・VXLAN)・Layer 3 (IF・VRF・OSPF / IS-IS)・BGP をボタンで重ねます。
 
