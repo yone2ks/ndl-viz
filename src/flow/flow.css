@@ -524,7 +524,6 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   transition: opacity 200ms ease-out;
   backdrop-filter: blur(4px);
 }
-.edge-pill .mtu { color: #64748b; font-weight: 500; }
 .ov-pill {
   color: var(--pill-accent, #aebed8);
   border-color: color-mix(in srgb, var(--pill-accent, #94a3b8) 40%, transparent);
@@ -783,7 +782,6 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(100, 116, 139, 0.28);
 }
-[data-theme="light"] .edge-pill .mtu { color: #94a3b8; }
 [data-theme="light"] .edge-if {
   color: #94a3b8;
   background: rgba(255, 255, 255, 0.85);

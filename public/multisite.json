@@ -1441,7 +1441,6 @@
         "source_if": "swp1",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1455,7 +1454,6 @@
         "source_if": "swp2",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1469,7 +1467,6 @@
         "source_if": "swp3",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1483,7 +1480,6 @@
         "source_if": "swp4",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1497,7 +1493,6 @@
         "source_if": "swp1",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1511,7 +1506,6 @@
         "source_if": "swp2",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1525,7 +1519,6 @@
         "source_if": "swp3",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1539,7 +1532,6 @@
         "source_if": "swp4",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1553,7 +1545,6 @@
         "source_if": "swp49",
         "target_if": "swp49",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "peer-link",
         "lag_id": "lag-dc-leaf-peerlink",
         "lag_type": "lacp"
@@ -1569,7 +1560,6 @@
         "source_if": "swp50",
         "target_if": "swp50",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "peer-link",
         "lag_id": "lag-dc-leaf-peerlink",
         "lag_type": "lacp"
@@ -1645,7 +1635,6 @@
         "source_if": "swp1",
         "target_if": "Te1/1",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "uplink"
       }
     },
@@ -1659,7 +1648,6 @@
         "source_if": "swp1",
         "target_if": "Te1/1",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "uplink"
       }
     },

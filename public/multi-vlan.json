@@ -755,7 +755,6 @@
         "source_if": "swp1",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -769,7 +768,6 @@
         "source_if": "swp2",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -783,7 +781,6 @@
         "source_if": "swp3",
         "target_if": "swp51",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -797,7 +794,6 @@
         "source_if": "swp1",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -811,7 +807,6 @@
         "source_if": "swp2",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -825,7 +820,6 @@
         "source_if": "swp3",
         "target_if": "swp52",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -878,7 +872,6 @@
         "source_if": "swp2",
         "target_if": "swp2",
         "link_speed": "10G",
-        "mtu": 9216,
         "link_role": "peer-link"
       }
     },

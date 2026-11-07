@@ -3343,7 +3343,6 @@
         "type": "link",
         "source_if": "Ethernet1/1",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3356,7 +3355,6 @@
         "type": "link",
         "source_if": "Ethernet1/2",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3369,7 +3367,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3382,7 +3379,6 @@
         "type": "link",
         "source_if": "Ethernet1/4",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3395,7 +3391,6 @@
         "type": "link",
         "source_if": "Ethernet1/5",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3408,7 +3403,6 @@
         "type": "link",
         "source_if": "Ethernet1/6",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3421,7 +3415,6 @@
         "type": "link",
         "source_if": "Ethernet1/1",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3434,7 +3427,6 @@
         "type": "link",
         "source_if": "Ethernet1/2",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3447,7 +3439,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3460,7 +3451,6 @@
         "type": "link",
         "source_if": "Ethernet1/4",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3473,7 +3463,6 @@
         "type": "link",
         "source_if": "Ethernet1/5",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3486,7 +3475,6 @@
         "type": "link",
         "source_if": "Ethernet1/6",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -3499,7 +3487,6 @@
         "type": "link",
         "source_if": "Ethernet1/5",
         "target_if": "Ethernet1/5",
-        "mtu": 9216,
         "link_role": "peer-link",
         "lag_id": "lag-leaf3-po1",
         "lag_type": "lacp"
@@ -3514,7 +3501,6 @@
         "type": "link",
         "source_if": "Ethernet1/6",
         "target_if": "Ethernet1/6",
-        "mtu": 9216,
         "link_role": "peer-link",
         "lag_id": "lag-leaf3-po1",
         "lag_type": "lacp"
@@ -3529,7 +3515,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },
@@ -3542,7 +3527,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },
@@ -3555,7 +3539,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-vpc-server3",
         "lag_type": "mlag"
@@ -3570,7 +3553,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth1",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-vpc-server3",
         "lag_type": "mlag"
@@ -3585,7 +3567,6 @@
         "type": "link",
         "source_if": "Ethernet1/4",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },
@@ -3598,7 +3579,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-leaf5-po5",
         "lag_type": "lacp"
@@ -3613,7 +3593,6 @@
         "type": "link",
         "source_if": "Ethernet1/4",
         "target_if": "eth1",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-leaf5-po5",
         "lag_type": "lacp"
@@ -3628,7 +3607,6 @@
         "type": "link",
         "source_if": "Ethernet1/5",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },
@@ -3641,7 +3619,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "GigabitEthernet1",
-        "mtu": 1500,
         "link_role": "uplink"
       }
     },
@@ -3654,7 +3631,6 @@
         "type": "link",
         "source_if": "Ethernet1/4",
         "target_if": "port1",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-leaf6-po10",
         "lag_type": "lacp"
@@ -3669,7 +3645,6 @@
         "type": "link",
         "source_if": "Ethernet1/5",
         "target_if": "port2",
-        "mtu": 1500,
         "link_role": "trunk",
         "lag_id": "lag-leaf6-po10",
         "lag_type": "lacp"

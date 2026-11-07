@@ -1,9 +1,8 @@
 /**
- * PhysicalLinks — L1 物理リンク（並列線 + IF/速度/MTU ラベル + LAG ティック）
+ * PhysicalLinks — L1 物理リンク（並列線 + IF/速度ラベル + LAG ティック）
  *
  * ラベルは LOD で出し分け:
  *   near 以上 → 速度 / IF ラベル（グリッドハッシュで衝突間引き）
- *   detail    → + MTU バッジ
  */
 import { memo, useMemo } from 'react'
 import { useGraphCtx } from '../GraphContext'
@@ -24,7 +23,6 @@ export const PhysicalLinks = memo(function PhysicalLinks({ pairMap, effectiveNod
   const { theme, ui, onSelect, hoveredId, lod } = useGraphCtx()
 
   const showLinkLabels = lod === 'near' || lod === 'detail'
-  const showMtu = lod === 'detail'
 
   // 座標を一度だけ計算
   const entries = useMemo<LinkEntry[]>(() => {
@@ -39,7 +37,7 @@ export const PhysicalLinks = memo(function PhysicalLinks({ pairMap, effectiveNod
     return list
   }, [pairMap, effectiveNodeMap])
 
-  // ラベル衝突間引き（速度 > IF > MTU）
+  // ラベル衝突間引き（速度 > IF）
   const visibleLabels = useMemo(() => {
     if (!showLinkLabels) return new Set<string>()
     const items: LabelItem[] = []
@@ -53,13 +51,9 @@ export const PhysicalLinks = memo(function PhysicalLinks({ pairMap, effectiveNod
         w: d.source_if.length * 5.5, h: 9, priority: 2 })
       if (d.target_if) items.push({ key: `${d.id}:tif`, x: pts.ifx2, y: pts.ify2,
         w: d.target_if.length * 5.5, h: 9, priority: 2 })
-      if (showMtu && isMidLine && d.mtu) {
-        items.push({ key: `${d.id}:mtu`, x: pts.mx - pts.py * 12, y: pts.my + pts.px * 12,
-          w: 50, h: 9, priority: 1 })
-      }
     })
     return cullLabels(items)
-  }, [entries, showLinkLabels, showMtu])
+  }, [entries, showLinkLabels])
 
   return (
     <>
@@ -110,17 +104,6 @@ export const PhysicalLinks = memo(function PhysicalLinks({ pairMap, effectiveNod
                 className="lod-fade"
                 style={{ fontFamily:'"SF Mono","Fira Code",monospace', pointerEvents:'none' }}>
                 {d.link_speed}
-              </text>
-            )}
-
-            {/* MTU バッジ（detail のみ・速度ラベルの反対側）*/}
-            {showMtu && showLabels && d.mtu && visibleLabels.has(`${d.id}:mtu`) && (
-              <text
-                x={pts.mx - pts.py * 12} y={pts.my + pts.px * 12}
-                fill={ui.ifText} fontSize={7.5} textAnchor="middle" dominantBaseline="middle"
-                className="lod-fade"
-                style={{ fontFamily:'"SF Mono",monospace', pointerEvents:'none' }}>
-                MTU {d.mtu}
               </text>
             )}
 
