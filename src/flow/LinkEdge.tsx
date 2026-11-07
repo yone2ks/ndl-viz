@@ -2,7 +2,7 @@
  * LinkEdge — L1 物理リンク (フローティングエッジ)
  *
  * ノード矩形の境界交点を結ぶ直線。並列リンクは法線方向にオフセット。
- * LAG はエメラルドのグロー帯 + IEEE ティック、速度/IF/MTU ラベルは LOD 連動。
+ * LAG はエメラルドのグロー帯 + IEEE ティック、速度/IF ラベルは LOD 連動。
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
@@ -136,7 +136,6 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
           <div className={`edge-pill speed-pill${dim ? ' is-dim' : ''}`}
             style={{ transform: `translate(-50%,-50%) translate(${geo.mx + geo.px * 16}px,${geo.my + geo.py * 16}px)` }}>
             {d.link_speed}
-            {lod === 'detail' && d.mtu ? <span className="mtu"> · MTU {d.mtu}</span> : null}
           </div>
         )}
         {showIf && d.source_if && (

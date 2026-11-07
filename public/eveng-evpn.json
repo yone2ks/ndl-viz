@@ -974,7 +974,6 @@
         "type": "link",
         "source_if": "Ethernet1/1",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -987,7 +986,6 @@
         "type": "link",
         "source_if": "Ethernet1/2",
         "target_if": "Ethernet1/1",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1000,7 +998,6 @@
         "type": "link",
         "source_if": "Ethernet1/1",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1013,7 +1010,6 @@
         "type": "link",
         "source_if": "Ethernet1/2",
         "target_if": "Ethernet1/2",
-        "mtu": 9216,
         "link_role": "underlay"
       }
     },
@@ -1026,7 +1022,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },
@@ -1039,7 +1034,6 @@
         "type": "link",
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
-        "mtu": 1500,
         "link_role": "access"
       }
     },

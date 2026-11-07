@@ -125,7 +125,6 @@ export interface CyEdgeData {
     | 'routing_adjacency' | 'bgp_session'
   // L1
   link_speed?: string
-  mtu?: number
   link_role?: string
   description?: string       // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
   source_if?: string

@@ -11,7 +11,7 @@ export interface LabelItem {
   y: number
   w: number          // ラベル概算幅（グラフ座標）
   h: number          // ラベル概算高さ
-  priority: number   // 大きいほど優先（速度 > IF > MTU）
+  priority: number   // 大きいほど優先（速度 > IF）
 }
 
 /** 採用されたラベルの key 集合を返す */
