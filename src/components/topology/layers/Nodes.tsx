@@ -6,6 +6,7 @@ import { useGraphCtx } from '../GraphContext'
 import { Shape } from '../Shape'
 import { rcfg, vrfColor } from '../theme'
 import { hostnameFontSize } from '../utils/lod'
+import { soleAddress } from '../../../flow/l3'
 import type { NodeLayout } from '../layout'
 import type { IconRenderer } from '../../../icons/networkIcons'
 
@@ -33,11 +34,13 @@ export const Nodes = memo(function Nodes({ effectiveNodeLayouts, icons, nodeDrag
         const labelY = n.y + n.h / 2 + 16
 
         // overlay × LOD 連動の埋め込み情報（near 以上で表示）
-        const showLoIp  = showNear && overlays.has('l3') && n.data.lo_ip
+        // L3 IF が 1 つだけのノードはそのアドレス。代表アドレスは選ばない (mlndl ADR-0011 D11)
+        const sole      = showNear && overlays.has('l3') ? soleAddress(n.data) : undefined
         const showAs    = showNear && overlays.has('bgp') && n.data.local_as
-        const showIps   = showNear && overlays.has('l3') && !n.data.lo_ip && n.data.ips?.length
-        // detail: 全 IP 一覧（ホスト名の下）
-        const ipList    = showDetail && n.data.ips ? n.data.ips.slice(0, 4) : []
+        // detail: L3 IF の一覧（ホスト名の下。名前とアドレス）
+        const ipList    = showDetail
+          ? (n.data.l3_interfaces ?? []).filter(e => e.ip || e.ipv6).slice(0, 4).map(e => `${e.name} ${e.ip || e.ipv6}`)
+          : []
         // VRF チップ（near 以上 + L3 overlay。vrf-default は省略）
         const vrfList   = showNear && overlays.has('l3')
           ? (n.data.vrfs ?? []).filter(v => v !== 'vrf-default') : []
@@ -77,12 +80,12 @@ export const Nodes = memo(function Nodes({ effectiveNodeLayouts, icons, nodeDrag
               }
             </g>
 
-            {/* Loopback IP — shape 内部（L3 overlay）*/}
-            {showLoIp && (
+            {/* L3 IF が 1 つだけのノードのアドレス — shape 内部（L3 overlay）*/}
+            {sole && (
               <text x={n.x} y={n.y + 3}
                 fill={ui.labelDim} fontSize={8} textAnchor="middle" dominantBaseline="middle"
                 style={{ fontFamily:'"SF Mono",monospace', pointerEvents:'none' }}>
-                {n.data.lo_ip}
+                {sole}
               </text>
             )}
 
@@ -92,15 +95,6 @@ export const Nodes = memo(function Nodes({ effectiveNodeLayouts, icons, nodeDrag
                 fill={cfg.stroke} fontSize={7.5} textAnchor="middle" dominantBaseline="middle"
                 style={{ fontFamily:'"SF Mono",monospace', pointerEvents:'none', opacity: 0.85 }}>
                 {`AS${n.data.local_as}`}
-              </text>
-            )}
-
-            {/* 最初の non-loopback IP（L3 overlay + loopback なし）*/}
-            {showIps && (
-              <text x={n.x} y={n.y + 3}
-                fill={ui.labelDim} fontSize={7.5} textAnchor="middle" dominantBaseline="middle"
-                style={{ fontFamily:'"SF Mono",monospace', pointerEvents:'none' }}>
-                {n.data.ips![0].split(':')[1] ?? n.data.ips![0]}
               </text>
             )}
 

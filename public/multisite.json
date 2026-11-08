@@ -12,7 +12,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.1/32",
         "l3_interfaces": [
           {
             "id": "dc-spine1-lo",
@@ -21,8 +20,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.1/32"
           },
           {
@@ -32,8 +29,6 @@
             "attaches_to": {
               "interface": "dc-spine1-swp1"
             },
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.1.0.0/31",
             "vrf": "vrf-default"
           },
@@ -44,8 +39,6 @@
             "attaches_to": {
               "interface": "dc-spine1-swp2"
             },
-            "interface": "swp2",
-            "kind": "routed",
             "ip": "10.1.0.2/31",
             "vrf": "vrf-default"
           },
@@ -56,8 +49,6 @@
             "attaches_to": {
               "interface": "dc-spine1-swp3"
             },
-            "interface": "swp3",
-            "kind": "routed",
             "ip": "10.1.0.4/31",
             "vrf": "vrf-default"
           },
@@ -68,8 +59,6 @@
             "attaches_to": {
               "interface": "dc-spine1-swp4"
             },
-            "interface": "swp4",
-            "kind": "routed",
             "ip": "10.1.0.6/31",
             "vrf": "vrf-default"
           }
@@ -190,7 +179,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.2/32",
         "l3_interfaces": [
           {
             "id": "dc-spine2-lo",
@@ -199,8 +187,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.2/32"
           },
           {
@@ -210,8 +196,6 @@
             "attaches_to": {
               "interface": "dc-spine2-swp1"
             },
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.1.0.8/31",
             "vrf": "vrf-default"
           },
@@ -222,8 +206,6 @@
             "attaches_to": {
               "interface": "dc-spine2-swp2"
             },
-            "interface": "swp2",
-            "kind": "routed",
             "ip": "10.1.0.10/31",
             "vrf": "vrf-default"
           },
@@ -234,8 +216,6 @@
             "attaches_to": {
               "interface": "dc-spine2-swp3"
             },
-            "interface": "swp3",
-            "kind": "routed",
             "ip": "10.1.0.12/31",
             "vrf": "vrf-default"
           },
@@ -246,8 +226,6 @@
             "attaches_to": {
               "interface": "dc-spine2-swp4"
             },
-            "interface": "swp4",
-            "kind": "routed",
             "ip": "10.1.0.14/31",
             "vrf": "vrf-default"
           }
@@ -368,7 +346,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.11/32",
         "vteps": [
           {
             "id": "vtep-dc-leaf1-leaf2",
@@ -388,8 +365,6 @@
               "update_source",
               "vtep_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.11/32"
           },
           {
@@ -399,8 +374,6 @@
             "attaches_to": {
               "interface": "dc-leaf1-swp51"
             },
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.1/31",
             "vrf": "vrf-default"
           },
@@ -411,8 +384,6 @@
             "attaches_to": {
               "interface": "dc-leaf1-swp52"
             },
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.9/31",
             "vrf": "vrf-default"
           },
@@ -423,11 +394,8 @@
             "attaches_to": {
               "vlan": "vlan-100"
             },
-            "interface": "vlan-100",
-            "kind": "svi",
             "ip": "192.168.100.1/24",
-            "vrf": "vrf-tenant-a",
-            "vlan": "vlan-100"
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
@@ -502,7 +470,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.12/32",
         "vteps": [
           {
             "id": "vtep-dc-leaf1-leaf2",
@@ -522,8 +489,6 @@
               "update_source",
               "vtep_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.12/32"
           },
           {
@@ -533,8 +498,6 @@
             "attaches_to": {
               "interface": "dc-leaf2-swp51"
             },
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.3/31",
             "vrf": "vrf-default"
           },
@@ -545,8 +508,6 @@
             "attaches_to": {
               "interface": "dc-leaf2-swp52"
             },
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.11/31",
             "vrf": "vrf-default"
           },
@@ -557,11 +518,8 @@
             "attaches_to": {
               "vlan": "vlan-100"
             },
-            "interface": "vlan-100",
-            "kind": "svi",
             "ip": "192.168.100.2/24",
-            "vrf": "vrf-tenant-a",
-            "vlan": "vlan-100"
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
@@ -636,7 +594,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.21/32",
         "l3_interfaces": [
           {
             "id": "dc-border1-lo",
@@ -645,8 +602,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.21/32"
           },
           {
@@ -656,8 +611,6 @@
             "attaches_to": {
               "interface": "dc-border1-swp51"
             },
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.5/31",
             "vrf": "vrf-default"
           },
@@ -668,8 +621,6 @@
             "attaches_to": {
               "interface": "dc-border1-swp52"
             },
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.13/31",
             "vrf": "vrf-default"
           },
@@ -683,8 +634,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.255.0.1/31",
             "vrf": "vrf-default"
           }
@@ -783,7 +732,6 @@
         "labels": {
           "site": "dc"
         },
-        "lo_ip": "10.0.0.22/32",
         "l3_interfaces": [
           {
             "id": "dc-border2-lo",
@@ -792,8 +740,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.22/32"
           },
           {
@@ -803,8 +749,6 @@
             "attaches_to": {
               "interface": "dc-border2-swp51"
             },
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.7/31",
             "vrf": "vrf-default"
           },
@@ -815,8 +759,6 @@
             "attaches_to": {
               "interface": "dc-border2-swp52"
             },
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.15/31",
             "vrf": "vrf-default"
           },
@@ -830,8 +772,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.255.0.3/31",
             "vrf": "vrf-default"
           }
@@ -956,7 +896,6 @@
         "labels": {
           "site": "campus"
         },
-        "lo_ip": "10.0.1.1/32",
         "l3_interfaces": [
           {
             "id": "cm-core1-lo",
@@ -965,8 +904,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.1.1/32"
           },
           {
@@ -976,11 +913,8 @@
             "attaches_to": {
               "vlan": "vlan-10"
             },
-            "interface": "vlan-10",
-            "kind": "svi",
             "ip": "172.16.10.2/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-10",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -997,11 +931,8 @@
             "attaches_to": {
               "vlan": "vlan-20"
             },
-            "interface": "vlan-20",
-            "kind": "svi",
             "ip": "172.16.20.2/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-20",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1018,11 +949,8 @@
             "attaches_to": {
               "vlan": "vlan-30"
             },
-            "interface": "vlan-30",
-            "kind": "svi",
             "ip": "172.16.30.2/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-30",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1042,8 +970,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Te1/1",
-            "kind": "routed",
             "ip": "10.255.0.0/31",
             "vrf": "vrf-default"
           }
@@ -1119,14 +1045,11 @@
         "labels": {
           "site": "campus"
         },
-        "lo_ip": "10.0.1.2/32",
         "l3_interfaces": [
           {
             "id": "cm-core2-lo",
             "name": "lo",
             "attachment": "unattached",
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.1.2/32"
           },
           {
@@ -1136,11 +1059,8 @@
             "attaches_to": {
               "vlan": "vlan-10"
             },
-            "interface": "vlan-10",
-            "kind": "svi",
             "ip": "172.16.10.3/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-10",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1157,11 +1077,8 @@
             "attaches_to": {
               "vlan": "vlan-20"
             },
-            "interface": "vlan-20",
-            "kind": "svi",
             "ip": "172.16.20.3/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-20",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1178,11 +1095,8 @@
             "attaches_to": {
               "vlan": "vlan-30"
             },
-            "interface": "vlan-30",
-            "kind": "svi",
             "ip": "172.16.30.3/24",
             "vrf": "vrf-default",
-            "vlan": "vlan-30",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1202,8 +1116,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Te1/1",
-            "kind": "routed",
             "ip": "10.255.0.2/31",
             "vrf": "vrf-default"
           }

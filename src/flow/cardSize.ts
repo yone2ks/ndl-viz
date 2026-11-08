@@ -63,8 +63,7 @@ export function cardHeight(nd: CyNodeData): number {
     ...(nd.vrfs ?? []).filter(v => v !== 'vrf-default').map(v => badge(v.replace(/^vrf-/, ''))),
   ]
   const svis = l3.filter(isVlanIf).map(e => `vl${(e.attaches_to?.vlan ?? l3Name(e)).replace(/^vlan-/, '')}`)
-  const ifs = l3.length ? l3.filter(e => !isVlanIf(e)).map(l3Name)
-    : (nd.ips ?? []).map(s => s.slice(0, Math.max(s.indexOf(':'), 0)))
+  const ifs = l3.filter(e => !isVlanIf(e)).map(l3Name)
 
   return BASE_H
     + (rowCount(badges, 5) - 1) * (17.8 + 5)

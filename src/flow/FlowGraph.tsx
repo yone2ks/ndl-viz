@@ -44,9 +44,9 @@ const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340p
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
   const parts: (string | number | undefined)[] = [
-    d.id, d.label, d.role, d.lo_ip, d.subnet, d.gateway, d.vrf_name, d.vlan_id, d.vni, d.local_as,
-    ...(d.vrfs ?? []), ...(d.vlans ?? []), ...(d.ips ?? []),
-    ...(d.l3_interfaces ?? []).flatMap(e => [l3Name(e), e.ip, e.ipv6, e.vrf, e.vlan]),
+    d.id, d.label, d.role, d.subnet, d.gateway, d.vrf_name, d.vlan_id, d.vni, d.local_as,
+    ...(d.vrfs ?? []), ...(d.vlans ?? []),
+    ...(d.l3_interfaces ?? []).flatMap(e => [l3Name(e), e.ip, e.ipv6, e.vrf, e.attaches_to?.vlan]),
   ]
   return parts.filter(Boolean).join(' ').toLowerCase()
 }

@@ -463,31 +463,19 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
 
   // ── IF → IP マップ（リンク端点の IP 表示用）＋ SVI 抽出 ──
-  // ips は "IF名:IP" 形式。IF 名が VLAN ノード id に一致するものは SVI。
+  // SVI は attachment が vlan の L3 IF。VLAN は attaches_to.vlan で引く（名前では判定しない。ADR-0011 D11）
   const ifIp = new Map<string, Map<string, string>>()
   const sviByVlan = new Map<string, { node: string; label: string; ip: string }[]>()
   const labelOf = new Map(l1Nodes.map(nd => [nd.id, nd.label]))
   l1Nodes.forEach(nd => {
-    // 新形式 l3_interfaces を優先。なければ旧 "ifname:ip" 文字列にフォールバック
-    const entries: { ifName: string; ip: string; vlan?: string; isSvi: boolean }[] = []
-    if (nd.l3_interfaces) {
-      nd.l3_interfaces.forEach(e => entries.push({
-        ifName: l3Name(e), ip: e.ip, vlan: e.vlan ?? e.attaches_to?.vlan, isSvi: isVlanIf(e),
-      }))
-    } else if (nd.ips) {
-      nd.ips.forEach(s => {
-        const idx = s.indexOf(':')
-        if (idx < 0) return
-        const ifName = s.slice(0, idx)
-        entries.push({ ifName, ip: s.slice(idx + 1), isSvi: vlanMembers.has(ifName) })
-      })
-    }
+    const entries = (nd.l3_interfaces ?? []).map(e => ({
+      ifName: l3Name(e), ip: e.ip, vlan: e.attaches_to?.vlan, isSvi: isVlanIf(e),
+    }))
     if (entries.length === 0) return
     const m = new Map<string, string>()
     entries.forEach(({ ifName, ip, vlan, isSvi }) => {
       m.set(ifName, ip)
-      // SVI: 明示 vlan 参照 → IF 名が VLAN id → メンバー判定 の順で対応 VLAN を解決
-      const vlanId = vlan ?? (vlanMembers.has(ifName) ? ifName : undefined)
+      const vlanId = vlan
       if (isSvi && vlanId) {
         if (!sviByVlan.has(vlanId)) sviByVlan.set(vlanId, [])
         sviByVlan.get(vlanId)!.push({ node: nd.id, label: labelOf.get(nd.id) ?? nd.id, ip })

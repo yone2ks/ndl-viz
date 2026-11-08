@@ -9,7 +9,6 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cumulus_linux",
-        "lo_ip": "10.0.0.1/32",
         "l3_interfaces": [
           {
             "id": "spine1-lo",
@@ -18,8 +17,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.1/32"
           },
           {
@@ -32,8 +29,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.1.0.0/31",
             "vrf": "vrf-default"
           },
@@ -47,8 +42,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp2",
-            "kind": "routed",
             "ip": "10.1.0.2/31",
             "vrf": "vrf-default"
           }
@@ -168,7 +161,6 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cumulus_linux",
-        "lo_ip": "10.0.0.2/32",
         "l3_interfaces": [
           {
             "id": "spine2-lo",
@@ -177,8 +169,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.2/32"
           },
           {
@@ -191,8 +181,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp1",
-            "kind": "routed",
             "ip": "10.1.0.4/31",
             "vrf": "vrf-default"
           },
@@ -206,8 +194,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp2",
-            "kind": "routed",
             "ip": "10.1.0.6/31",
             "vrf": "vrf-default"
           }
@@ -327,7 +313,6 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
-        "lo_ip": "10.0.0.11/32",
         "vteps": [
           {
             "id": "vtep-leaf1-leaf2",
@@ -347,8 +332,6 @@
               "update_source",
               "vtep_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.11/32"
           },
           {
@@ -361,8 +344,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.1/31",
             "vrf": "vrf-default"
           },
@@ -376,8 +357,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.5/31",
             "vrf": "vrf-default"
           },
@@ -388,11 +367,8 @@
             "attaches_to": {
               "vlan": "vlan-100"
             },
-            "interface": "vlan-100",
-            "kind": "svi",
             "ip": "192.168.100.1/24",
-            "vrf": "vrf-tenant-a",
-            "vlan": "vlan-100"
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
@@ -514,7 +490,6 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
-        "lo_ip": "10.0.0.12/32",
         "vteps": [
           {
             "id": "vtep-leaf1-leaf2",
@@ -534,8 +509,6 @@
               "update_source",
               "vtep_source"
             ],
-            "interface": "lo",
-            "kind": "loopback",
             "ip": "10.0.0.12/32"
           },
           {
@@ -548,8 +521,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp51",
-            "kind": "routed",
             "ip": "10.1.0.3/31",
             "vrf": "vrf-default"
           },
@@ -563,8 +534,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "swp52",
-            "kind": "routed",
             "ip": "10.1.0.7/31",
             "vrf": "vrf-default"
           }
