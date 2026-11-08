@@ -52,10 +52,8 @@ export const LINK_DASH: Record<string, string> = {
   'peer-link': '7 3',
   management:  '2 4',
 }
-export const LAG_COLOR: Record<string, { line:string; bg:string }> = {
-  lacp: { line:'#059669', bg:'rgba(5,150,105,0.16)' },
-  mlag: { line:'#059669', bg:'rgba(5,150,105,0.16)' },  // LACP と同色。識別はドメインボックスで
-}
+/** LAG の色。Ethernet Segment の脚の LAG も同じ色で、識別は ES の枠で行う */
+export const LAG_COLOR = { line:'#059669', bg:'rgba(5,150,105,0.16)' }
 
 // ── VRF 名 → 色（ハッシュベースの色相割当）─────────────────────────────
 

@@ -102,9 +102,9 @@ function computeLayout(nodes, edges) {
 
   const mlag = {}
   l1l.forEach(e => {
-    if (e.data.lag_type==='mlag') {
-      if (!mlag[e.data.lag_id]) mlag[e.data.lag_id] = new Set()
-      mlag[e.data.lag_id].add(e.data.source)
+    if (e.data.ethernet_segment) {
+      if (!mlag[e.data.ethernet_segment]) mlag[e.data.ethernet_segment] = new Set()
+      mlag[e.data.ethernet_segment].add(e.data.source)
     }
   })
   return { pos, l1l, l1n, mlag }
@@ -168,7 +168,7 @@ function renderConstellation(container, layout) {
     const sp=pos[src], tp=pos[tgt]
     if (!sp||!tp) continue
     const isLag = links[0].data.lag_id
-    const isMlag = links.some(l=>l.data.lag_type==='mlag')
+    const isMlag = links.some(l=>l.data.ethernet_segment)
     const bp1=boundaryPt(sp.x,sp.y,sp.w,sp.h,tp.x,tp.y)
     const bp2=boundaryPt(tp.x,tp.y,tp.w,tp.h,sp.x,sp.y)
     const clr = isMlag ? 'rgba(100,200,255,0.5)' : isLag ? 'rgba(100,200,120,0.5)' : 'rgba(61,53,102,0.6)'
@@ -226,7 +226,7 @@ function renderPCB(container, layout) {
     const sp=pos[e.data.source], tp=pos[e.data.target]
     if (!sp||!tp) return
     const isLag = !!e.data.lag_id
-    const isMlag = e.data.lag_type==='mlag'
+    const isMlag = e.data.ethernet_segment
     const clr = isMlag ? '#b87333' : isLag ? '#cfb53b' : '#3d7a55'
     const sw  = isLag ? 1.8 : 1.2
     // Orthogonal route: H then V then H
@@ -297,7 +297,7 @@ function renderNeural(container, layout) {
     const k=[e.data.source,e.data.target].sort().join('|')
     if(drawn.has(k)) return; drawn.add(k)
     const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
-    const isLag=!!e.data.lag_id, isMlag=e.data.lag_type==='mlag'
+    const isLag=!!e.data.lag_id, isMlag=e.data.ethernet_segment
     const clr=isMlag?'rgba(180,100,40,0.45)':isLag?'rgba(80,150,80,0.45)':'rgba(100,80,60,0.3)'
     const sw=isLag?1.8:1.0
     // Slightly curved path
@@ -384,7 +384,7 @@ function renderNeon(container, layout) {
     const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
     const bp1=boundaryPt(sp.x,sp.y,sp.w,sp.h,tp.x,tp.y)
     const bp2=boundaryPt(tp.x,tp.y,tp.w,tp.h,sp.x,sp.y)
-    const isMlag=e.data.lag_type==='mlag', isLag=!!e.data.lag_id
+    const isMlag=e.data.ethernet_segment, isLag=!!e.data.lag_id
     const clr = isMlag?'#f7c244':isLag?'#50fa7b':'#1a6b7f'
     const bright = isMlag?'#f7c244':isLag?'#50fa7b':'#00bfff'
     // base
@@ -446,7 +446,7 @@ function renderSumi(container, layout) {
     const k=[e.data.source,e.data.target].sort().join('|')
     if(drawn.has(k)) return; drawn.add(k)
     const sp=pos[e.data.source],tp=pos[e.data.target]; if(!sp||!tp) return
-    const isLag=!!e.data.lag_id, isMlag=e.data.lag_type==='mlag'
+    const isLag=!!e.data.lag_id, isMlag=e.data.ethernet_segment
     const op = isMlag?0.55:isLag?0.45:0.25
     const sw = isMlag?1.6:isLag?1.4:0.8
     // Brushstroke bezier

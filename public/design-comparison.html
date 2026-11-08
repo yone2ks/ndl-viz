@@ -176,12 +176,12 @@ function computeLayout(nodes, edges) {
     return { y: Math.min(...ys), yMid: ys.reduce((s,v)=>s+v,0)/ys.length, label: tierLabel(role) }
   })
 
-  // MLAG groups: lag_id → set of source node ids
+  // MLAG groups: ethernet_segment → set of source node ids
   const mlagMap = {}
   l1Links.forEach(e => {
-    if (e.data.lag_type === 'mlag') {
-      if (!mlagMap[e.data.lag_id]) mlagMap[e.data.lag_id] = new Set()
-      mlagMap[e.data.lag_id].add(e.data.source)
+    if (e.data.ethernet_segment) {
+      if (!mlagMap[e.data.ethernet_segment]) mlagMap[e.data.ethernet_segment] = new Set()
+      mlagMap[e.data.ethernet_segment].add(e.data.source)
     }
   })
 
@@ -317,14 +317,14 @@ function drawLinks(svg, l1Links, pos, variant) {
   // Group by (sorted src+tgt, lag_id or 'none')
   const groups = {}
   l1Links.forEach(e => {
-    const {source:s, target:t, lag_id, lag_type, link_role} = e.data
+    const {source:s, target:t, lag_id, ethernet_segment, link_role} = e.data
     const key = [s,t].sort().join('|') + '||' + (lag_id ?? 'none')
-    if (!groups[key]) groups[key] = { src:s, tgt:t, lag_id, lag_type, link_role, links:[] }
+    if (!groups[key]) groups[key] = { src:s, tgt:t, lag_id, ethernet_segment, link_role, links:[] }
     groups[key].links.push(e)
   })
 
   for (const grp of Object.values(groups)) {
-    const {src, tgt, lag_id, lag_type, link_role, links} = grp
+    const {src, tgt, lag_id, ethernet_segment, link_role, links} = grp
     const srcPos = pos[src], tgtPos = pos[tgt]
     if (!srcPos || !tgtPos) continue
 
@@ -332,7 +332,7 @@ function drawLinks(svg, l1Links, pos, variant) {
     const allSameSrc = links.every(l => l.data.source === src)
 
     const isLag = !!lag_id
-    const isMlag = lag_type === 'mlag' || !allSameSrc
+    const isMlag = !!ethernet_segment || !allSameSrc
     const linkColor = LINK_CLR[link_role] ?? LINK_CLR.access
 
     const N = links.length
@@ -362,7 +362,7 @@ function drawLinks(svg, l1Links, pos, variant) {
     } else if (isLag && isMlag) {
       // MLAG: lines come from different src nodes — draw as separate lines converging to tgt
       // For V1/V2/V4: draw the MLAG trapezoid polygon
-      const mlagLinks = links.filter(l => l.data.lag_type === 'mlag')
+      const mlagLinks = links.filter(l => l.data.ethernet_segment)
       const mlagSrcs = [...new Set(mlagLinks.map(l => l.data.source))]
 
       if (variant !== 'v3-minimal' && mlagSrcs.length >= 2) {

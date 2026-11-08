@@ -27,10 +27,10 @@ export const LagBundles = memo(function LagBundles({ pairMap, mlagGroups, effect
   // ── LACP バンドポリゴン ──
   const lacpBands = Array.from(pairMap.entries()).map(([pkey, links]) => {
     if (links.length < 2) return null
+    // Ethernet Segment の脚 (旧 MLAG) は下の収束ポリゴンで描くので、束の帯は 1 台の LAG だけ
     const firstLag  = links[0].lag_id
-    const firstType = links[0].lag_type
-    if (!firstLag || firstType !== 'lacp') return null
-    if (!links.every(l => l.lag_id === firstLag && l.lag_type === 'lacp')) return null
+    if (!firstLag || links[0].ethernet_segment) return null
+    if (!links.every(l => l.lag_id === firstLag && !l.ethernet_segment)) return null
     const src = effectiveNodeMap.get(links[0].source)
     const tgt = effectiveNodeMap.get(links[0].target)
     if (!src || !tgt) return null
@@ -38,7 +38,7 @@ export const LagBundles = memo(function LagBundles({ pairMap, mlagGroups, effect
     const p0 = edgePts(src, tgt, 0,              links.length)
     const pN = edgePts(src, tgt, links.length - 1, links.length)
     const pts = `${p0.x1},${p0.y1} ${pN.x1},${pN.y1} ${pN.x2},${pN.y2} ${p0.x2},${p0.y2}`
-    const col  = LAG_COLOR['lacp']?.line ?? '#059669'
+    const col  = LAG_COLOR.line
     const fill = theme === 'dark' ? 'rgba(5,150,105,0.10)' : 'rgba(5,150,105,0.08)'
     return (
       <polygon key={`lacp-band-${pkey}`}

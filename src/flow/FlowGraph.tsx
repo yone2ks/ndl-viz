@@ -227,7 +227,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
       >
         <Background variant={BackgroundVariant.Dots} gap={26} size={1.2}
           color="rgba(148,163,184,0.14)" />
-        <GraphOverlays tiers={graph.tiers} sites={graph.sites} mlagDomains={graph.mlagDomains}
+        <GraphOverlays tiers={graph.tiers} sites={graph.sites} segmentFrames={graph.segmentFrames}
           siteIdOf={graph.siteIdOf} cardHeights={graph.cardHeights} graphW={graphWOf(graph.graphW)} />
         <VxlanTunnels />
         <FlowLegend edges={graph.edges} overlays={overlays}

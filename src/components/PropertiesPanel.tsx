@@ -97,7 +97,7 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
   if (key === 'bridges') {
     // 箱のポートで L2 を転送する bridge (ADR-0018 D1): 名前、2 行目にポート (L1 IF / LAG の id) と description
     // description は文なので、ポートの id と違って途中で折り返してよい
-    const ports = ((o.ports as Obj[] | undefined) ?? []).map(p => p.interface ?? p.lag)
+    const ports = ((o.ports as Obj[] | undefined) ?? []).map(p => p.interface ?? p.lag ?? p.ethernet_segment)
     return <><code>{String(o.id)}</code> {o.name ? String(o.name) : ''}
       {(ports.length > 0 || !!o.description) && <span className="prop-note">
         {segs(ports, ', ')}{ports.length > 0 && !!o.description && ' · '}{o.description ? String(o.description) : ''}

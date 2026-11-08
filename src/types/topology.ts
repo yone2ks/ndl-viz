@@ -28,7 +28,7 @@ export interface CyNodeData {
   id: string
   label: string
   layer: 'layer1' | 'layer2' | 'layer3'
-  type: 'node' | 'vlan' | 'l2vni' | 'l3vni' | 'bridge'
+  type: 'node' | 'vlan' | 'l2vni' | 'l3vni' | 'bridge' | 'ethernet_segment'
   role?: string
   implementation?: string
   description?: string    // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
@@ -64,7 +64,12 @@ export interface CyNodeData {
   local_as?: number
   /** type=bridge: 転送するポート (ADR-0018 D1) と、ポートを持つ機器 */
   ports?: BridgePortData[]
+  /** type=bridge: ポートを持つ機器。type=ethernet_segment: 脚の機器 (mlndl ADR-0023) */
   nodes?: string[]
+  /** type=ethernet_segment: 脚 ({lag:} か {interface:}) と、その機器 */
+  members?: SegmentMemberData[]
+  /** type=ethernet_segment: 書かれていれば all_active / single_active。書かれていなければない (既定値で埋めない) */
+  redundancy_mode?: string
   name?: string
   /** type=node: この機器のポートで転送する bridge。ndl-viz が type=bridge の要素から集めて載せる */
   bridges?: NodeBridge[]
@@ -83,11 +88,19 @@ export interface NodeTunnel {
   description?: string
 }
 
-/** bridge のポート。{interface: <L1 IF の id>} か {lag: <LAG の id>} と、その機器 */
+/** bridge のポート。{interface: <L1 IF の id>}・{lag: <LAG の id>}・{ethernet_segment: <ES の id>} と、その機器 */
 export interface BridgePortData {
   interface?: string
   lag?: string
+  ethernet_segment?: string
   nodes: string[]
+}
+
+/** Ethernet Segment の脚。{lag:} か {interface:} と、その機器 (mlndl ADR-0023) */
+export interface SegmentMemberData {
+  lag?: string
+  interface?: string
+  node: string
 }
 
 /** 機器に載せる bridge (type=bridge の要素そのまま) */
@@ -130,7 +143,8 @@ export interface CyEdgeData {
   source_if?: string
   target_if?: string
   lag_id?: string
-  lag_type?: string
+  /** 端の L1 IF が脚の Ethernet Segment (mlndl ADR-0023。旧 lag_type: mlag の代わり) */
+  ethernet_segment?: string
   // L2 VLAN メンバー: trunk(tagged) / access(untagged) で区別
   vlan_id?: number
   tagged_on?: string[]

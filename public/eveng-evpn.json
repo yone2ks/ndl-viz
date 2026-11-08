@@ -467,8 +467,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -486,8 +485,7 @@
             "vlan": "vlan-20",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           }
@@ -701,8 +699,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -720,8 +717,7 @@
             "vlan": "vlan-20",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           }

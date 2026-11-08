@@ -111,12 +111,13 @@ export function computeLayout(data: TopologyData): LayoutResult {
   })
 
   // ── MLAG グループ計算（ID のみ保持）────────────────────────────────
+  // 複数の機器の脚を束ねる Ethernet Segment ごと (mlndl ADR-0023。旧 lag_type: mlag の lag_id ごと)
   const mlagGroups = new Map<string, MlagPair[]>()
   Array.from(pairMap.values()).flat()
-    .filter(d => d.lag_type === 'mlag' && d.lag_id)
+    .filter(d => d.ethernet_segment)
     .forEach(d => {
       if (!nodeMap.has(d.source) || !nodeMap.has(d.target)) return
-      const gid = d.lag_id!
+      const gid = d.ethernet_segment!
       if (!mlagGroups.has(gid)) mlagGroups.set(gid, [])
       const group = mlagGroups.get(gid)!
       if (!group.some(p => p.srcId === d.source && p.tgtId === d.target)) {

@@ -46,12 +46,15 @@ export interface VlanRail { vlanId: string; vlanNum: number; hue: number }
 /** VLAN の端点。via はその端点を受ける VLAN のポートのノード（端点はそのノードにローカル。ADR-0013 D7）*/
 export type VlanEndpoint = VlanEndpointData & { via: string }
 
+/** Ethernet Segment の枠。同じ機器の組の ES は 1 つの枠にまとめる。label は ES の名前 (なければ id) と、書かれていれば冗長のモード */
+export interface SegmentFrame { id: string; label: string; nodes: string[] }
+
 export interface FlowGraphData {
   nodes: Node[]
   edges: Edge[]
   tiers: TierInfo[]
   sites: SiteInfo[]
-  mlagDomains: Map<string, string[]>     // lag_id → switch node ids
+  segmentFrames: SegmentFrame[]          // Ethernet Segment の脚の機器を囲む枠 (mlndl ADR-0023)
   vlanMembers: Map<string, string[]>     // vlan id → member node ids
   vniByVlan: Map<string, CyNodeData[]>
   vlanEndpoints: Map<string, Map<string, VlanEndpoint[]>>   // vlan id → (端点のノード id → 端点)
@@ -323,16 +326,10 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     })
   })
 
-  // ── MLAG ドメイン ──
-  const mlagBySrc = new Map<string, Set<string>>()
-  allEdges.filter(d => d.lag_type === 'mlag' && d.lag_id).forEach(d => {
-    if (!mlagBySrc.has(d.lag_id!)) mlagBySrc.set(d.lag_id!, new Set())
-    mlagBySrc.get(d.lag_id!)!.add(d.source)
-  })
-  const mlagDomains = new Map<string, string[]>()
-  mlagBySrc.forEach((srcs, lagId) => {
-    if (srcs.size >= 2) mlagDomains.set(lagId, [...srcs])
-  })
+  // ── Ethernet Segment の枠 (mlndl ADR-0023。旧 MLAG ドメイン) ──
+  // 脚の機器を囲む。同じ機器の組に ES がいくつあっても枠は 1 つで、札に ES を並べる。
+  // MLAG か EVPN multihoming かは MLNDL に書かれていないので、札に方式名は出さない
+  const segmentFrames = segmentFramesOf(data.nodes.map(n => n.data as CyNodeData), new Set(l1Nodes.map(nd => nd.id)))
 
   // VLAN の札は、ポートを持つ機器がすべて同じサイトにあるときだけそのサイトの枠に入れる（広域イーサで延ばした VLAN 等は入れない）
   const siteIdOf = new Map(siteOf)
@@ -512,7 +509,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
 
   return {
-    nodes, edges, tiers, sites, mlagDomains, vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
+    nodes, edges, tiers, sites, segmentFrames, vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
     adjacency,
     vlanOnLink, vlanHue, ifIp, sviByVlan, siteIdOf, cardHeights: cardH,
     graphW: totalW,
@@ -608,12 +605,38 @@ const FABRIC_GAP = 160
 
 type Adj = Map<string, Set<string>>
 
-/** MLAG のクライアント側の機器。MLAG の LAG のすべてのリンクに現れる機器（ペア側は片方のリンクにしか現れない）*/
+/** Ethernet Segment の札: 名前 (なければ id) と、書かれていれば冗長のモード */
+function segmentLabel(es: CyNodeData): string {
+  const name = es.name ?? es.id
+  return es.redundancy_mode ? `${name} · ${es.redundancy_mode.replace('_', '-')}` : name
+}
+
+/** Ethernet Segment の要素から枠を作る。表示する機器が 2 つ以上ある ES だけ。同じ機器の組はまとめる */
+function segmentFramesOf(els: CyNodeData[], shown: Set<string>): SegmentFrame[] {
+  const byNodes = new Map<string, { nodes: string[]; segs: CyNodeData[] }>()
+  els.filter(nd => nd.type === 'ethernet_segment').forEach(es => {
+    const nodes = (es.nodes ?? []).filter(n => shown.has(n))
+    if (nodes.length < 2) return
+    const key = [...nodes].sort().join('|')
+    if (!byNodes.has(key)) byNodes.set(key, { nodes, segs: [] })
+    byNodes.get(key)!.segs.push(es)
+  })
+  return [...byNodes.values()].map(({ nodes, segs }) => {
+    const labels = segs.map(segmentLabel)
+    return {
+      id: segs[0].id,
+      nodes,
+      label: labels.length <= 2 ? labels.join(', ') : `${labels[0]} +${labels.length - 1}`,
+    }
+  })
+}
+
+/** Ethernet Segment の相手 (クライアント) 側の機器。ES の脚のすべてのリンクに現れる機器（脚の機器は自分の脚のリンクにしか現れない）*/
 function findMlagClients(edges: CyEdgeData[]): Set<string> {
   const byLag = new Map<string, CyEdgeData[]>()
-  edges.filter(d => d.type === 'link' && d.lag_type === 'mlag' && d.lag_id).forEach(d => {
-    if (!byLag.has(d.lag_id!)) byLag.set(d.lag_id!, [])
-    byLag.get(d.lag_id!)!.push(d)
+  edges.filter(d => d.type === 'link' && d.ethernet_segment).forEach(d => {
+    if (!byLag.has(d.ethernet_segment!)) byLag.set(d.ethernet_segment!, [])
+    byLag.get(d.ethernet_segment!)!.push(d)
   })
   const clients = new Set<string>()
   byLag.forEach(links => {
