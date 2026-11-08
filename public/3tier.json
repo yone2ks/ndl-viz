@@ -154,8 +154,7 @@
         "target_if": "Te1/1",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg1",
-        "lag_type": "lacp"
+        "lag_id": "lag-core1-agg1"
       }
     },
     {
@@ -169,8 +168,7 @@
         "target_if": "Te1/2",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg1",
-        "lag_type": "lacp"
+        "lag_id": "lag-core1-agg1"
       }
     },
     {
@@ -184,8 +182,7 @@
         "target_if": "Te1/1",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg2",
-        "lag_type": "lacp"
+        "lag_id": "lag-core1-agg2"
       }
     },
     {
@@ -199,8 +196,7 @@
         "target_if": "Te1/2",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg2",
-        "lag_type": "lacp"
+        "lag_id": "lag-core1-agg2"
       }
     },
     {
@@ -214,8 +210,7 @@
         "target_if": "Te1/3",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg1",
-        "lag_type": "lacp"
+        "lag_id": "lag-core2-agg1"
       }
     },
     {
@@ -229,8 +224,7 @@
         "target_if": "Te1/4",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg1",
-        "lag_type": "lacp"
+        "lag_id": "lag-core2-agg1"
       }
     },
     {
@@ -244,8 +238,7 @@
         "target_if": "Te1/3",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg2",
-        "lag_type": "lacp"
+        "lag_id": "lag-core2-agg2"
       }
     },
     {
@@ -259,8 +252,7 @@
         "target_if": "Te1/4",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg2",
-        "lag_type": "lacp"
+        "lag_id": "lag-core2-agg2"
       }
     },
     {
@@ -419,7 +411,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-core1-agg1",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 10G"
       }
@@ -432,7 +423,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-core1-agg2",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 10G"
       }
@@ -445,7 +435,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-core2-agg1",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 10G"
       }
@@ -458,7 +447,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-core2-agg2",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 10G"
       }

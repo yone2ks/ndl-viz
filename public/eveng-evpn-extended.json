@@ -979,8 +979,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -998,8 +997,7 @@
             "vlan": "vlan-20",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           }
@@ -1213,8 +1211,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1232,8 +1229,7 @@
             "vlan": "vlan-20",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           }
@@ -1450,8 +1446,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1469,8 +1464,7 @@
             "vlan": "vlan-30",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1488,8 +1482,7 @@
             "vlan": "vlan-40",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1508,8 +1501,7 @@
             "vlan": "vlan-110",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1528,8 +1520,7 @@
             "vlan": "vlan-120",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1791,8 +1782,7 @@
             "vlan": "vlan-10",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1810,8 +1800,7 @@
             "vlan": "vlan-30",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1829,8 +1818,7 @@
             "vlan": "vlan-40",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1849,8 +1837,7 @@
             "vlan": "vlan-110",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -1869,8 +1856,7 @@
             "vlan": "vlan-120",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -2129,8 +2115,7 @@
             "vlan": "vlan-20",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -2148,8 +2133,7 @@
             "vlan": "vlan-30",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -2168,8 +2152,7 @@
             "vlan": "vlan-110",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           },
@@ -2188,8 +2171,7 @@
             "vlan": "vlan-120",
             "gateway_redundancy": [
               {
-                "mode": "anycast_gateway",
-                "anycast_mac": "00:00:22:22:33:33"
+                "mode": "anycast_gateway"
               }
             ]
           }
@@ -3111,6 +3093,28 @@
     },
     {
       "data": {
+        "id": "es-server3",
+        "label": "es-server3",
+        "layer": "layer1",
+        "type": "ethernet_segment",
+        "members": [
+          {
+            "lag": "lag-leaf3-po3",
+            "node": "leaf3"
+          },
+          {
+            "lag": "lag-leaf4-po3",
+            "node": "leaf4"
+          }
+        ],
+        "nodes": [
+          "leaf3",
+          "leaf4"
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-10",
         "label": "VLAN 10",
         "layer": "layer2",
@@ -3488,8 +3492,7 @@
         "source_if": "Ethernet1/5",
         "target_if": "Ethernet1/5",
         "link_role": "peer-link",
-        "lag_id": "lag-leaf3-po1",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf3-po1"
       }
     },
     {
@@ -3502,8 +3505,7 @@
         "source_if": "Ethernet1/6",
         "target_if": "Ethernet1/6",
         "link_role": "peer-link",
-        "lag_id": "lag-leaf3-po1",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf3-po1"
       }
     },
     {
@@ -3540,8 +3542,8 @@
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
         "link_role": "trunk",
-        "lag_id": "lag-vpc-server3",
-        "lag_type": "mlag"
+        "lag_id": "lag-leaf3-po3",
+        "ethernet_segment": "es-server3"
       }
     },
     {
@@ -3554,8 +3556,8 @@
         "source_if": "Ethernet1/3",
         "target_if": "eth1",
         "link_role": "trunk",
-        "lag_id": "lag-vpc-server3",
-        "lag_type": "mlag"
+        "lag_id": "lag-leaf4-po3",
+        "ethernet_segment": "es-server3"
       }
     },
     {
@@ -3580,8 +3582,7 @@
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
         "link_role": "trunk",
-        "lag_id": "lag-leaf5-po5",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf5-po5"
       }
     },
     {
@@ -3594,8 +3595,7 @@
         "source_if": "Ethernet1/4",
         "target_if": "eth1",
         "link_role": "trunk",
-        "lag_id": "lag-leaf5-po5",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf5-po5"
       }
     },
     {
@@ -3632,8 +3632,7 @@
         "source_if": "Ethernet1/4",
         "target_if": "port1",
         "link_role": "trunk",
-        "lag_id": "lag-leaf6-po10",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf6-po10"
       }
     },
     {
@@ -3646,8 +3645,7 @@
         "source_if": "Ethernet1/5",
         "target_if": "port2",
         "link_role": "trunk",
-        "lag_id": "lag-leaf6-po10",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf6-po10"
       }
     },
     {
@@ -3658,35 +3656,34 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-leaf3-po1",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-vpc-server3-leaf3-server3",
+        "id": "bundle-lag-leaf3-po3-leaf3-server3",
         "source": "leaf3",
         "target": "server3",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-vpc-server3",
-        "lag_type": "mlag",
+        "lag_id": "lag-leaf3-po3",
         "member_count": 1,
-        "label": "×1"
+        "label": "×1",
+        "ethernet_segment": "es-server3"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-vpc-server3-leaf4-server3",
+        "id": "bundle-lag-leaf4-po3-leaf4-server3",
         "source": "leaf4",
         "target": "server3",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-vpc-server3",
-        "lag_type": "mlag",
+        "lag_id": "lag-leaf4-po3",
         "member_count": 1,
-        "label": "×1"
+        "label": "×1",
+        "ethernet_segment": "es-server3"
       }
     },
     {
@@ -3697,7 +3694,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-leaf5-po5",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2"
       }
@@ -3710,7 +3706,6 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-leaf6-po10",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2"
       }
@@ -3870,6 +3865,37 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-10-leaf3",
+        "source": "vlan-10",
+        "target": "leaf3",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 10,
+        "tagged_on": [
+          "lag-leaf3-po3",
+          "lag-leaf3-po1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "tag_match",
+            "lag": "lag-server3-bond0",
+            "l3_interface": "server3-bond0-10",
+            "name": "bond0.10",
+            "ip": "172.16.10.13/24"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-10-leaf4",
         "source": "vlan-10",
         "target": "leaf4",
@@ -3877,7 +3903,7 @@
         "type": "vlan_member",
         "vlan_id": 10,
         "tagged_on": [
-          "lag-vpc-server3",
+          "lag-leaf4-po3",
           "lag-leaf4-po1"
         ],
         "endpoints": [
@@ -3924,37 +3950,6 @@
             "l3_interface": "host1-eth0-l3",
             "name": "eth0",
             "ip": "172.16.10.11/24"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-10-leaf3",
-        "source": "vlan-10",
-        "target": "leaf3",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "tagged_on": [
-          "lag-vpc-server3",
-          "lag-leaf3-po1"
-        ],
-        "endpoints": [
-          {
-            "node": "server3",
-            "interfaces": [
-              "server3-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": true,
-            "resolution": "tag_match",
-            "lag": "lag-server3-bond0",
-            "l3_interface": "server3-bond0-10",
-            "name": "bond0.10",
-            "ip": "172.16.10.13/24"
           }
         ]
       }
@@ -4022,6 +4017,37 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-30-leaf3",
+        "source": "vlan-30",
+        "target": "leaf3",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 30,
+        "tagged_on": [
+          "lag-leaf3-po3",
+          "lag-leaf3-po1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "tag_match",
+            "lag": "lag-server3-bond0",
+            "l3_interface": "server3-bond0-30",
+            "name": "bond0.30",
+            "ip": "172.16.30.13/24"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-30-leaf4",
         "source": "vlan-30",
         "target": "leaf4",
@@ -4029,7 +4055,7 @@
         "type": "vlan_member",
         "vlan_id": 30,
         "tagged_on": [
-          "lag-vpc-server3",
+          "lag-leaf4-po3",
           "lag-leaf4-po1"
         ],
         "endpoints": [
@@ -4082,14 +4108,14 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-30-leaf3",
-        "source": "vlan-30",
+        "id": "vlan-vlan-40-leaf3",
+        "source": "vlan-40",
         "target": "leaf3",
         "layer": "layer2",
         "type": "vlan_member",
-        "vlan_id": 30,
+        "vlan_id": 40,
         "tagged_on": [
-          "lag-vpc-server3",
+          "lag-leaf3-po3",
           "lag-leaf3-po1"
         ],
         "endpoints": [
@@ -4104,9 +4130,9 @@
             "tagged": true,
             "resolution": "tag_match",
             "lag": "lag-server3-bond0",
-            "l3_interface": "server3-bond0-30",
-            "name": "bond0.30",
-            "ip": "172.16.30.13/24"
+            "l3_interface": "server3-bond0-40",
+            "name": "bond0.40",
+            "ip": "172.16.40.13/24"
           }
         ]
       }
@@ -4120,7 +4146,7 @@
         "type": "vlan_member",
         "vlan_id": 40,
         "tagged_on": [
-          "lag-vpc-server3",
+          "lag-leaf4-po3",
           "lag-leaf4-po1"
         ],
         "endpoints": [
@@ -4138,70 +4164,6 @@
             "l3_interface": "server3-bond0-40",
             "name": "bond0.40",
             "ip": "172.16.40.13/24"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-40-leaf3",
-        "source": "vlan-40",
-        "target": "leaf3",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 40,
-        "tagged_on": [
-          "lag-vpc-server3",
-          "lag-leaf3-po1"
-        ],
-        "endpoints": [
-          {
-            "node": "server3",
-            "interfaces": [
-              "server3-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": true,
-            "resolution": "tag_match",
-            "lag": "lag-server3-bond0",
-            "l3_interface": "server3-bond0-40",
-            "name": "bond0.40",
-            "ip": "172.16.40.13/24"
-          }
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-110-leaf4",
-        "source": "vlan-110",
-        "target": "leaf4",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 110,
-        "tagged_on": [
-          "lag-leaf4-po1"
-        ],
-        "untagged_on": [
-          "Ethernet1/4"
-        ],
-        "endpoints": [
-          {
-            "node": "host4",
-            "interfaces": [
-              "host4-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": false,
-            "resolution": "direct",
-            "l3_interface": "host4-eth0-l3",
-            "name": "eth0",
-            "ip": "172.17.110.14/24",
-            "ipv6": "2001:db8:110::14/64"
           }
         ]
       }
@@ -4254,6 +4216,71 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-110-leaf4",
+        "source": "vlan-110",
+        "target": "leaf4",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 110,
+        "tagged_on": [
+          "lag-leaf4-po1"
+        ],
+        "untagged_on": [
+          "Ethernet1/4"
+        ],
+        "endpoints": [
+          {
+            "node": "host4",
+            "interfaces": [
+              "host4-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "host4-eth0-l3",
+            "name": "eth0",
+            "ip": "172.17.110.14/24",
+            "ipv6": "2001:db8:110::14/64"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-120-leaf3",
+        "source": "vlan-120",
+        "target": "leaf3",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 120,
+        "tagged_on": [
+          "lag-leaf3-po3",
+          "lag-leaf3-po1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": true,
+            "resolution": "tag_match",
+            "lag": "lag-server3-bond0",
+            "l3_interface": "server3-bond0-120",
+            "name": "bond0.120",
+            "ip": "172.17.120.13/24",
+            "ipv6": "2001:db8:120::13/64"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-120-leaf4",
         "source": "vlan-120",
         "target": "leaf4",
@@ -4261,7 +4288,7 @@
         "type": "vlan_member",
         "vlan_id": 120,
         "tagged_on": [
-          "lag-vpc-server3",
+          "lag-leaf4-po3",
           "lag-leaf4-po1"
         ],
         "endpoints": [
@@ -4319,33 +4346,14 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-120-leaf3",
-        "source": "vlan-120",
+        "id": "vlan-vlan-3999-leaf3",
+        "source": "vlan-3999",
         "target": "leaf3",
         "layer": "layer2",
         "type": "vlan_member",
-        "vlan_id": 120,
+        "vlan_id": 3999,
         "tagged_on": [
-          "lag-vpc-server3",
           "lag-leaf3-po1"
-        ],
-        "endpoints": [
-          {
-            "node": "server3",
-            "interfaces": [
-              "server3-eth0"
-            ],
-            "interface_names": [
-              "eth0"
-            ],
-            "tagged": true,
-            "resolution": "tag_match",
-            "lag": "lag-server3-bond0",
-            "l3_interface": "server3-bond0-120",
-            "name": "bond0.120",
-            "ip": "172.17.120.13/24",
-            "ipv6": "2001:db8:120::13/64"
-          }
         ]
       }
     },
@@ -4359,19 +4367,6 @@
         "vlan_id": 3999,
         "tagged_on": [
           "lag-leaf4-po1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-3999-leaf3",
-        "source": "vlan-3999",
-        "target": "leaf3",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 3999,
-        "tagged_on": [
-          "lag-leaf3-po1"
         ]
       }
     },

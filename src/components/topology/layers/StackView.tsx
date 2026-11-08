@@ -122,7 +122,7 @@ export const StackView = memo(function StackView({ layout, effectiveNodeMap }: P
         {Array.from(pairMap.values()).map(links => links.map(d => {
           const src = effectiveNodeMap.get(d.source)!, tgt = effectiveNodeMap.get(d.target)!
           const isLag = !!d.lag_id
-          const color = isLag ? LAG_COLOR[d.lag_type ?? 'lacp']?.line ?? '#059669'
+          const color = isLag ? LAG_COLOR.line
             : (LINK_COLOR[d.link_role ?? ''] ?? ui.linkDefault)
           return (
             <line key={`stk-l1-${d.id}`} x1={src.x} y1={src.y} x2={tgt.x} y2={tgt.y}

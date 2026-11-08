@@ -1,5 +1,5 @@
 /**
- * GraphOverlays — tier 帯 / MLAG ドメイン / VLAN ハルの背景描画
+ * GraphOverlays — tier 帯 / Ethernet Segment の枠 / VLAN ハルの背景描画
  *
  * ViewportPortal でフロー座標系に SVG を重ね、ノードのドラッグに追随する。
  * サイトの枠は、属する機器と VLAN の札の今の位置から求める（動かしたノードを含むように広がる）。
@@ -8,12 +8,12 @@
 import { memo } from 'react'
 import { ViewportPortal, useNodes, type Node } from '@xyflow/react'
 import { useFlowCtx } from './FlowCtx'
-import { CARD_W, CARD_H, VLAN_PILL_H, type TierInfo, type SiteInfo } from './layout'
+import { CARD_W, CARD_H, VLAN_PILL_H, type TierInfo, type SiteInfo, type SegmentFrame } from './layout'
 
 interface Props {
   tiers: TierInfo[]
   sites: SiteInfo[]
-  mlagDomains: Map<string, string[]>
+  segmentFrames: SegmentFrame[]
   siteIdOf: Map<string, number>
   cardHeights: Map<string, number>
   graphW: number
@@ -29,7 +29,7 @@ function nodeBox(n: Node | undefined) {
   return { x: n.position.x, y: n.position.y, w, h, cx: n.position.x + w / 2, cy: n.position.y + h / 2 }
 }
 
-export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, mlagDomains, siteIdOf, cardHeights }: Props) {
+export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, segmentFrames, siteIdOf, cardHeights }: Props) {
   const nodes = useNodes()
   const byId = new Map(nodes.map(n => [n.id, n]))
   const { hoveredId } = useFlowCtx()
@@ -78,8 +78,8 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, mlagDom
           </g>
         ))}
 
-        {/* ── MLAG ドメイン ── */}
-        {Array.from(mlagDomains.entries()).map(([lagId, ids]) => {
+        {/* ── Ethernet Segment の枠 (脚の機器を囲む。mlndl ADR-0023) ── */}
+        {segmentFrames.map(({ id: frameId, label, nodes: ids }) => {
           const boxes = ids.map(id => nodeBox(byId.get(id))).filter((b): b is NonNullable<typeof b> => !!b)
           if (boxes.length < 2) return null
           const PAD = 26
@@ -89,9 +89,9 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, mlagDom
           const y2 = Math.max(...boxes.map(b => b.y + b.h)) + PAD
           const dim = hoveredId !== null && !ids.includes(hoveredId)
           return (
-            <g key={`mlag-${lagId}`} className={`mlag-box${dim ? ' is-dim' : ''}`}>
+            <g key={`es-${frameId}`} className={`mlag-box${dim ? ' is-dim' : ''}`}>
               <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} rx={16} />
-              <text x={x1 + 12} y={y1 + 18}>MLAG DOMAIN</text>
+              <text x={x1 + 12} y={y1 + 18}>{label}</text>
             </g>
           )
         })}

@@ -711,6 +711,28 @@
     },
     {
       "data": {
+        "id": "es-server1",
+        "label": "es-server1",
+        "layer": "layer1",
+        "type": "ethernet_segment",
+        "members": [
+          {
+            "lag": "lag-leaf1-server1",
+            "node": "leaf1"
+          },
+          {
+            "lag": "lag-leaf2-server1",
+            "node": "leaf2"
+          }
+        ],
+        "nodes": [
+          "leaf1",
+          "leaf2"
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-100",
         "label": "VLAN 100\ntenant-a",
         "layer": "layer2",
@@ -812,8 +834,7 @@
         "target_if": "swp49",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-peer-link",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf1-peer"
       }
     },
     {
@@ -827,8 +848,7 @@
         "target_if": "swp50",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-peer-link",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf1-peer"
       }
     },
     {
@@ -868,8 +888,7 @@
         "target_if": "eth0",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-leaf3-server2",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf3-server2"
       }
     },
     {
@@ -883,8 +902,7 @@
         "target_if": "eth1",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-leaf3-server2",
-        "lag_type": "lacp"
+        "lag_id": "lag-leaf3-server2"
       }
     },
     {
@@ -898,8 +916,8 @@
         "target_if": "eth0",
         "link_speed": "1G",
         "link_role": "access",
-        "lag_id": "lag-mlag-server1",
-        "lag_type": "mlag"
+        "lag_id": "lag-leaf1-server1",
+        "ethernet_segment": "es-server1"
       }
     },
     {
@@ -913,19 +931,18 @@
         "target_if": "eth1",
         "link_speed": "1G",
         "link_role": "access",
-        "lag_id": "lag-mlag-server1",
-        "lag_type": "mlag"
+        "lag_id": "lag-leaf2-server1",
+        "ethernet_segment": "es-server1"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-peer-link-leaf1-leaf2",
+        "id": "bundle-lag-leaf1-peer-leaf1-leaf2",
         "source": "leaf1",
         "target": "leaf2",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-peer-link",
-        "lag_type": "lacp",
+        "lag_id": "lag-leaf1-peer",
         "member_count": 2,
         "label": "×2 10G"
       }
@@ -938,62 +955,34 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-leaf3-server2",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 10G"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-mlag-server1-leaf1-server1",
+        "id": "bundle-lag-leaf1-server1-leaf1-server1",
         "source": "leaf1",
         "target": "server1",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-mlag-server1",
-        "lag_type": "mlag",
+        "lag_id": "lag-leaf1-server1",
         "member_count": 1,
-        "label": "×1 1G"
+        "label": "×1 1G",
+        "ethernet_segment": "es-server1"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-mlag-server1-leaf2-server1",
+        "id": "bundle-lag-leaf2-server1-leaf2-server1",
         "source": "leaf2",
         "target": "server1",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-mlag-server1",
-        "lag_type": "mlag",
+        "lag_id": "lag-leaf2-server1",
         "member_count": 1,
-        "label": "×1 1G"
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-100-leaf2",
-        "source": "vlan-100",
-        "target": "leaf2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 100,
-        "tagged_on": [
-          "lag-mlag-server1"
-        ],
-        "endpoints": [
-          {
-            "node": "server1",
-            "interfaces": [
-              "server1-eth1"
-            ],
-            "interface_names": [
-              "eth1"
-            ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-server1-bond0"
-          }
-        ]
+        "label": "×1 1G",
+        "ethernet_segment": "es-server1"
       }
     },
     {
@@ -1005,7 +994,7 @@
         "type": "vlan_member",
         "vlan_id": 100,
         "tagged_on": [
-          "lag-mlag-server1"
+          "lag-leaf1-server1"
         ],
         "endpoints": [
           {
@@ -1015,6 +1004,33 @@
             ],
             "interface_names": [
               "eth0"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-server1-bond0"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-100-leaf2",
+        "source": "vlan-100",
+        "target": "leaf2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "lag-leaf2-server1"
+        ],
+        "endpoints": [
+          {
+            "node": "server1",
+            "interfaces": [
+              "server1-eth1"
+            ],
+            "interface_names": [
+              "eth1"
             ],
             "tagged": true,
             "resolution": "no_l3",

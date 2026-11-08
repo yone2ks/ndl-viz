@@ -59,9 +59,8 @@ export const PhysicalLinks = memo(function PhysicalLinks({ pairMap, effectiveNod
     <>
       {entries.map(({ d, idx, total, pts }) => {
         const isLag   = !!d.lag_id
-        const lagType = d.lag_type || 'lacp'
         const color   = isLag
-          ? LAG_COLOR[lagType]?.line ?? '#059669'
+          ? LAG_COLOR.line
           : (LINK_COLOR[d.link_role ?? ''] ?? ui.linkDefault)
         const dash    = isLag ? '' : (LINK_DASH[d.link_role ?? ''] ?? '')
         // fog-of-war: ホバーノードに接続するリンクを強調、それ以外を減光

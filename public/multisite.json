@@ -9,6 +9,9 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.1/32",
         "l3_interfaces": [
           {
@@ -172,10 +175,7 @@
               "route_reflector_client": true
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -187,6 +187,9 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.2/32",
         "l3_interfaces": [
           {
@@ -350,10 +353,7 @@
               "route_reflector_client": true
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -365,6 +365,9 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.11/32",
         "vteps": [
           {
@@ -484,10 +487,7 @@
               "local_as": 65000
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -499,6 +499,9 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.12/32",
         "vteps": [
           {
@@ -618,10 +621,7 @@
               "local_as": 65000
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -633,6 +633,9 @@
         "role": "border",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.21/32",
         "l3_interfaces": [
           {
@@ -765,10 +768,7 @@
               "local_as": 65100
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -780,6 +780,9 @@
         "role": "border",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "labels": {
+          "site": "dc"
+        },
         "lo_ip": "10.0.0.22/32",
         "l3_interfaces": [
           {
@@ -912,10 +915,7 @@
               "local_as": 65100
             }
           }
-        ],
-        "labels": {
-          "site": "dc"
-        }
+        ]
       }
     },
     {
@@ -953,6 +953,9 @@
         "role": "core",
         "implementation": "physical",
         "device_type": "cisco_nexus_9508",
+        "labels": {
+          "site": "campus"
+        },
         "lo_ip": "10.0.1.1/32",
         "l3_interfaces": [
           {
@@ -1101,10 +1104,7 @@
               "local_as": 64500
             }
           }
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1116,6 +1116,9 @@
         "role": "core",
         "implementation": "physical",
         "device_type": "cisco_nexus_9508",
+        "labels": {
+          "site": "campus"
+        },
         "lo_ip": "10.0.1.2/32",
         "l3_interfaces": [
           {
@@ -1241,10 +1244,7 @@
               "local_as": 65000
             }
           }
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1256,14 +1256,14 @@
         "role": "distribution",
         "implementation": "physical",
         "device_type": "cisco_nexus_7706",
+        "labels": {
+          "site": "campus"
+        },
         "vlans": [
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1275,14 +1275,14 @@
         "role": "distribution",
         "implementation": "physical",
         "device_type": "cisco_nexus_7706",
+        "labels": {
+          "site": "campus"
+        },
         "vlans": [
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1294,14 +1294,14 @@
         "role": "access",
         "implementation": "physical",
         "device_type": "cisco_catalyst_9300",
+        "labels": {
+          "site": "campus"
+        },
         "vlans": [
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1313,14 +1313,14 @@
         "role": "access",
         "implementation": "physical",
         "device_type": "cisco_catalyst_9300",
+        "labels": {
+          "site": "campus"
+        },
         "vlans": [
           "vlan-10",
           "vlan-20",
           "vlan-30"
-        ],
-        "labels": {
-          "site": "campus"
-        }
+        ]
       }
     },
     {
@@ -1331,12 +1331,12 @@
         "type": "node",
         "role": "server",
         "implementation": "physical",
-        "vlans": [
-          "vlan-10"
-        ],
         "labels": {
           "site": "campus"
-        }
+        },
+        "vlans": [
+          "vlan-10"
+        ]
       }
     },
     {
@@ -1347,12 +1347,56 @@
         "type": "node",
         "role": "server",
         "implementation": "physical",
-        "vlans": [
-          "vlan-20"
-        ],
         "labels": {
           "site": "campus"
-        }
+        },
+        "vlans": [
+          "vlan-20"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "es-dc-server1",
+        "label": "es-dc-server1",
+        "layer": "layer1",
+        "type": "ethernet_segment",
+        "members": [
+          {
+            "lag": "lag-dc-leaf1-server1",
+            "node": "dc-leaf1"
+          },
+          {
+            "lag": "lag-dc-leaf2-server1",
+            "node": "dc-leaf2"
+          }
+        ],
+        "nodes": [
+          "dc-leaf1",
+          "dc-leaf2"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "es-dc-server2",
+        "label": "es-dc-server2",
+        "layer": "layer1",
+        "type": "ethernet_segment",
+        "members": [
+          {
+            "lag": "lag-dc-leaf1-server2",
+            "node": "dc-leaf1"
+          },
+          {
+            "lag": "lag-dc-leaf2-server2",
+            "node": "dc-leaf2"
+          }
+        ],
+        "nodes": [
+          "dc-leaf1",
+          "dc-leaf2"
+        ]
       }
     },
     {
@@ -1546,8 +1590,7 @@
         "target_if": "swp49",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-dc-leaf-peerlink",
-        "lag_type": "lacp"
+        "lag_id": "lag-dc-leaf1-peer"
       }
     },
     {
@@ -1561,8 +1604,7 @@
         "target_if": "swp50",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-dc-leaf-peerlink",
-        "lag_type": "lacp"
+        "lag_id": "lag-dc-leaf1-peer"
       }
     },
     {
@@ -1576,8 +1618,8 @@
         "target_if": "eth0",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-dc-mlag-server1",
-        "lag_type": "mlag"
+        "lag_id": "lag-dc-leaf1-server1",
+        "ethernet_segment": "es-dc-server1"
       }
     },
     {
@@ -1591,8 +1633,8 @@
         "target_if": "eth1",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-dc-mlag-server1",
-        "lag_type": "mlag"
+        "lag_id": "lag-dc-leaf2-server1",
+        "ethernet_segment": "es-dc-server1"
       }
     },
     {
@@ -1606,8 +1648,8 @@
         "target_if": "eth0",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-dc-mlag-server2",
-        "lag_type": "mlag"
+        "lag_id": "lag-dc-leaf1-server2",
+        "ethernet_segment": "es-dc-server2"
       }
     },
     {
@@ -1621,8 +1663,8 @@
         "target_if": "eth1",
         "link_speed": "10G",
         "link_role": "access",
-        "lag_id": "lag-dc-mlag-server2",
-        "lag_type": "mlag"
+        "lag_id": "lag-dc-leaf2-server2",
+        "ethernet_segment": "es-dc-server2"
       }
     },
     {
@@ -1662,8 +1704,7 @@
         "target_if": "Te2/1",
         "link_speed": "40G",
         "link_role": "peer-link",
-        "lag_id": "lag-cm-core1-interconnect",
-        "lag_type": "lacp"
+        "lag_id": "lag-cm-core1-interconnect"
       }
     },
     {
@@ -1677,8 +1718,7 @@
         "target_if": "Te2/2",
         "link_speed": "40G",
         "link_role": "peer-link",
-        "lag_id": "lag-cm-core1-interconnect",
-        "lag_type": "lacp"
+        "lag_id": "lag-cm-core1-interconnect"
       }
     },
     {
@@ -1787,67 +1827,66 @@
     },
     {
       "data": {
-        "id": "bundle-lag-dc-leaf-peerlink-dc-leaf1-dc-leaf2",
+        "id": "bundle-lag-dc-leaf1-peer-dc-leaf1-dc-leaf2",
         "source": "dc-leaf1",
         "target": "dc-leaf2",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-dc-leaf-peerlink",
-        "lag_type": "lacp",
+        "lag_id": "lag-dc-leaf1-peer",
         "member_count": 2,
         "label": "×2 10G"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-dc-mlag-server1-dc-leaf1-dc-server1",
+        "id": "bundle-lag-dc-leaf1-server1-dc-leaf1-dc-server1",
         "source": "dc-leaf1",
         "target": "dc-server1",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-dc-mlag-server1",
-        "lag_type": "mlag",
+        "lag_id": "lag-dc-leaf1-server1",
         "member_count": 1,
-        "label": "×1 10G"
+        "label": "×1 10G",
+        "ethernet_segment": "es-dc-server1"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-dc-mlag-server1-dc-leaf2-dc-server1",
+        "id": "bundle-lag-dc-leaf2-server1-dc-leaf2-dc-server1",
         "source": "dc-leaf2",
         "target": "dc-server1",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-dc-mlag-server1",
-        "lag_type": "mlag",
+        "lag_id": "lag-dc-leaf2-server1",
         "member_count": 1,
-        "label": "×1 10G"
+        "label": "×1 10G",
+        "ethernet_segment": "es-dc-server1"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-dc-mlag-server2-dc-leaf1-dc-server2",
+        "id": "bundle-lag-dc-leaf1-server2-dc-leaf1-dc-server2",
         "source": "dc-leaf1",
         "target": "dc-server2",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-dc-mlag-server2",
-        "lag_type": "mlag",
+        "lag_id": "lag-dc-leaf1-server2",
         "member_count": 1,
-        "label": "×1 10G"
+        "label": "×1 10G",
+        "ethernet_segment": "es-dc-server2"
       }
     },
     {
       "data": {
-        "id": "bundle-lag-dc-mlag-server2-dc-leaf2-dc-server2",
+        "id": "bundle-lag-dc-leaf2-server2-dc-leaf2-dc-server2",
         "source": "dc-leaf2",
         "target": "dc-server2",
         "layer": "layer1",
         "type": "lag_bundle",
-        "lag_id": "lag-dc-mlag-server2",
-        "lag_type": "mlag",
+        "lag_id": "lag-dc-leaf2-server2",
         "member_count": 1,
-        "label": "×1 10G"
+        "label": "×1 10G",
+        "ethernet_segment": "es-dc-server2"
       }
     },
     {
@@ -1858,49 +1897,8 @@
         "layer": "layer1",
         "type": "lag_bundle",
         "lag_id": "lag-cm-core1-interconnect",
-        "lag_type": "lacp",
         "member_count": 2,
         "label": "×2 40G"
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-100-dc-leaf2",
-        "source": "vlan-100",
-        "target": "dc-leaf2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 100,
-        "tagged_on": [
-          "lag-dc-mlag-server1",
-          "lag-dc-mlag-server2"
-        ],
-        "endpoints": [
-          {
-            "node": "dc-server1",
-            "interfaces": [
-              "dc-server1-eth1"
-            ],
-            "interface_names": [
-              "eth1"
-            ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server1-bond0"
-          },
-          {
-            "node": "dc-server2",
-            "interfaces": [
-              "dc-server2-eth1"
-            ],
-            "interface_names": [
-              "eth1"
-            ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server2-bond0"
-          }
-        ]
       }
     },
     {
@@ -1912,8 +1910,8 @@
         "type": "vlan_member",
         "vlan_id": 100,
         "tagged_on": [
-          "lag-dc-mlag-server1",
-          "lag-dc-mlag-server2"
+          "lag-dc-leaf1-server1",
+          "lag-dc-leaf1-server2"
         ],
         "endpoints": [
           {
@@ -1945,6 +1943,46 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-100-dc-leaf2",
+        "source": "vlan-100",
+        "target": "dc-leaf2",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 100,
+        "tagged_on": [
+          "lag-dc-leaf2-server1",
+          "lag-dc-leaf2-server2"
+        ],
+        "endpoints": [
+          {
+            "node": "dc-server1",
+            "interfaces": [
+              "dc-server1-eth1"
+            ],
+            "interface_names": [
+              "eth1"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server1-bond0"
+          },
+          {
+            "node": "dc-server2",
+            "interfaces": [
+              "dc-server2-eth1"
+            ],
+            "interface_names": [
+              "eth1"
+            ],
+            "tagged": true,
+            "resolution": "no_l3",
+            "lag": "lag-dc-server2-bond0"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-10-cm-core1",
         "source": "vlan-10",
         "target": "cm-core1",
@@ -1959,27 +1997,15 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-10-cm-host1",
+        "id": "vlan-vlan-10-cm-core2",
         "source": "vlan-10",
-        "target": "cm-host1",
+        "target": "cm-core2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 10,
-        "untagged_on": [
-          "eth0"
-        ],
-        "endpoints": [
-          {
-            "node": "cm-dist1",
-            "interfaces": [
-              "cm-dist1-fa0-1"
-            ],
-            "interface_names": [
-              "Fa0/1"
-            ],
-            "tagged": false,
-            "resolution": "no_l3"
-          }
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2"
         ]
       }
     },
@@ -2028,20 +2054,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-10-cm-core2",
-        "source": "vlan-10",
-        "target": "cm-core2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "tagged_on": [
-          "Ge1/1",
-          "Ge1/2"
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-10-cm-dist2",
         "source": "vlan-10",
         "target": "cm-dist2",
@@ -2055,9 +2067,49 @@
     },
     {
       "data": {
+        "id": "vlan-vlan-10-cm-host1",
+        "source": "vlan-10",
+        "target": "cm-host1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 10,
+        "untagged_on": [
+          "eth0"
+        ],
+        "endpoints": [
+          {
+            "node": "cm-dist1",
+            "interfaces": [
+              "cm-dist1-fa0-1"
+            ],
+            "interface_names": [
+              "Fa0/1"
+            ],
+            "tagged": false,
+            "resolution": "no_l3"
+          }
+        ]
+      }
+    },
+    {
+      "data": {
         "id": "vlan-vlan-20-cm-core1",
         "source": "vlan-20",
         "target": "cm-core1",
+        "layer": "layer2",
+        "type": "vlan_member",
+        "vlan_id": 20,
+        "tagged_on": [
+          "Ge1/1",
+          "Ge1/2"
+        ]
+      }
+    },
+    {
+      "data": {
+        "id": "vlan-vlan-20-cm-core2",
+        "source": "vlan-20",
+        "target": "cm-core2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 20,
@@ -2112,15 +2164,14 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-20-cm-core2",
+        "id": "vlan-vlan-20-cm-dist2",
         "source": "vlan-20",
-        "target": "cm-core2",
+        "target": "cm-dist2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 20,
         "tagged_on": [
-          "Ge1/1",
-          "Ge1/2"
+          "Ge0/1"
         ]
       }
     },
@@ -2152,22 +2203,23 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-20-cm-dist2",
-        "source": "vlan-20",
-        "target": "cm-dist2",
+        "id": "vlan-vlan-30-cm-core1",
+        "source": "vlan-30",
+        "target": "cm-core1",
         "layer": "layer2",
         "type": "vlan_member",
-        "vlan_id": 20,
+        "vlan_id": 30,
         "tagged_on": [
-          "Ge0/1"
+          "Ge1/1",
+          "Ge1/2"
         ]
       }
     },
     {
       "data": {
-        "id": "vlan-vlan-30-cm-core1",
+        "id": "vlan-vlan-30-cm-core2",
         "source": "vlan-30",
-        "target": "cm-core1",
+        "target": "cm-core2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 30,
@@ -2217,20 +2269,6 @@
         "vlan_id": 30,
         "tagged_on": [
           "Ge0/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-30-cm-core2",
-        "source": "vlan-30",
-        "target": "cm-core2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 30,
-        "tagged_on": [
-          "Ge1/1",
-          "Ge1/2"
         ]
       }
     },
@@ -2580,6 +2618,9 @@
           "interface_name": "swp51"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine1-leaf1"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2602,6 +2643,9 @@
           "interface_name": "swp51"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine1-leaf2"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2624,6 +2668,9 @@
           "interface_name": "swp51"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine1-border1"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2646,6 +2693,9 @@
           "interface_name": "swp51"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine1-border2"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2668,6 +2718,9 @@
           "interface_name": "swp52"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine2-leaf1"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2690,6 +2743,9 @@
           "interface_name": "swp52"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine2-leaf2"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2712,6 +2768,9 @@
           "interface_name": "swp52"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine2-border1"
+        },
         "area": "0.0.0.0"
       }
     },
@@ -2734,6 +2793,9 @@
           "interface_name": "swp52"
         },
         "bfd": true,
+        "transport_link": {
+          "link": "link-dc-spine2-border2"
+        },
         "area": "0.0.0.0"
       }
     }
