@@ -32,7 +32,6 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
-        "lo_ip": "10.1.0.1/32",
         "l3_interfaces": [
           {
             "id": "spine1-lo0",
@@ -41,8 +40,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "loopback0",
-            "kind": "loopback",
             "ip": "10.1.0.1/32",
             "vrf": "vrf-default"
           },
@@ -56,8 +53,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/1",
-            "kind": "routed",
             "ip": "10.0.0.0/31",
             "vrf": "vrf-default"
           },
@@ -71,8 +66,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/2",
-            "kind": "routed",
             "ip": "10.0.0.2/31",
             "vrf": "vrf-default"
           },
@@ -83,8 +76,6 @@
             "attaches_to": {
               "interface": "spine1-mgmt0"
             },
-            "interface": "mgmt0",
-            "kind": "routed",
             "ip": "192.168.0.240/24",
             "vrf": "vrf-management"
           }
@@ -205,7 +196,6 @@
         "role": "spine",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
-        "lo_ip": "10.1.0.2/32",
         "l3_interfaces": [
           {
             "id": "spine2-lo0",
@@ -214,8 +204,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "loopback0",
-            "kind": "loopback",
             "ip": "10.1.0.2/32",
             "vrf": "vrf-default"
           },
@@ -229,8 +217,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/1",
-            "kind": "routed",
             "ip": "10.0.0.4/31",
             "vrf": "vrf-default"
           },
@@ -244,8 +230,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/2",
-            "kind": "routed",
             "ip": "10.0.0.6/31",
             "vrf": "vrf-default"
           },
@@ -256,8 +240,6 @@
             "attaches_to": {
               "interface": "spine2-mgmt0"
             },
-            "interface": "mgmt0",
-            "kind": "routed",
             "ip": "192.168.0.241/24",
             "vrf": "vrf-management"
           }
@@ -378,7 +360,6 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
-        "lo_ip": "10.1.0.11/32",
         "vteps": [
           {
             "id": "vtep-leaf1",
@@ -394,8 +375,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "loopback0",
-            "kind": "loopback",
             "ip": "10.1.0.11/32",
             "vrf": "vrf-default"
           },
@@ -406,8 +385,6 @@
             "roles": [
               "vtep_source"
             ],
-            "interface": "loopback1",
-            "kind": "loopback",
             "ip": "10.2.0.11/32",
             "vrf": "vrf-default"
           },
@@ -421,8 +398,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/1",
-            "kind": "routed",
             "ip": "10.0.0.1/31",
             "vrf": "vrf-default"
           },
@@ -436,8 +411,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/2",
-            "kind": "routed",
             "ip": "10.0.0.5/31",
             "vrf": "vrf-default"
           },
@@ -448,8 +421,6 @@
             "attaches_to": {
               "interface": "leaf1-mgmt0"
             },
-            "interface": "mgmt0",
-            "kind": "routed",
             "ip": "192.168.0.242/24",
             "vrf": "vrf-management"
           },
@@ -460,11 +431,8 @@
             "attaches_to": {
               "vlan": "vlan-10"
             },
-            "interface": "Vlan10",
-            "kind": "svi",
             "ip": "172.16.10.1/24",
             "vrf": "vrf-tenant-a",
-            "vlan": "vlan-10",
             "gateway_redundancy": [
               {
                 "mode": "anycast_gateway"
@@ -478,11 +446,8 @@
             "attaches_to": {
               "vlan": "vlan-20"
             },
-            "interface": "Vlan20",
-            "kind": "svi",
             "ip": "172.16.20.1/24",
             "vrf": "vrf-tenant-a",
-            "vlan": "vlan-20",
             "gateway_redundancy": [
               {
                 "mode": "anycast_gateway"
@@ -610,7 +575,6 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
-        "lo_ip": "10.1.0.12/32",
         "vteps": [
           {
             "id": "vtep-leaf2",
@@ -626,8 +590,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "loopback0",
-            "kind": "loopback",
             "ip": "10.1.0.12/32",
             "vrf": "vrf-default"
           },
@@ -638,8 +600,6 @@
             "roles": [
               "vtep_source"
             ],
-            "interface": "loopback1",
-            "kind": "loopback",
             "ip": "10.2.0.12/32",
             "vrf": "vrf-default"
           },
@@ -653,8 +613,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/1",
-            "kind": "routed",
             "ip": "10.0.0.3/31",
             "vrf": "vrf-default"
           },
@@ -668,8 +626,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ethernet1/2",
-            "kind": "routed",
             "ip": "10.0.0.7/31",
             "vrf": "vrf-default"
           },
@@ -680,8 +636,6 @@
             "attaches_to": {
               "interface": "leaf2-mgmt0"
             },
-            "interface": "mgmt0",
-            "kind": "routed",
             "ip": "192.168.0.243/24",
             "vrf": "vrf-management"
           },
@@ -692,11 +646,8 @@
             "attaches_to": {
               "vlan": "vlan-10"
             },
-            "interface": "Vlan10",
-            "kind": "svi",
             "ip": "172.16.10.1/24",
             "vrf": "vrf-tenant-a",
-            "vlan": "vlan-10",
             "gateway_redundancy": [
               {
                 "mode": "anycast_gateway"
@@ -710,11 +661,8 @@
             "attaches_to": {
               "vlan": "vlan-20"
             },
-            "interface": "Vlan20",
-            "kind": "svi",
             "ip": "172.16.20.1/24",
             "vrf": "vrf-tenant-a",
-            "vlan": "vlan-20",
             "gateway_redundancy": [
               {
                 "mode": "anycast_gateway"
@@ -850,8 +798,6 @@
             "attaches_to": {
               "interface": "host1-eth0"
             },
-            "interface": "eth0",
-            "kind": "routed",
             "ip": "172.16.10.11/24"
           }
         ]
@@ -874,8 +820,6 @@
             "attaches_to": {
               "interface": "host2-eth0"
             },
-            "interface": "eth0",
-            "kind": "routed",
             "ip": "172.16.20.12/24"
           }
         ]

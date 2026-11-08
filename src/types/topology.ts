@@ -1,18 +1,14 @@
 /** 機器ノードの L3 IF（mlndl exporter。docs/exporter-cytoscape.md）*/
 export interface L3IfEntry {
-  id?: string
-  name?: string               // 機器上の名前（参照ではない）
+  id: string
+  name: string                // 機器上の名前（参照ではない）
   /** 何の上に載るか。attaches_to のキーから決まる（ADR-0011 D11）。unattached はループバックとは限らない */
-  attachment?: 'l1_interface' | 'lag' | 'vlan' | 'subinterface' | 'unattached'
+  attachment: 'l1_interface' | 'lag' | 'vlan' | 'subinterface' | 'unattached'
   attaches_to?: Record<string, string>   // YAML と同じ形（{interface: <L1 IF の id>} 等）
   roles?: ('update_source' | 'vtep_source')[]
   ip: string
   ipv6?: string
   vrf?: string
-  /** 旧キー（ndl_version 1.x の間だけ）: interface は name と同じ、kind は attachment から写したもの */
-  interface: string
-  kind: 'loopback' | 'svi' | 'subinterface' | 'routed'
-  vlan?: string               // 旧キー: SVI の VLAN ノード id
 }
 
 /** 機器ノードが終端する VTEP（mlndl exporter。ADR-0014）*/
@@ -37,12 +33,9 @@ export interface CyNodeData {
   device_type?: string
   vlan_id?: number
   vni?: number
-  // L3 埋め込みデータ
-  lo_ip?: string     // 旧キー: exporter が選んだ代表アドレス。カードには出さない（検索の対象にだけ入れる）
-  /** 構造化 L3 IF 一覧（mlndl exporter 新形式）*/
+  // L3 埋め込みデータ。ノードの代表アドレスは MLNDL にないので受け取らない (mlndl ADR-0011 D11・ADR-0025 D3)
+  /** L3 IF 一覧（mlndl exporter。docs/exporter-cytoscape.md）*/
   l3_interfaces?: L3IfEntry[]
-  /** 旧形式 "ifname:ip" 文字列配列（後方互換フォールバック）*/
-  ips?: string[]
   vrfs?: string[]
   // L2 埋め込みデータ
   vlans?: string[]

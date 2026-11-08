@@ -27,7 +27,6 @@
         "labels": {
           "site": "tokyo"
         },
-        "lo_ip": "10.255.0.1/32",
         "subinterfaces": [
           {
             "id": "subif-tokyo-rtr1-ge3-101",
@@ -44,8 +43,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo0",
-            "kind": "loopback",
             "ip": "10.255.0.1/32"
           },
           {
@@ -58,8 +55,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/1",
-            "kind": "routed",
             "ip": "10.0.0.1/30"
           },
           {
@@ -72,8 +67,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/2",
-            "kind": "routed",
             "ip": "100.64.0.2/30"
           },
           {
@@ -86,11 +79,7 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/3.101",
-            "kind": "subinterface",
-            "ip": "169.254.100.1/30",
-            "subinterface": "subif-tokyo-rtr1-ge3-101",
-            "vlan_id": 101
+            "ip": "169.254.100.1/30"
           }
         ],
         "local_as": 65001,
@@ -198,7 +187,6 @@
         "labels": {
           "site": "tokyo"
         },
-        "lo_ip": "10.255.0.2/32",
         "tunnels": [
           {
             "id": "tunnel-tokyo-fukuoka",
@@ -219,8 +207,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo0",
-            "kind": "loopback",
             "ip": "10.255.0.2/32"
           },
           {
@@ -233,8 +219,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/1",
-            "kind": "routed",
             "ip": "10.0.0.5/30"
           },
           {
@@ -244,8 +228,6 @@
             "attaches_to": {
               "interface": "tokyo-rtr2-ge2"
             },
-            "interface": "Ge0/2",
-            "kind": "routed",
             "ip": "203.0.113.2/30"
           }
         ],
@@ -354,7 +336,6 @@
         "labels": {
           "site": "osaka"
         },
-        "lo_ip": "10.255.0.11/32",
         "l3_interfaces": [
           {
             "id": "osaka-rtr1-lo",
@@ -363,8 +344,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo0",
-            "kind": "loopback",
             "ip": "10.255.0.11/32"
           },
           {
@@ -377,8 +356,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/1",
-            "kind": "routed",
             "ip": "10.0.0.2/30"
           }
         ],
@@ -447,7 +424,6 @@
         "labels": {
           "site": "osaka"
         },
-        "lo_ip": "10.255.0.12/32",
         "l3_interfaces": [
           {
             "id": "osaka-rtr2-lo",
@@ -456,8 +432,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "lo0",
-            "kind": "loopback",
             "ip": "10.255.0.12/32"
           },
           {
@@ -470,8 +444,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/1",
-            "kind": "routed",
             "ip": "10.0.0.6/30"
           },
           {
@@ -484,8 +456,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/2",
-            "kind": "routed",
             "ip": "100.64.0.6/30"
           }
         ],
@@ -585,8 +555,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/0",
-            "kind": "routed",
             "ip": "100.64.0.10/30"
           }
         ],
@@ -665,8 +633,6 @@
             "roles": [
               "update_source"
             ],
-            "interface": "Ge0/0",
-            "kind": "routed",
             "ip": "100.64.0.14/30"
           },
           {
@@ -676,8 +642,6 @@
             "attaches_to": {
               "interface": "fukuoka-rtr-ge1"
             },
-            "interface": "Ge0/1",
-            "kind": "routed",
             "ip": "198.51.100.2/30"
           }
         ],

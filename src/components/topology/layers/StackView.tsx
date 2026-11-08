@@ -10,6 +10,7 @@
 import { memo, useEffect, useState } from 'react'
 import { useGraphCtx } from '../GraphContext'
 import { planeMatrix, toPlane } from '../utils/planeTransform'
+import { soleAddress } from '../../../flow/l3'
 import { prefersReducedMotion } from '../utils/animate'
 import { rcfg, LINK_COLOR, LAG_COLOR } from '../theme'
 import type { LayoutResult, NodeLayout } from '../layout'
@@ -43,11 +44,11 @@ export const StackView = memo(function StackView({ layout, effectiveNodeMap }: P
   const ghost       = theme === 'dark' ? 'rgba(226,232,240,0.25)' : 'rgba(30,41,59,0.22)'
   const PAD = 60
 
-  // L2 平面に出すノード = VLAN メンバー、L3 平面 = lo_ip / routing 参加ノード
+  // L2 平面に出すノード = VLAN メンバー、L3 平面 = L3 IF を持つノード / routing 参加ノード
   const l2NodeIds = new Set([...vlanMembers.values()].flat())
   const l3Edges = overlayEdges.filter(d => d.type === 'routing_adjacency' || d.type === 'bgp_session')
   const l3NodeIds = new Set([
-    ...nodes.filter(n => n.data.lo_ip).map(n => n.id),
+    ...nodes.filter(n => n.data.l3_interfaces?.length).map(n => n.id),
     ...l3Edges.flatMap(d => [d.source, d.target]),
   ])
 
@@ -174,7 +175,7 @@ export const StackView = memo(function StackView({ layout, effectiveNodeMap }: P
           )
         })}
         {nodes.filter(n => l3NodeIds.has(n.id)).map(n =>
-          <Ghost key={n.id} n={n} plane={2} sub={n.data.lo_ip} />)}
+          <Ghost key={n.id} n={n} plane={2} sub={soleAddress(n.data)} />)}
       </g>
     </g>
   )

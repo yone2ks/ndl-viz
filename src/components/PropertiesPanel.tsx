@@ -42,9 +42,8 @@ const TYPE_LABEL: Record<string, string> = {
 /** routing_neighbor の見出し: プロトコルの名前 */
 const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
 
-// lo_ip / lo_ipv6 は mlndl が選んだ代表アドレスで、MLNDL に書かれた情報ではないので出さない
 // offsetIndex 以下は ndl-viz が描画のために付けた値で、MLNDL の情報ではない
-const SKIP_KEYS = new Set(['id', 'lo_ip', 'lo_ipv6',
+const SKIP_KEYS = new Set(['id',
   'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW', 'crossing', 'crossingNodes'])
 
 const KEY_LABEL: Record<string, string> = {
@@ -73,12 +72,10 @@ function transport(val: unknown): ReactNode {
 function summarize(t: Messages, key: string, o: Obj): ReactNode {
   if (key === 'l3_interfaces') {
     const addrs = [o.ip, o.ipv6].filter(Boolean).join(' ')
-    // YAML でこの L3 IF に書かれていることだけを出す (attaches_to と vrf)。分類や役割など導いた値は出さない。
-    // 旧 JSON は attaches_to の代わりに vlan / subinterface / lag の別キーを持つ
-    const at = isObj(o.attaches_to) ? Object.entries(o.attaches_to)[0]
-      : (['vlan', 'subinterface', 'lag'] as const).map(k => [k, o[k]] as const).find(([, v]) => v)
+    // YAML でこの L3 IF に書かれていることだけを出す (attaches_to と vrf)。分類や役割など導いた値は出さない
+    const at = isObj(o.attaches_to) ? Object.entries(o.attaches_to)[0] : undefined
     const notes = [at && `${at[0]}: ${String(at[1])}`, o.vrf].filter(Boolean)
-    return <><code>{String(o.name ?? o.interface)}</code> {addrs}
+    return <><code>{String(o.name)}</code> {addrs}
       {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
   }
   if (key === 'bgp_sessions') {

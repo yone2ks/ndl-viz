@@ -67,16 +67,11 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
     ? ((nd.bgp_sessions ?? []) as NodeBgpSession[]).filter(s => !s.peer.node) : []
   const showVrf = (lod === 'near' || lod === 'detail') && overlays.has('l3')
   const vrfs = showVrf ? (nd.vrfs ?? []).filter(v => v !== 'vrf-default') : []
-  // near 以上: IF チップ（YAML に書かれた順。新形式 l3_interfaces 優先、旧 ips にフォールバック）
+  // near 以上: IF チップ（YAML に書かれた順）
   // SVI は下の vl チップで出すので除く
   const ifRows: { key: string; ifName: string; ip: string; ipv6?: string }[] =
     nd.l3_interfaces?.filter(e => !isVlanIf(e))
-      .map(e => ({ key: e.id ?? l3Name(e), ifName: l3Name(e), ip: e.ip, ipv6: e.ipv6 }))
-    ?? nd.ips?.map(s => {
-      const idx = s.indexOf(':')
-      const ifName = idx > 0 ? s.slice(0, idx) : ''
-      return { key: s, ifName, ip: idx > 0 ? s.slice(idx + 1) : s }
-    }) ?? []
+      .map(e => ({ key: e.id, ifName: l3Name(e), ip: e.ip, ipv6: e.ipv6 })) ?? []
   const showIfs = (lod === 'near' || lod === 'detail') && ifRows.length > 0
   const [openIfs, setOpenIfs] = useState<Set<string>>(() => new Set())
   const toggleIf = (key: string) => setOpenIfs(prev => {
