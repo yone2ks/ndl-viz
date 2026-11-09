@@ -40,6 +40,10 @@ const TYPE_LABEL: Record<string, string> = {
 /** routing_neighbor の見出し: プロトコルの名前 */
 const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
 
+// 見出しに id を出す種類: id が MLNDL に書かれたもの。attaches_to・vlan_member・lag_bundle の id はエクスポーターが作った値なので出さない
+const OWN_ID_TYPES = new Set(['node', 'interface', 'link', 'vlan', 'l2vni', 'l3vni', 'vrf', 'l3interface',
+  'routing_neighbor', 'ethernet_segment'])
+
 // offsetIndex 以下は ndl-viz が描画のために付けた値で、MLNDL の情報ではない
 const SKIP_KEYS = new Set(['id',
   'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW', 'crossing', 'crossingNodes'])
@@ -69,14 +73,28 @@ function transport(val: unknown): ReactNode {
   return <><code>{tp.kind}</code> {segs(tp.ids, ' ↔ ')}</>
 }
 
-/** LAG 1 件: 1 行目に機器上の名前 (なければ id) とメンバー、2 行目に id・LACP・ES・description */
+/**
+ * 一覧の 1 件の補足。どの要素でも、先頭に項目名つきの id (YAML に戻る手がかり)、続けて項目名つきの値を ' · ' で並べる。
+ * description は文なので、別の行に出す
+ */
+function notesOf(id: unknown, items: unknown[], description?: unknown): ReactNode {
+  const all = [id != null && `id ${String(id)}`, ...items].filter(Boolean)
+  return <>
+    {all.length > 0 && <span className="prop-note">{segs(all, ' · ')}</span>}
+    {!!description && <span className="prop-note">{String(description)}</span>}
+  </>
+}
+
+/** LAG 1 件: 1 行目に機器上の名前 (なければ id) とメンバー、補足に id・LACP・ES、description */
 function lagSummary(o: Obj): ReactNode {
-  const lacp = isObj(o.lacp)
-    ? ['lacp', o.lacp.mode, o.lacp.min_links != null && `min_links ${String(o.lacp.min_links)}`].filter(Boolean).join(' ')
-    : undefined
-  const notes = [o.name ? o.id : undefined, lacp, o.ethernet_segment, o.description].filter(Boolean)
+  const lacp = isObj(o.lacp) ? o.lacp : undefined
+  const items = [
+    lacp?.mode && `LACP ${String(lacp.mode)}`,
+    lacp?.min_links != null && `min_links ${String(lacp.min_links)}`,
+    o.ethernet_segment && `ES ${String(o.ethernet_segment)}`,
+  ]
   return <><code>{String(o.name ?? o.id)}</code> {segs((o.members as unknown[] | undefined) ?? [], ', ')}
-    {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+    {notesOf(o.name ? o.id : undefined, items, o.description)}</>
 }
 
 /** オブジェクト 1 件を要約する。既知の形（L3 IF / VTEP）は 1 行目に名前とアドレス、2 行目に補足。ほかは key=value */
@@ -86,36 +104,36 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
     const addrs = [o.ip, o.ipv6].filter(Boolean).join(' ')
     // YAML でこの L3 IF に書かれていることだけを出す (attaches_to と vrf)。分類や役割など導いた値は出さない
     const at = isObj(o.attaches_to) ? Object.entries(o.attaches_to)[0] : undefined
-    const notes = [at && `${at[0]}: ${String(at[1])}`, o.vrf].filter(Boolean)
-    return <><code>{String(o.name)}</code> {addrs}
-      {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+    return <><code>{String(o.name ?? o.id)}</code> {addrs}
+      {notesOf(o.name ? o.id : undefined, [at && `${at[0]}: ${String(at[1])}`, o.vrf && `vrf ${String(o.vrf)}`])}</>
   }
   if (key === 'bgp_sessions') {
-    // ノードの BGP セッション: 1 行目に相手・相手の AS・eBGP / iBGP・AF、2 行目にこの機器の端と VRF
+    // ノードの BGP セッション: セッションは name を持たないので、1 行目は相手・相手の AS・eBGP / iBGP・AF。
+    // 補足に id、この機器の端と VRF
     const peer = o.peer as Obj
     const afs = ((o.address_families as string[] | undefined) ?? []).map(afShort).join('+')
     const head = [peer.local_as != null && `AS${peer.local_as}`, bgpTypeLabel(o.bgp_type as string | undefined), afs].filter(Boolean)
     // 通り道は bridge・トンネルのときだけ添える (直結のリンクの id は線を見ればわかる)
     const tl = o.transport_link as TransportLink | undefined
     const via = tl?.bridge ?? tl?.tunnel?.[0]
-    const notes = [endLabel(o.local as Obj, t.unnumbered), o.vrf, !peer.node && t.peerOutside,
-      via && t.crossing(via)].filter(Boolean)
-    return <><code>{String(o.id)}</code> → {String(peer.node ?? peer.address ?? '')} {segs(head, ' · ')}
-      {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+    const items = [endLabel(o.local as Obj, t.unnumbered), o.vrf && `vrf ${String(o.vrf)}`, !peer.node && t.peerOutside,
+      via && t.crossing(via)]
+    return <>→ <code>{String(peer.node ?? peer.address ?? '')}</code> {segs(head, ' · ')}
+      {notesOf(o.id, items)}</>
   }
   if (key === 'bridges') {
-    // 箱のポートで L2 を転送する bridge (ADR-0018 D1): 名前、2 行目にポート (L1 IF / LAG の id) と description
-    // description は文なので、ポートの id と違って途中で折り返してよい
-    const ports = ((o.ports as Obj[] | undefined) ?? []).map(p => p.interface ?? p.lag ?? p.ethernet_segment)
-    return <><code>{String(o.id)}</code> {o.name ? String(o.name) : ''}
-      {(ports.length > 0 || !!o.description) && <span className="prop-note">
-        {segs(ports, ', ')}{ports.length > 0 && !!o.description && ' · '}{o.description ? String(o.description) : ''}
-      </span>}</>
+    // 箱のポートで L2 を転送する bridge (ADR-0018 D1): 名前 (なければ id)、補足に id とポート (L1 IF / LAG / ES の id)
+    const ports = ((o.ports as Obj[] | undefined) ?? []).map(p => `ports ${String(p.interface ?? p.lag ?? p.ethernet_segment)}`)
+    return <><code>{String(o.name ?? o.id)}</code>
+      {notesOf(o.name ? o.id : undefined, ports, o.description)}</>
   }
   if (key === 'vteps') {
-    const shared = Array.isArray(o.shared_with) ? ` · ${t.sharedWith(o.shared_with.join(', '))}` : ''
-    return <><code>{String(o.id)}</code> {String(o.address ?? o.address_v6 ?? '')}
-      <span className="prop-note">{String(o.source)}{shared}</span></>
+    // VTEP は name を持たない。ネットワークの中で VTEP を表すのはアドレスなので、1 行目はアドレス (なければ id)
+    const addr = o.address ?? o.address_v6
+    const items = [o.source && `source ${String(o.source)}`,
+      Array.isArray(o.shared_with) && t.sharedWith(o.shared_with.join(', '))]
+    return <><code>{String(addr ?? o.id)}</code>
+      {notesOf(addr ? o.id : undefined, items, o.description)}</>
   }
   return Object.entries(o)
     .filter(([, v]) => v !== undefined && v !== null && v !== '')
@@ -181,7 +199,10 @@ export default function PropertiesPanel({ selected, lagById }: Props) {
   return (
     <aside className="props-panel">
       <div className="panel-title">Properties</div>
-      <span className={`element-type ${cls}`}>{label}</span>
+      <div className="element-head">
+        <span className={`element-type ${cls}`}>{label}</span>
+        {OWN_ID_TYPES.has(typeKey) && data.id && <code className="element-id">{String(data.id)}</code>}
+      </div>
 
       <table className="props-table">
         <tbody>
