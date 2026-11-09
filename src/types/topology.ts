@@ -127,8 +127,6 @@ export interface CyEdgeData {
   target: string
   layer: string
   type: 'link' | 'attaches_to' | 'vlan_member' | 'routing_neighbor'
-    /** 旧形式 (ADR-0010 以前のエクスポーター。components/topology の旧表示だけが読む) */
-    | 'routing_adjacency' | 'bgp_session'
   // L1
   link_speed?: string
   link_role?: string
@@ -161,13 +159,8 @@ export interface CyEdgeData {
   bfd?: boolean
   area?: string      // OSPF
   level?: string     // IS-IS
-  // 旧形式 (routing_adjacency / bgp_session)
-  adj_type?: string
   label?: string
   local_as?: number
-  remote_as?: number
-  process?: string
-  process_role?: string
 }
 
 /** セッションの片端。トポロジー外の相手は address と local_as だけ */

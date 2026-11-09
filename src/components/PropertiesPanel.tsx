@@ -14,9 +14,7 @@ const TYPE_CLASS: Record<string, string> = {
   vlan: 'type-vlan',
   vrf: 'type-vrf',
   l3interface: 'type-l3interface',
-  bgp_session: 'type-bgp_session',
   routing_neighbor: 'type-bgp_session',
-  routing_adjacency: 'type-routing_adjacency',
   attaches_to: 'type-attaches_to',
 }
 
@@ -33,9 +31,7 @@ const TYPE_LABEL: Record<string, string> = {
   vlan_member: 'VLAN Member',
   vrf: 'VRF',
   l3interface: 'L3 Interface',
-  routing_adjacency: 'Routing Adj.',
   vrf_l3if: 'VRF ↔ IF',
-  bgp_session: 'BGP Session',
   routing_neighbor: 'Session',
 }
 
