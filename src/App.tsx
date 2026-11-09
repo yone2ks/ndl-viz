@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { I18nCtx, MESSAGES, initialLang, saveLang, type Lang } from './i18n'
 import FlowGraph from './flow/FlowGraph'
 import PropertiesPanel from './components/PropertiesPanel'
 import FileLoader from './components/FileLoader'
 import Tooltip from './components/Tooltip'
-import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData } from './types/topology'
+import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData, NodeLag } from './types/topology'
 import './styles/index.css'
 
 // ボタンは MLNDL の YAML の区分（layer1 / layer2 / layer3 / protocols.bgp）で切る。中身はツールチップで示す
@@ -17,6 +17,9 @@ const OVERLAY_DEFS: { key: OverlayKey; label: string; color: string; tip: 'tipLa
 
 export default function App() {
   const [data, setData] = useState<TopologyData | null>(null)
+  // LAG の id → 機器の lags[] の 1 件 (リンクの端の LAG をパネルで引く)
+  const lagById = useMemo(() => new Map<string, NodeLag>((data?.nodes ?? [])
+    .flatMap(n => ((n.data as CyNodeData).lags ?? []).map(g => [g.id, g] as const))), [data])
   const [filename, setFilename] = useState<string>('')
   const [overlays, setOverlays] = useState<Set<OverlayKey>>(new Set())
   const [selected, setSelected] = useState<{ data: CyNodeData | CyEdgeData } | null>(null)
@@ -159,7 +162,7 @@ export default function App() {
             </div>
           </div>
         )}
-        {selected && <PropertiesPanel selected={selected} />}
+        {selected && <PropertiesPanel selected={selected} lagById={lagById} />}
       </div>
     </div>
     <Tooltip />

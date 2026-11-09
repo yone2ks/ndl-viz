@@ -346,6 +346,43 @@
         "labels": {
           "site": "dc"
         },
+        "lags": [
+          {
+            "id": "lag-dc-leaf1-peer",
+            "members": [
+              "swp49",
+              "swp50"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-dc-leaf1-server1",
+            "name": "bond1",
+            "members": [
+              "swp1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-dc-server1"
+          },
+          {
+            "id": "lag-dc-leaf1-server2",
+            "name": "bond2",
+            "members": [
+              "swp2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-dc-server2"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-dc-leaf1-leaf2",
@@ -470,6 +507,43 @@
         "labels": {
           "site": "dc"
         },
+        "lags": [
+          {
+            "id": "lag-dc-leaf2-peer",
+            "members": [
+              "swp49",
+              "swp50"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-dc-leaf2-server1",
+            "name": "bond1",
+            "members": [
+              "swp1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-dc-server1"
+          },
+          {
+            "id": "lag-dc-leaf2-server2",
+            "name": "bond2",
+            "members": [
+              "swp2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-dc-server2"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-dc-leaf1-leaf2",
@@ -868,7 +942,20 @@
         "implementation": "physical",
         "labels": {
           "site": "dc"
-        }
+        },
+        "lags": [
+          {
+            "id": "lag-dc-server1-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
@@ -881,7 +968,20 @@
         "implementation": "physical",
         "labels": {
           "site": "dc"
-        }
+        },
+        "lags": [
+          {
+            "id": "lag-dc-server2-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
@@ -896,6 +996,19 @@
         "labels": {
           "site": "campus"
         },
+        "lags": [
+          {
+            "id": "lag-cm-core1-interconnect",
+            "members": [
+              "Te2/1",
+              "Te2/2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "cm-core1-lo",
@@ -1045,6 +1158,19 @@
         "labels": {
           "site": "campus"
         },
+        "lags": [
+          {
+            "id": "lag-cm-core2-interconnect",
+            "members": [
+              "Te2/1",
+              "Te2/2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "cm-core2-lo",

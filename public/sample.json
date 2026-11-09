@@ -313,6 +313,32 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "lags": [
+          {
+            "id": "lag-leaf1-peer",
+            "name": "peerlink",
+            "members": [
+              "swp49",
+              "swp50"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-leaf1-server1",
+            "name": "bond1",
+            "members": [
+              "swp1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-server1"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-leaf1-leaf2",
@@ -490,6 +516,32 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cumulus_linux",
+        "lags": [
+          {
+            "id": "lag-leaf2-peer",
+            "name": "peerlink",
+            "members": [
+              "swp49",
+              "swp50"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-leaf2-server1",
+            "name": "bond1",
+            "members": [
+              "swp1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-server1"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-leaf1-leaf2",
@@ -654,7 +706,20 @@
         "layer": "layer1",
         "type": "node",
         "role": "server",
-        "implementation": "physical"
+        "implementation": "physical",
+        "lags": [
+          {
+            "id": "lag-server1-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
@@ -665,7 +730,20 @@
         "type": "node",
         "role": "leaf",
         "implementation": "vm",
-        "device_type": "cumulus_linux"
+        "device_type": "cumulus_linux",
+        "lags": [
+          {
+            "id": "lag-leaf3-server2",
+            "members": [
+              "swp1",
+              "swp2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
@@ -675,7 +753,20 @@
         "layer": "layer1",
         "type": "node",
         "role": "server",
-        "implementation": "physical"
+        "implementation": "physical",
+        "lags": [
+          {
+            "id": "lag-server2-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {

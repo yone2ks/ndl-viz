@@ -8,7 +8,31 @@
         "type": "node",
         "role": "core",
         "implementation": "physical",
-        "device_type": "cisco_nexus_9508"
+        "device_type": "cisco_nexus_9508",
+        "lags": [
+          {
+            "id": "lag-core1-agg1",
+            "members": [
+              "Te1/1",
+              "Te1/2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-core1-agg2",
+            "members": [
+              "Te1/3",
+              "Te1/4"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
@@ -19,7 +43,31 @@
         "type": "node",
         "role": "core",
         "implementation": "physical",
-        "device_type": "cisco_nexus_9508"
+        "device_type": "cisco_nexus_9508",
+        "lags": [
+          {
+            "id": "lag-core2-agg1",
+            "members": [
+              "Te1/1",
+              "Te1/2"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-core2-agg2",
+            "members": [
+              "Te1/3",
+              "Te1/4"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          }
+        ]
       }
     },
     {
