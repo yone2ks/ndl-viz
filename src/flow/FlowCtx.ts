@@ -36,6 +36,14 @@ export interface FlowCtxValue {
   setFocusVniId: (id: string | null) => void
   /** VNI のフォーカスで残すノード（VTEP を終端する機器、VLAN とそのポートを持つ機器・端点）。フォーカスなしなら null */
   vniFocusNodes: Set<string> | null
+  /** VRF のバッジ / VLAN カードの VRF を押したときのフォーカス */
+  focusVrf: string | null
+  /** VRF を選ぶ (null で外す)。その VRF の機器・VLAN を残し、パネルに VRF の中身を出す */
+  selectVrf: (vrf: string | null) => void
+  /** VRF のフォーカスで残すノード（その VRF の機器と VLAN、VLAN のポートを持つ機器・端点）。フォーカスなしなら null */
+  vrfFocusNodes: Set<string> | null
+  /** 選んだ VRF の L3VNI。VRF のフォーカス中はそのトンネルを描き、VTEP のバッジを光らせる。なければ null */
+  vrfL3vni: CyNodeData | null
   /** 検索クエリ（IP/ホスト名/VLAN/VRF）。空なら検索なし */
   query: string
   /** クエリにマッチしたノード/VLAN/エッジの id 集合 */

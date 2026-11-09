@@ -29,7 +29,7 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const targetNode = useInternalNode(target)
   const lod = useStore(lodSelector)
   const t = useT()
-  const { overlays, hoveredId, hiddenAfs, vniFocusNodes, bundle } = useFlowCtx()
+  const { overlays, hoveredId, hiddenAfs, vniFocusNodes, bundle, focusVrf, vrfFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
   const kind = overlayOf(d)
@@ -64,7 +64,10 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const touches = hoveredId !== null && (source === hoveredId || target === hoveredId
     || (d.type === 'vlan_member' && !!vniFocusNodes?.has(source))
     || !!d.crossingNodes?.includes(hoveredId))
-  const dim = bundle !== null || (hoveredId !== null && !touches)
+  // VRF のフォーカス中: セッションはその VRF のものだけ、ほかの線は両端とも残る機器のものだけを残す
+  const inVrf = !vrfFocusNodes ? true
+    : session ? d.vrf === focusVrf : vrfFocusNodes.has(source) && vrfFocusNodes.has(target)
+  const dim = bundle !== null || !inVrf || (hoveredId !== null && !touches)
   const showLabel = (lod === 'near' || lod === 'detail') && label
   const showBfd = lod === 'detail' && d.bfd
   // 端の札: 拡大したとき・選んだときは両端、機器に載せたときはその機器の側だけ

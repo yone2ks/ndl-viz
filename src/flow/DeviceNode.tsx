@@ -37,19 +37,20 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const lod = useStore(lodSelector)
   const t = useT()
   const { overlays, hoveredId, setHoveredId, adjacency, ifIp, vlanHue, setFocusVlanId, focusVlanId,
-    query, matchedIds, vniFocusNodes, vlanEndpoints, bundle } = useFlowCtx()
+    query, matchedIds, vniFocusNodes, vlanEndpoints, bundle, focusVrf, selectVrf, vrfFocusNodes,
+    vrfL3vni } = useFlowCtx()
 
   const searchActive = query !== ''
   const matched = matchedIds.has(id)
   // 検索中は非マッチを減光（ホバー fog より優先）。非検索時は従来のホバー fog
-  // VNI フォーカス中は、その VNI の VTEP を終端しないノードを減光
+  // VNI フォーカス中は、その VNI の VTEP を終端しないノードを減光。VRF のフォーカスも同じ形
   // LAG / Ethernet Segment の組にフォーカス中は、組のリンクの端の機器だけを残す
   const dim = searchActive
     ? !matched
     : bundle
       ? !bundle.nodes.has(id)
-    : vniFocusNodes
-      ? !vniFocusNodes.has(id)
+    : vniFocusNodes ?? vrfFocusNodes
+      ? !(vniFocusNodes ?? vrfFocusNodes)!.has(id)
       : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)
   // 終端する VTEP（L2 overlay ON 時。ADR-0014）
   const vteps = overlays.has('l2') && lod !== 'far' ? (nd.vteps ?? []) as NodeVtep[] : []
@@ -146,7 +147,8 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       {vteps.length > 0 && (
         <div className="card-vteps">
           {vteps.map(v => (
-            <span key={v.id} className={`badge badge-vtep${vniFocusNodes?.has(id) ? ' is-focused' : ''}`}>
+            <span key={v.id} className={`badge badge-vtep${vniFocusNodes?.has(id)
+              || ((vrfL3vni?.vteps ?? []) as string[]).includes(v.id) ? ' is-focused' : ''}`}>
               VTEP {(v.address ?? v.address_v6 ?? v.source).replace(/\/(32|128)$/, '')}
             </span>
           ))}
@@ -194,11 +196,14 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       {(showHostIp || vrfs.length > 0) && (
         <div className="card-net">
           {showHostIp && <span className="ip-mono">{hostIp}</span>}
+          {/* 押すとその VRF に絞る (もう一度押すと外す) */}
           {vrfs.map(v => (
-            <span key={v} className="badge badge-vrf"
-              style={{ '--vrf': vrfColor(v) } as React.CSSProperties}>
+            <button key={v} type="button"
+              className={`badge badge-vrf nodrag${focusVrf === v ? ' is-focused' : ''}`}
+              style={{ '--vrf': vrfColor(v) } as React.CSSProperties}
+              onClick={e => { e.stopPropagation(); selectVrf(focusVrf === v ? null : v) }}>
               {v.replace(/^vrf-/, '')}
-            </span>
+            </button>
           ))}
         </div>
       )}

@@ -229,6 +229,20 @@
   border: 1px solid color-mix(in srgb, var(--vrf) 32%, transparent);
   text-transform: none;
 }
+/* VRF のバッジは押すとその VRF に絞る */
+button.badge-vrf { font-family: inherit; cursor: pointer; }
+.badge-vrf:hover { background: color-mix(in srgb, var(--vrf) 22%, transparent); }
+.badge-vrf.is-focused {
+  color: #fff;
+  background: color-mix(in srgb, var(--vrf) 70%, transparent);
+  border-color: var(--vrf);
+}
+/* VLAN カードの VRF の行も押せる */
+.vlan-vrf {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  border-radius: 3px;
+}
+.vlan-vrf:hover code, .vlan-vrf.is-focused code { text-decoration: underline; }
 
 .card-net {
   display: flex;

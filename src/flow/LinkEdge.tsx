@@ -25,7 +25,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   const lod = useStore(lodSelector)
   const t = useT()
   const { hoveredId, overlays, vlanOnLink, ifIp, focusVlanId, setFocusVlanId,
-    query, matchedIds, vniFocusNodes, bundle } = useFlowCtx()
+    query, matchedIds, vniFocusNodes, bundle, vrfFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
   const arc = d.detour ? arcGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount) : null
@@ -45,7 +45,10 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   const searchHit = searchActive && matchedIds.has(id)
   // LAG / Ethernet Segment の組にフォーカス中は、組のリンクだけを残す
   const inBundle = !!bundle?.links.has(id)
-  const dim = searchActive ? !searchHit : bundle ? !inBundle : (hoveredId !== null && !touches)
+  // VRF のフォーカス中は、両端ともその VRF に残る機器のリンクだけを残す
+  const dim = searchActive ? !searchHit : bundle ? !inBundle
+    : vrfFocusNodes ? !(vrfFocusNodes.has(source) && vrfFocusNodes.has(target))
+    : (hoveredId !== null && !touches)
 
   // L3 overlay ON のとき IF ラベルに IP を併記
   const showIfIp = overlays.has('l3')
