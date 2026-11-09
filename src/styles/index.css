@@ -313,14 +313,12 @@ body {
 .type-vrf      { background: #1a2e2e; color: #2dd4bf; }
 .type-l3interface { background: #1a2540; color: #93c5fd; }
 .type-bgp_session { background: #2a1f1a; color: #fb923c; }
-.type-routing_adjacency { background: #2a1f1a; color: #fb923c; }
 .type-attaches_to { background: #1e1e2e; color: #a5b4fc; }
 .type-default  { background: #1e1e2e; color: #94a3b8; }
 
 [data-theme="light"] .type-node     { background: #dbeafe; color: #1d4ed8; }
 [data-theme="light"] .type-link     { background: #ede9fe; color: #5b21b6; }
 [data-theme="light"] .type-bgp_session { background: #ffedd5; color: #c2410c; }
-[data-theme="light"] .type-routing_adjacency { background: #ffedd5; color: #c2410c; }
 [data-theme="light"] .type-attaches_to { background: #f1f5f9; color: #475569; }
 [data-theme="light"] .type-default  { background: #f1f5f9; color: #475569; }
 
