@@ -3,6 +3,7 @@
  *
  * ノード矩形の境界交点を結ぶ直線。並列リンクは法線方向にオフセット。
  * LAG はエメラルドのグロー帯 + IEEE ティック、速度/IF ラベルは LOD 連動。
+ * リンクにフォーカスすると、同じ LAG / Ethernet Segment の組のリンクも一緒に目立たせる。
  */
 import { memo } from 'react'
 import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
@@ -24,7 +25,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   const lod = useStore(lodSelector)
   const t = useT()
   const { hoveredId, overlays, vlanOnLink, ifIp, focusVlanId, setFocusVlanId,
-    query, matchedIds, vniFocusNodes } = useFlowCtx()
+    query, matchedIds, vniFocusNodes, bundle } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
   const arc = d.detour ? arcGeometry(sourceNode, targetNode, d.offsetIndex, d.offsetCount) : null
@@ -42,7 +43,9 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   // 検索中は非マッチエッジを減光、マッチエッジは IF/IP を強制表示
   const searchActive = query !== ''
   const searchHit = searchActive && matchedIds.has(id)
-  const dim = searchActive ? !searchHit : (hoveredId !== null && !touches)
+  // LAG / Ethernet Segment の組にフォーカス中は、組のリンクだけを残す
+  const inBundle = !!bundle?.links.has(id)
+  const dim = searchActive ? !searchHit : bundle ? !inBundle : (hoveredId !== null && !touches)
 
   // L3 overlay ON のとき IF ラベルに IP を併記
   const showIfIp = overlays.has('l3')
@@ -53,7 +56,7 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   //   detail まで拡大(数ノードのみ表示) / ノードホバーでその周辺 / エッジ選択時
   // のいずれかでのみ表示し、IF が多くても一度に見えるのは手元の数本だけにする
   const nodeHovered = hoveredId === source || hoveredId === target
-  const showIf = lod === 'detail' || nodeHovered || !!selected || searchHit
+  const showIf = lod === 'detail' || nodeHovered || !!selected || searchHit || inBundle
   const path = arc?.path ?? `M ${geo.sx},${geo.sy} L ${geo.tx},${geo.ty}`
 
   // IF ラベル位置 (端点から内側。IP 併記時は広め)
@@ -71,13 +74,13 @@ export const LinkEdge = memo(function LinkEdge({ id, source, target, data, selec
   }) : []
 
   return (
-    <g className={`link-edge${dim ? ' is-dim' : ''}${touches ? ' is-hot' : ''}${selected ? ' is-selected' : ''}`}>
-      {/* LAG グロー帯 */}
-      {isLag && (
-        <path d={path} stroke={color} strokeWidth={11} strokeLinecap="round"
-          opacity={0.16} fill="none" />
+    <g className={`link-edge${dim ? ' is-dim' : ''}${touches ? ' is-hot' : ''}${inBundle ? ' is-bundle' : ''}${selected ? ' is-selected' : ''}`}>
+      {/* LAG グロー帯。組にフォーカス中は濃くする（LAG を組まない ES の脚にも付ける） */}
+      {(isLag || inBundle) && (
+        <path d={path} stroke={color} strokeWidth={inBundle ? 14 : 11} strokeLinecap="round"
+          opacity={inBundle ? 0.38 : 0.16} fill="none" className="lag-glow" />
       )}
-      <path d={path} stroke={color} strokeWidth={touches ? 3 : 2.2}
+      <path d={path} stroke={color} strokeWidth={inBundle ? 3.6 : touches ? 3 : 2.2}
         strokeDasharray={dash} strokeLinecap="round" fill="none"
         className="link-line" />
       {/* クリック領域 */}

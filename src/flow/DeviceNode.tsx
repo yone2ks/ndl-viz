@@ -37,14 +37,17 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const lod = useStore(lodSelector)
   const t = useT()
   const { overlays, hoveredId, setHoveredId, adjacency, ifIp, vlanHue, setFocusVlanId, focusVlanId,
-    query, matchedIds, vniFocusNodes, vlanEndpoints } = useFlowCtx()
+    query, matchedIds, vniFocusNodes, vlanEndpoints, bundle } = useFlowCtx()
 
   const searchActive = query !== ''
   const matched = matchedIds.has(id)
   // 検索中は非マッチを減光（ホバー fog より優先）。非検索時は従来のホバー fog
   // VNI フォーカス中は、その VNI の VTEP を終端しないノードを減光
+  // LAG / Ethernet Segment の組にフォーカス中は、組のリンクの端の機器だけを残す
   const dim = searchActive
     ? !matched
+    : bundle
+      ? !bundle.nodes.has(id)
     : vniFocusNodes
       ? !vniFocusNodes.has(id)
       : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)

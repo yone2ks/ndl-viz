@@ -84,7 +84,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     }
     graph.edges.forEach(e => {
       const ed = e.data as unknown as CyEdgeData
-      const txt = [ed.source_if, ed.target_if, ed.link_speed, ed.label, ed.lag_id]
+      const txt = [ed.source_if, ed.target_if, ed.link_speed, ed.label, ed.lag_id, ed.source_lag, ed.target_lag, ed.ethernet_segment]
         .filter(Boolean).join(' ').toLowerCase()
       if (txt.includes(q) || matchedNodes.has(e.source) || matchedNodes.has(e.target)) {
         ids.add(e.id)
@@ -124,6 +124,11 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const edges = useMemo<Edge[]>(() => graph.edges, [graph])
 
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  // リンクのホバー / 選択。LAG・Ethernet Segment の組を一緒に目立たせる（ホバーを優先）
+  const [hoveredLinkId, setHoveredLinkId] = useState<string | null>(null)
+  const [focusLinkId, setFocusLinkId] = useState<string | null>(null)
+  const bundle = (hoveredLinkId && graph.linkBundles.get(hoveredLinkId))
+    || (focusLinkId && graph.linkBundles.get(focusLinkId)) || null
   // VLAN カード選択中はその VLAN に永続フォーカス（ホバーは一時的に優先）
   const [focusVlanId, setFocusVlanId] = useState<string | null>(null)
   // VNI タブ選択中は、その VNI が載る VTEP 間のトンネルを描く
@@ -176,8 +181,8 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
-    query: q, matchedIds, hiddenAfs,
-  }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, graph, adjacency, q, matchedIds, hiddenAfs])
+    query: q, matchedIds, hiddenAfs, bundle,
+  }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, graph, adjacency, q, matchedIds, hiddenAfs, bundle])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
@@ -185,6 +190,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     setFocusVlanId(node.type === 'vlan' ? node.id : null)
     setFocusVniId(null)
     setFocusNodeId(node.type === 'vlan' ? null : node.id)
+    setFocusLinkId(null)
     // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる。機器は隣の機器まで画面に入れる
     if (node.type !== 'vlan') {
       // VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）
@@ -203,6 +209,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     onCanvasClick?.()
     setFocusVlanId(null)
     setFocusVniId(null)
+    setFocusLinkId(edge.type === 'link' ? edge.id : null)
   }, [onSelect, onCanvasClick])
 
   return (
@@ -220,7 +227,9 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         proOptions={{ hideAttribution: true }}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
-        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null) }}
+        onEdgeMouseEnter={(_e, edge) => { if (edge.type === 'link') setHoveredLinkId(edge.id) }}
+        onEdgeMouseLeave={() => setHoveredLinkId(null)}
+        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}

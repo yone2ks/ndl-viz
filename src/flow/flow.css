@@ -504,6 +504,7 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 }
 .link-edge.is-dim { opacity: 0.10; }
 .link-edge.is-hot .link-line { filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25)); }
+.link-edge.is-bundle .link-line { filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7)); }
 .link-edge, .ov-edge { transition: opacity 220ms ease-out; }
 .ov-edge.is-hidden { opacity: 0; pointer-events: none; }
 .ov-edge.is-dim { opacity: 0.10; }
@@ -675,6 +676,13 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 }
 .mlag-box { transition: opacity 200ms ease-out; }
 .mlag-box.is-dim { opacity: 0.2; }
+.mlag-box.is-hot rect {
+  fill: rgba(245, 158, 11, 0.09);
+  stroke: rgba(245, 158, 11, 0.95);
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+}
+.mlag-box.is-hot text { fill: rgba(245, 158, 11, 1); }
 
 /* ── MiniMap / Controls ── */
 .flow-minimap {
@@ -805,6 +813,8 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
   stroke: rgba(180, 83, 9, 0.45);
 }
 [data-theme="light"] .mlag-box text { fill: rgba(180, 83, 9, 0.75); }
+[data-theme="light"] .mlag-box.is-hot rect { fill: rgba(180, 83, 9, 0.07); stroke: rgba(180, 83, 9, 0.9); }
+[data-theme="light"] .mlag-box.is-hot text { fill: rgba(180, 83, 9, 1); }
 
 [data-theme="light"] .flow-minimap {
   background: rgba(255, 255, 255, 0.9) !important;

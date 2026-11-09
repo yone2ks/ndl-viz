@@ -134,6 +134,9 @@ export interface CyEdgeData {
   source_if?: string
   target_if?: string
   lag_id?: string
+  /** その端の L1 IF がメンバーの LAG。LAG は機器 1 台なので、両端が別々の LAG のメンバーになりうる (mlndl ADR-0023) */
+  source_lag?: string
+  target_lag?: string
   /** 端の L1 IF が脚の Ethernet Segment (mlndl ADR-0023。旧 lag_type: mlag の代わり) */
   ethernet_segment?: string
   // L2 VLAN メンバー: trunk(tagged) / access(untagged) で区別

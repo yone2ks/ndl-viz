@@ -3262,7 +3262,9 @@
         "source_if": "Ethernet1/5",
         "target_if": "Ethernet1/5",
         "link_role": "peer-link",
-        "lag_id": "lag-leaf3-po1"
+        "lag_id": "lag-leaf3-po1",
+        "source_lag": "lag-leaf3-po1",
+        "target_lag": "lag-leaf4-po1"
       }
     },
     {
@@ -3275,7 +3277,9 @@
         "source_if": "Ethernet1/6",
         "target_if": "Ethernet1/6",
         "link_role": "peer-link",
-        "lag_id": "lag-leaf3-po1"
+        "lag_id": "lag-leaf3-po1",
+        "source_lag": "lag-leaf3-po1",
+        "target_lag": "lag-leaf4-po1"
       }
     },
     {
@@ -3313,6 +3317,8 @@
         "target_if": "eth0",
         "link_role": "trunk",
         "lag_id": "lag-leaf3-po3",
+        "source_lag": "lag-leaf3-po3",
+        "target_lag": "lag-server3-bond0",
         "ethernet_segment": "es-server3"
       }
     },
@@ -3327,6 +3333,8 @@
         "target_if": "eth1",
         "link_role": "trunk",
         "lag_id": "lag-leaf4-po3",
+        "source_lag": "lag-leaf4-po3",
+        "target_lag": "lag-server3-bond0",
         "ethernet_segment": "es-server3"
       }
     },
@@ -3352,7 +3360,9 @@
         "source_if": "Ethernet1/3",
         "target_if": "eth0",
         "link_role": "trunk",
-        "lag_id": "lag-leaf5-po5"
+        "lag_id": "lag-leaf5-po5",
+        "source_lag": "lag-leaf5-po5",
+        "target_lag": "lag-server5-bond0"
       }
     },
     {
@@ -3365,7 +3375,9 @@
         "source_if": "Ethernet1/4",
         "target_if": "eth1",
         "link_role": "trunk",
-        "lag_id": "lag-leaf5-po5"
+        "lag_id": "lag-leaf5-po5",
+        "source_lag": "lag-leaf5-po5",
+        "target_lag": "lag-server5-bond0"
       }
     },
     {
@@ -3402,7 +3414,9 @@
         "source_if": "Ethernet1/4",
         "target_if": "port1",
         "link_role": "trunk",
-        "lag_id": "lag-leaf6-po10"
+        "lag_id": "lag-leaf6-po10",
+        "source_lag": "lag-leaf6-po10",
+        "target_lag": "lag-fw1-agg1"
       }
     },
     {
@@ -3415,7 +3429,9 @@
         "source_if": "Ethernet1/5",
         "target_if": "port2",
         "link_role": "trunk",
-        "lag_id": "lag-leaf6-po10"
+        "lag_id": "lag-leaf6-po10",
+        "source_lag": "lag-leaf6-po10",
+        "target_lag": "lag-fw1-agg1"
       }
     },
     {

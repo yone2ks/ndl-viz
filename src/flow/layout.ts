@@ -47,7 +47,13 @@ export interface VlanRail { vlanId: string; vlanNum: number; hue: number }
 export type VlanEndpoint = VlanEndpointData & { via: string }
 
 /** Ethernet Segment の枠。同じ機器の組の ES は 1 つの枠にまとめる。label は ES の名前 (なければ id) と、書かれていれば冗長のモード */
-export interface SegmentFrame { id: string; label: string; nodes: string[] }
+export interface SegmentFrame { id: string; label: string; nodes: string[]; segments: string[] }
+
+/**
+ * LAG と Ethernet Segment でひとまとまりになるリンクの組。リンクにフォーカスしたとき、組のリンクを一緒に目立たせる。
+ * 両端の LAG (source_lag / target_lag) と ethernet_segment を共有するリンクをつないだもの
+ */
+export interface LinkBundle { links: Set<string>; nodes: Set<string>; segments: Set<string> }
 
 export interface FlowGraphData {
   nodes: Node[]
@@ -55,6 +61,7 @@ export interface FlowGraphData {
   tiers: TierInfo[]
   sites: SiteInfo[]
   segmentFrames: SegmentFrame[]          // Ethernet Segment の脚の機器を囲む枠 (mlndl ADR-0023)
+  linkBundles: Map<string, LinkBundle>   // link edge id → そのリンクが入る LAG / ES の組
   vlanMembers: Map<string, string[]>     // vlan id → member node ids
   vniByVlan: Map<string, CyNodeData[]>
   vlanEndpoints: Map<string, Map<string, VlanEndpoint[]>>   // vlan id → (端点のノード id → 端点)
@@ -84,7 +91,7 @@ const PROVIDER_ROW_GAP = 190
 /** 事業者網の箱どうしの間隔 */
 const PROVIDER_GAP = 60
 
-/** (node, IF) が VLAN のポートか。ポートが LAG なら、リンクの lag_id で照合する（ADR-0013）*/
+/** (node, IF) が VLAN のポートか。ポートが LAG なら、その端の LAG (source_lag / target_lag) で照合する（ADR-0013）*/
 function onPort(ports: Map<string, Set<string>> | undefined, node: string,
   ifName: string | undefined, lagId: string | undefined): boolean {
   const set = ports?.get(node)
@@ -355,8 +362,8 @@ export function buildFlow(data: TopologyData): FlowGraphData {
         const hasPorts = [...(ports?.values() ?? [])].some(s => s.size > 0)
         let carries: boolean
         if (hasPorts) {
-          carries = onPort(ports, d.source, d.source_if, d.lag_id)
-            || onPort(ports, d.target, d.target_if, d.lag_id)
+          carries = onPort(ports, d.source, d.source_if, d.source_lag)
+            || onPort(ports, d.target, d.target_if, d.target_lag)
         } else {
           carries = members.includes(d.source) && members.includes(d.target)
         }
@@ -497,7 +504,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
 
   return {
-    nodes, edges, tiers, sites, segmentFrames, vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
+    nodes, edges, tiers, sites, segmentFrames, linkBundles: linkBundlesOf(l1Links), vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
     adjacency,
     vlanOnLink, vlanHue, ifIp, sviByVlan, siteIdOf, cardHeights: cardH,
     graphW: totalW,
@@ -614,9 +621,40 @@ function segmentFramesOf(els: CyNodeData[], shown: Set<string>): SegmentFrame[] 
     return {
       id: segs[0].id,
       nodes,
+      segments: segs.map(es => es.id),
       label: labels.length <= 2 ? labels.join(', ') : `${labels[0]} +${labels.length - 1}`,
     }
   })
+}
+
+/** LAG と Ethernet Segment を共有するリンクをつなぐ (union-find)。LAG にも ES にも入らないリンクは載せない */
+function linkBundlesOf(links: CyEdgeData[]): Map<string, LinkBundle> {
+  const parent = new Map<string, string>()
+  const find = (x: string): string => {
+    while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x)!)!); x = parent.get(x)! }
+    return x
+  }
+  const owner = new Map<string, string>()   // LAG / ES の id → 最初に見たリンク
+  const keysOf = (d: CyEdgeData) => [d.source_lag && `lag:${d.source_lag}`, d.target_lag && `lag:${d.target_lag}`,
+    d.ethernet_segment && `es:${d.ethernet_segment}`].filter((k): k is string => !!k)
+  const grouped = links.filter(d => keysOf(d).length > 0)
+  grouped.forEach(d => parent.set(d.id, d.id))
+  grouped.forEach(d => keysOf(d).forEach(k => {
+    const o = owner.get(k)
+    if (o === undefined) owner.set(k, d.id)
+    else parent.set(find(d.id), find(o))
+  }))
+  const byRoot = new Map<string, LinkBundle>()
+  const out = new Map<string, LinkBundle>()
+  grouped.forEach(d => {
+    const r = find(d.id)
+    if (!byRoot.has(r)) byRoot.set(r, { links: new Set(), nodes: new Set(), segments: new Set() })
+    const b = byRoot.get(r)!
+    b.links.add(d.id); b.nodes.add(d.source); b.nodes.add(d.target)
+    if (d.ethernet_segment) b.segments.add(d.ethernet_segment)
+    out.set(d.id, b)
+  })
+  return out
 }
 
 /** Ethernet Segment の相手 (クライアント) 側の機器。ES の脚のすべてのリンクに現れる機器（脚の機器は自分の脚のリンクにしか現れない）*/

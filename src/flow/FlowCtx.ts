@@ -3,7 +3,7 @@
  */
 import { createContext, useContext } from 'react'
 import type { OverlayKey, CyNodeData } from '../types/topology'
-import type { VlanRail, VlanEndpoint } from './layout'
+import type { VlanRail, VlanEndpoint, LinkBundle } from './layout'
 
 export type Lod = 'far' | 'mid' | 'near' | 'detail'
 
@@ -40,6 +40,8 @@ export interface FlowCtxValue {
   query: string
   /** クエリにマッチしたノード/VLAN/エッジの id 集合 */
   matchedIds: Set<string>
+  /** フォーカス中のリンク (ホバーか選択) が入る LAG / Ethernet Segment の組。なければ null */
+  bundle: LinkBundle | null
   /** 凡例で外した BGP の AF (address_families の値)。外した AF だけを運ぶセッションの線は出さない */
   hiddenAfs: Set<string>
 }

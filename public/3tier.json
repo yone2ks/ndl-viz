@@ -154,7 +154,8 @@
         "target_if": "Te1/1",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg1"
+        "lag_id": "lag-core1-agg1",
+        "source_lag": "lag-core1-agg1"
       }
     },
     {
@@ -168,7 +169,8 @@
         "target_if": "Te1/2",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg1"
+        "lag_id": "lag-core1-agg1",
+        "source_lag": "lag-core1-agg1"
       }
     },
     {
@@ -182,7 +184,8 @@
         "target_if": "Te1/1",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg2"
+        "lag_id": "lag-core1-agg2",
+        "source_lag": "lag-core1-agg2"
       }
     },
     {
@@ -196,7 +199,8 @@
         "target_if": "Te1/2",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core1-agg2"
+        "lag_id": "lag-core1-agg2",
+        "source_lag": "lag-core1-agg2"
       }
     },
     {
@@ -210,7 +214,8 @@
         "target_if": "Te1/3",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg1"
+        "lag_id": "lag-core2-agg1",
+        "source_lag": "lag-core2-agg1"
       }
     },
     {
@@ -224,7 +229,8 @@
         "target_if": "Te1/4",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg1"
+        "lag_id": "lag-core2-agg1",
+        "source_lag": "lag-core2-agg1"
       }
     },
     {
@@ -238,7 +244,8 @@
         "target_if": "Te1/3",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg2"
+        "lag_id": "lag-core2-agg2",
+        "source_lag": "lag-core2-agg2"
       }
     },
     {
@@ -252,7 +259,8 @@
         "target_if": "Te1/4",
         "link_speed": "10G",
         "link_role": "underlay",
-        "lag_id": "lag-core2-agg2"
+        "lag_id": "lag-core2-agg2",
+        "source_lag": "lag-core2-agg2"
       }
     },
     {
