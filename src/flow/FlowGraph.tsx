@@ -36,6 +36,20 @@ interface Props {
   onCanvasClick?: () => void
 }
 
+/**
+ * VRF の中身: その VRF の SVI を持つ VLAN、その VRF の L3 IF を持つ機器、その VRF の L3VNI。
+ * VLAN と VRF の関係は MLNDL に直接は書かず、SVI (attaches_to: {vlan:}) の vrf から導く (エクスポーターの vrf_name)
+ */
+function vrfMembers(data: TopologyData, vrf: string) {
+  // 図に VLAN のカードを出さない VLAN (ポートのない L3VNI の transit VLAN 等) も含めるので、図ではなく JSON から引く
+  const all = data.nodes.map(n => n.data as CyNodeData)
+  const vlans = all.filter(d => d.type === 'vlan' && d.vrf_name === vrf)
+    .sort((a, b) => (a.vlan_id ?? 0) - (b.vlan_id ?? 0)).map(d => d.id)
+  const devices = all.filter(d => d.type === 'node' && (d.vrfs ?? []).includes(vrf)).map(d => d.id)
+  const l3vnis = all.filter(d => d.type === 'l3vni' && d.vrf === vrf).map(d => d.id)
+  return { vlans, devices, l3vnis }
+}
+
 /** 毎回同じオブジェクトを渡す（新しいオブジェクトを渡すと、fitView() に渡した nodes が描画のたびに上書きされる）*/
 const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
 /** 機器を押して隣まで見せるときの余白。左は凡例、右はプロパティの枠の分をあける */
@@ -115,7 +129,9 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const [prevGraph, setPrevGraph] = useState(graph)
   // 押した機器に永続フォーカス（ホバー・VLAN のフォーカスが優先）
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
-  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes); setFocusNodeId(null) }
+  // VRF のバッジを押したときのフォーカス
+  const [focusVrf, setFocusVrf] = useState<string | null>(null)
+  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes); setFocusNodeId(null); setFocusVrf(null) }
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes(ns => applyNodeChanges(changes, ns)),
     [],
@@ -154,6 +170,27 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
       ...vlans.flatMap(v => [...(graph.adjacency.get(v) ?? [])]),
     ])
   }, [focusVniId, focusVlanId, graph])
+  // VRF のフォーカスで残すノード: その VRF の機器と VLAN、VLAN のポートを持つ機器・端点 (L3VNI のフォーカスと同じ)
+  const vrfFocusNodes = useMemo(() => {
+    if (!focusVrf) return null
+    const { vlans, devices } = vrfMembers(data, focusVrf)
+    return new Set([...devices, ...vlans, ...vlans.flatMap(v => [...(graph.adjacency.get(v) ?? [])])])
+  }, [focusVrf, graph, data])
+  // 選んだ VRF の L3VNI (VRF と L3VNI は 1 対 1。validator が双方向で照合する)。トンネルを描き、VTEP のバッジを光らせる
+  const vrfL3vni = useMemo(() => (focusVrf
+    ? [...graph.vniById.values()].find(v => v.type === 'l3vni' && v.vrf === focusVrf) ?? null : null),
+  [focusVrf, graph])
+  // VRF を選ぶ (null で外す)。パネルにはその VRF の中身を出す
+  const selectVrf = useCallback((vrf: string | null) => {
+    setFocusVrf(vrf)
+    setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null)
+    onCanvasClick?.()
+    if (!vrf) { onSelect(null); return }
+    const { vlans, devices, l3vnis } = vrfMembers(data, vrf)
+    // 空の一覧は出さない (L3VNI のない VRF-lite、SVI のない VRF)
+    const summary = { id: vrf, type: 'vrf', ...(l3vnis.length && { l3vni: l3vnis }), ...(vlans.length && { vlans }), nodes: devices }
+    onSelect({ data: summary as unknown as CyNodeData })
+  }, [data, onSelect, onCanvasClick])
   // フォーカスで残す隣: L1 の隣と VLAN に、表示中のオーバーレイの線の相手を足す（線だけ残って相手が薄くならないように）
   const adjacency = useMemo(() => {
     const adj = new Map([...graph.adjacency].map(([id, set]) => [id, new Set(set)]))
@@ -181,12 +218,15 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
+    focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
     query: q, matchedIds, hiddenAfs, bundle,
-  }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, graph, adjacency, q, matchedIds, hiddenAfs, bundle])
+  }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
+    graph, adjacency, q, matchedIds, hiddenAfs, bundle])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
     onCanvasClick?.()
+    setFocusVrf(null)
     setFocusVlanId(node.type === 'vlan' ? node.id : null)
     setFocusVniId(null)
     setFocusNodeId(node.type === 'vlan' ? null : node.id)
@@ -207,6 +247,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
     onSelect({ data: edge.data as unknown as CyEdgeData })
     onCanvasClick?.()
+    setFocusVrf(null)
     setFocusVlanId(null)
     setFocusVniId(null)
     setFocusLinkId(edge.type === 'link' ? edge.id : null)
@@ -229,7 +270,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         onEdgeClick={handleEdgeClick}
         onEdgeMouseEnter={(_e, edge) => { if (edge.type === 'link') setHoveredLinkId(edge.id) }}
         onEdgeMouseLeave={() => setHoveredLinkId(null)}
-        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null) }}
+        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setFocusVrf(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}

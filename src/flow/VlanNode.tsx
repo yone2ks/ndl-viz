@@ -13,7 +13,8 @@ import type { CyNodeData } from '../types/topology'
 export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps) {
   const nd = data as unknown as CyNodeData & { hue?: number; pillW?: number }
   const { overlays, vniByVlan, sviByVlan, hoveredId, setHoveredId, adjacency,
-    query, matchedIds, focusVlanId, focusVniId, setFocusVniId, vniFocusNodes, bundle } = useFlowCtx()
+    query, matchedIds, focusVlanId, focusVniId, setFocusVniId, vniFocusNodes, bundle,
+    focusVrf, selectVrf, vrfFocusNodes } = useFlowCtx()
   const visible = overlays.has('l2')
   const open = focusVlanId === id
   const title = nd.label?.split('\n')[0] ?? nd.id
@@ -27,8 +28,8 @@ export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps
     ? !matchedIds.has(id)
     : bundle
       ? true
-    : vniFocusNodes
-      ? !vniFocusNodes.has(id)
+    : vniFocusNodes ?? vrfFocusNodes
+      ? !(vniFocusNodes ?? vrfFocusNodes)!.has(id)
       : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)
 
   return (
@@ -75,7 +76,12 @@ export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps
             {nd.subnet && <div className="vlan-row"><span>Subnet</span><code>{nd.subnet}</code></div>}
             {nd.subnet_v6 && <div className="vlan-row"><span>Subnet</span><code>{nd.subnet_v6}</code></div>}
             {nd.gateway && <div className="vlan-row"><span>GW</span><code>{nd.gateway}</code></div>}
-            {nd.vrf_name && <div className="vlan-row"><span>VRF</span><code>{nd.vrf_name}</code></div>}
+            {/* 押すとその VRF に絞る (もう一度押すと外す) */}
+            {nd.vrf_name && <div className="vlan-row"><span>VRF</span>
+              <button type="button" className={`vlan-vrf nodrag${focusVrf === nd.vrf_name ? ' is-focused' : ''}`}
+                onClick={e => { e.stopPropagation(); selectVrf(focusVrf === nd.vrf_name ? null : nd.vrf_name!) }}>
+                <code>{nd.vrf_name}</code>
+              </button></div>}
           </div>
 
           {/* 選んだ VLAN の SVI は機器カードでも Layer 3 の切り替えによらず出すので、ここでも常に出す */}

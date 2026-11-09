@@ -37,9 +37,12 @@ const vniLabel = (v: CyNodeData) => (v.type === 'l3vni' ? `L3VNI ${v.vni}` : `VN
 
 export const VxlanTunnels = memo(function VxlanTunnels() {
   const nodes = useNodes()
-  const { overlays, focusVniId, vniById, vtepNodes, vlanHue } = useFlowCtx()
-  const vni = focusVniId ? vniById.get(focusVniId) : undefined
-  if (!vni || !overlays.has('l2')) return null
+  const { overlays, focusVniId, vniById, vtepNodes, vlanHue, vrfL3vni } = useFlowCtx()
+  // VNI のタブを選んだときと、L3VNI を持つ VRF を選んだとき。
+  // VNI のタブは VLAN カード (Layer 2) にあり、VRF のバッジは Layer 3 で出るので、VRF からはどちらの層でも描く
+  const vni = focusVniId ? vniById.get(focusVniId) : vrfL3vni ?? undefined
+  const shown = focusVniId ? overlays.has('l2') : overlays.has('l2') || overlays.has('l3')
+  if (!vni || !shown) return null
 
   const byId = new Map(nodes.map(n => [n.id, n]))
   const members = [...new Set(((vni.vteps ?? []) as string[]).flatMap(v => vtepNodes.get(v) ?? []))]
