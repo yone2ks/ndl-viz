@@ -49,6 +49,8 @@ export interface CyNodeData {
   vrf?: string       // l3vni: 紐づく VRF 名
   /** type=node: 終端する VTEP / type=l2vni・l3vni: 載る VTEP の id（l3vni は VRF から導出）*/
   vteps?: NodeVtep[] | string[]
+  /** type=node: この機器の LAG (mlndl ADR-0023。LAG は機器 1 台) */
+  lags?: NodeLag[]
   /** type=node: この機器のトンネル IF (ADR-0011 D6) */
   tunnels?: NodeTunnel[]
   /** type=node: この機器の BGP セッションすべて (相手がトポロジー外のものを含む。ADR-0010 D11) */
@@ -66,6 +68,17 @@ export interface CyNodeData {
   name?: string
   /** type=node: この機器のポートで転送する bridge。ndl-viz が type=bridge の要素から集めて載せる */
   bridges?: NodeBridge[]
+}
+
+/** 機器ノードの LAG。members はメンバーの L1 IF の name、lacp は書かれた値だけ */
+export interface NodeLag {
+  id: string
+  name?: string
+  members: string[]
+  lacp?: { mode?: string; min_links?: number }
+  /** この LAG が脚の Ethernet Segment */
+  ethernet_segment?: string
+  description?: string
 }
 
 /** 機器ノードのトンネル IF。destination はどちらか一方 */

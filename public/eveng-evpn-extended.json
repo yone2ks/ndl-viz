@@ -1286,6 +1286,32 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
+        "lags": [
+          {
+            "id": "lag-leaf3-po1",
+            "name": "port-channel1",
+            "members": [
+              "Ethernet1/5",
+              "Ethernet1/6"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-leaf3-po3",
+            "name": "port-channel3",
+            "members": [
+              "Ethernet1/3"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-server3"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-leaf3-leaf4",
@@ -1593,6 +1619,32 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
+        "lags": [
+          {
+            "id": "lag-leaf4-po1",
+            "name": "port-channel1",
+            "members": [
+              "Ethernet1/5",
+              "Ethernet1/6"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            }
+          },
+          {
+            "id": "lag-leaf4-po3",
+            "name": "port-channel3",
+            "members": [
+              "Ethernet1/3"
+            ],
+            "lacp": {
+              "mode": "active",
+              "min_links": 1
+            },
+            "ethernet_segment": "es-server3"
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-leaf3-leaf4",
@@ -1900,6 +1952,18 @@
         "role": "leaf",
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
+        "lags": [
+          {
+            "id": "lag-leaf5-po5",
+            "members": [
+              "Ethernet1/3",
+              "Ethernet1/4"
+            ],
+            "lacp": {
+              "mode": "active"
+            }
+          }
+        ],
         "vteps": [
           {
             "id": "vtep-leaf5",
@@ -2152,6 +2216,18 @@
         "implementation": "vm",
         "device_type": "cisco_nxosv9300",
         "description": "Border leaf. No hosts attached; carries only the L3VNIs and the external connections",
+        "lags": [
+          {
+            "id": "lag-leaf6-po10",
+            "members": [
+              "Ethernet1/4",
+              "Ethernet1/5"
+            ],
+            "lacp": {
+              "mode": "active"
+            }
+          }
+        ],
         "subinterfaces": [
           {
             "id": "subif-leaf6-e1-3-100",
@@ -2598,6 +2674,18 @@
         "role": "firewall",
         "implementation": "vm",
         "device_type": "fortigate_vm",
+        "lags": [
+          {
+            "id": "lag-fw1-agg1",
+            "members": [
+              "port1",
+              "port2"
+            ],
+            "lacp": {
+              "mode": "active"
+            }
+          }
+        ],
         "subinterfaces": [
           {
             "id": "subif-fw1-agg1-100",
@@ -2687,6 +2775,18 @@
         "role": "server",
         "implementation": "vm",
         "device_type": "linux",
+        "lags": [
+          {
+            "id": "lag-server3-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active"
+            }
+          }
+        ],
         "subinterfaces": [
           {
             "id": "subif-server3-bond0-10",
@@ -2808,6 +2908,18 @@
         "role": "server",
         "implementation": "vm",
         "device_type": "linux",
+        "lags": [
+          {
+            "id": "lag-server5-bond0",
+            "members": [
+              "eth0",
+              "eth1"
+            ],
+            "lacp": {
+              "mode": "active"
+            }
+          }
+        ],
         "subinterfaces": [
           {
             "id": "subif-server5-bond0-20",

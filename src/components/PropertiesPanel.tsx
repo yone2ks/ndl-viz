@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
-import type { CyNodeData, CyEdgeData, TransportLink } from '../types/topology'
+import type { CyNodeData, CyEdgeData, NodeLag, TransportLink } from '../types/topology'
 import { useT, type Messages } from '../i18n'
 import { afShort, bgpTypeLabel, endLabel, transportParts } from '../flow/session'
 
 interface Props {
   selected: { data: CyNodeData | CyEdgeData } | null
+  /** LAG の id → 機器の lags[] の 1 件。リンクの端の LAG の中身を出すのに使う */
+  lagById?: Map<string, NodeLag>
 }
 
 const TYPE_CLASS: Record<string, string> = {
@@ -42,11 +44,14 @@ const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis:
 const SKIP_KEYS = new Set(['id',
   'offsetIndex', 'offsetCount', 'showLabel', 'detour', 'hue', 'pillW', 'crossing', 'crossingNodes'])
 
+// L1 リンクは無向 (ADR-0006)。source / target は endpoints の 1 番目と 2 番目なので、向きのない a / b で見せる
 const KEY_LABEL: Record<string, string> = {
-  source:    'node_a',
-  target:    'node_b',
-  source_if: 'interface_a',
-  target_if: 'interface_b',
+  source:     'node_a',
+  target:     'node_b',
+  source_if:  'interface_a',
+  target_if:  'interface_b',
+  source_lag: 'lag_a',
+  target_lag: 'lag_b',
 }
 
 type Obj = Record<string, unknown>
@@ -64,8 +69,19 @@ function transport(val: unknown): ReactNode {
   return <><code>{tp.kind}</code> {segs(tp.ids, ' ↔ ')}</>
 }
 
+/** LAG 1 件: 1 行目に機器上の名前 (なければ id) とメンバー、2 行目に id・LACP・ES・description */
+function lagSummary(o: Obj): ReactNode {
+  const lacp = isObj(o.lacp)
+    ? ['lacp', o.lacp.mode, o.lacp.min_links != null && `min_links ${String(o.lacp.min_links)}`].filter(Boolean).join(' ')
+    : undefined
+  const notes = [o.name ? o.id : undefined, lacp, o.ethernet_segment, o.description].filter(Boolean)
+  return <><code>{String(o.name ?? o.id)}</code> {segs((o.members as unknown[] | undefined) ?? [], ', ')}
+    {notes.length > 0 && <span className="prop-note">{segs(notes, ' · ')}</span>}</>
+}
+
 /** オブジェクト 1 件を要約する。既知の形（L3 IF / VTEP）は 1 行目に名前とアドレス、2 行目に補足。ほかは key=value */
 function summarize(t: Messages, key: string, o: Obj): ReactNode {
+  if (key === 'lags') return lagSummary(o)
   if (key === 'l3_interfaces') {
     const addrs = [o.ip, o.ipv6].filter(Boolean).join(' ')
     // YAML でこの L3 IF に書かれていることだけを出す (attaches_to と vrf)。分類や役割など導いた値は出さない
@@ -108,7 +124,12 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
 }
 
 /** 値の表示。オブジェクトの配列は 1 件 1 行、オブジェクト（labels 等）は key: value を 1 行ずつ */
-function renderValue(t: Messages, key: string, val: unknown): ReactNode {
+function renderValue(t: Messages, key: string, val: unknown, lagById?: Map<string, NodeLag>): ReactNode {
+  // リンクの端の LAG: 機器の lags[] から中身を引く。引けなければ id だけ
+  if ((key === 'source_lag' || key === 'target_lag') && typeof val === 'string') {
+    const lag = lagById?.get(val)
+    return lag ? lagSummary(lag as unknown as Obj) : val
+  }
   if (Array.isArray(val)) {
     if (!val.some(isObj)) return segs(val, ', ')
     return val.map((v, i) => (
@@ -130,7 +151,7 @@ function renderValue(t: Messages, key: string, val: unknown): ReactNode {
   return String(val)
 }
 
-export default function PropertiesPanel({ selected }: Props) {
+export default function PropertiesPanel({ selected, lagById }: Props) {
   const t = useT()
   if (!selected) {
     return (
@@ -149,8 +170,10 @@ export default function PropertiesPanel({ selected }: Props) {
     : TYPE_LABEL[typeKey] ?? typeKey
 
   // セッションは見出しでプロトコルを示し、両端は from / to で出す (source / target・type / layer は重複)
+  // リンクは端ごとの LAG (lag_a / lag_b) を出すので、片方の端しか持たない lag_id は出さない
   const skip = (k: string) => SKIP_KEYS.has(k) || (typeKey === 'routing_neighbor'
     && ['type', 'layer', 'source', 'target', 'protocol'].includes(k))
+    || (typeKey === 'link' && k === 'lag_id')
   const entries = Object.entries(data).filter(
     ([k, v]) => !skip(k) && v !== undefined && v !== null && v !== ''
   )
@@ -166,7 +189,7 @@ export default function PropertiesPanel({ selected }: Props) {
             <tr key={key}>
               <td className="prop-key">{KEY_LABEL[key] ?? key}</td>
               <td className="prop-val">
-                {renderValue(t, key, val)}
+                {renderValue(t, key, val, lagById)}
               </td>
             </tr>
           ))}
