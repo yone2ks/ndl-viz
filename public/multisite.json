@@ -1502,7 +1502,9 @@
         "target_if": "swp49",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-dc-leaf1-peer"
+        "lag_id": "lag-dc-leaf1-peer",
+        "source_lag": "lag-dc-leaf1-peer",
+        "target_lag": "lag-dc-leaf2-peer"
       }
     },
     {
@@ -1516,7 +1518,9 @@
         "target_if": "swp50",
         "link_speed": "10G",
         "link_role": "peer-link",
-        "lag_id": "lag-dc-leaf1-peer"
+        "lag_id": "lag-dc-leaf1-peer",
+        "source_lag": "lag-dc-leaf1-peer",
+        "target_lag": "lag-dc-leaf2-peer"
       }
     },
     {
@@ -1531,6 +1535,8 @@
         "link_speed": "10G",
         "link_role": "access",
         "lag_id": "lag-dc-leaf1-server1",
+        "source_lag": "lag-dc-leaf1-server1",
+        "target_lag": "lag-dc-server1-bond0",
         "ethernet_segment": "es-dc-server1"
       }
     },
@@ -1546,6 +1552,8 @@
         "link_speed": "10G",
         "link_role": "access",
         "lag_id": "lag-dc-leaf2-server1",
+        "source_lag": "lag-dc-leaf2-server1",
+        "target_lag": "lag-dc-server1-bond0",
         "ethernet_segment": "es-dc-server1"
       }
     },
@@ -1561,6 +1569,8 @@
         "link_speed": "10G",
         "link_role": "access",
         "lag_id": "lag-dc-leaf1-server2",
+        "source_lag": "lag-dc-leaf1-server2",
+        "target_lag": "lag-dc-server2-bond0",
         "ethernet_segment": "es-dc-server2"
       }
     },
@@ -1576,6 +1586,8 @@
         "link_speed": "10G",
         "link_role": "access",
         "lag_id": "lag-dc-leaf2-server2",
+        "source_lag": "lag-dc-leaf2-server2",
+        "target_lag": "lag-dc-server2-bond0",
         "ethernet_segment": "es-dc-server2"
       }
     },
@@ -1616,7 +1628,9 @@
         "target_if": "Te2/1",
         "link_speed": "40G",
         "link_role": "peer-link",
-        "lag_id": "lag-cm-core1-interconnect"
+        "lag_id": "lag-cm-core1-interconnect",
+        "source_lag": "lag-cm-core1-interconnect",
+        "target_lag": "lag-cm-core2-interconnect"
       }
     },
     {
@@ -1630,7 +1644,9 @@
         "target_if": "Te2/2",
         "link_speed": "40G",
         "link_role": "peer-link",
-        "lag_id": "lag-cm-core1-interconnect"
+        "lag_id": "lag-cm-core1-interconnect",
+        "source_lag": "lag-cm-core1-interconnect",
+        "target_lag": "lag-cm-core2-interconnect"
       }
     },
     {

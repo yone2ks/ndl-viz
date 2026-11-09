@@ -32,7 +32,7 @@ function nodeBox(n: Node | undefined) {
 export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, segmentFrames, siteIdOf, cardHeights }: Props) {
   const nodes = useNodes()
   const byId = new Map(nodes.map(n => [n.id, n]))
-  const { hoveredId } = useFlowCtx()
+  const { hoveredId, bundle } = useFlowCtx()
   const SP = 40   // サイトボックスの余白
 
   const siteBoxes = sites.map(s => {
@@ -79,7 +79,7 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, segment
         ))}
 
         {/* ── Ethernet Segment の枠 (脚の機器を囲む。mlndl ADR-0023) ── */}
-        {segmentFrames.map(({ id: frameId, label, nodes: ids }) => {
+        {segmentFrames.map(({ id: frameId, label, nodes: ids, segments }) => {
           const boxes = ids.map(id => nodeBox(byId.get(id))).filter((b): b is NonNullable<typeof b> => !!b)
           if (boxes.length < 2) return null
           const PAD = 26
@@ -87,9 +87,11 @@ export const GraphOverlays = memo(function GraphOverlays({ tiers, sites, segment
           const y1 = Math.min(...boxes.map(b => b.y)) - PAD - 6
           const x2 = Math.max(...boxes.map(b => b.x + b.w)) + PAD
           const y2 = Math.max(...boxes.map(b => b.y + b.h)) + PAD
-          const dim = hoveredId !== null && !ids.includes(hoveredId)
+          // リンクの LAG / ES の組にフォーカス中は、その組の ES の枠を目立たせ、ほかは薄くする
+          const hot = !!bundle && segments.some(s => bundle.segments.has(s))
+          const dim = bundle ? !hot : hoveredId !== null && !ids.includes(hoveredId)
           return (
-            <g key={`es-${frameId}`} className={`mlag-box${dim ? ' is-dim' : ''}`}>
+            <g key={`es-${frameId}`} className={`mlag-box${dim ? ' is-dim' : ''}${hot ? ' is-hot' : ''}`}>
               <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} rx={16} />
               <text x={x1 + 12} y={y1 + 18}>{label}</text>
             </g>
