@@ -54,6 +54,8 @@ function vrfMembers(data: TopologyData, vrf: string) {
 const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
 /** 機器を押して隣まで見せるときの余白。左は凡例、右はプロパティの枠の分をあける */
 const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340px' } as const
+/** VLAN をダブルクリックしてズームするときの余白。札の下に広がるカードが入るよう、下を多くあける */
+const VLAN_FOCUS_PADDING = { ...FOCUS_PADDING, bottom: '240px' } as const
 
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
@@ -232,7 +234,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     setFocusVniId(null)
     setFocusNodeId(node.type === 'vlan' ? null : node.id)
     setFocusLinkId(null)
-    // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる。機器は隣の機器まで画面に入れる
+    // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる (ズームはダブルクリック)。機器は隣の機器まで画面に入れる
     if (node.type !== 'vlan') {
       // VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）
       const hosts = new Set(graph.edges
@@ -244,6 +246,15 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
     }
   }, [onSelect, onCanvasClick, fitView, getZoom, graph, adjacency])
+
+  // VLAN はクリックでは全体を見せたまま。ダブルクリックで、機器を押したときと同じように札とポートを持つ機器までズームする
+  const handleNodeDoubleClick = useCallback((_e: React.MouseEvent, node: Node) => {
+    if (node.type !== 'vlan') return
+    const members = new Set(graph.vlanMembers.get(node.id) ?? [])
+    const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
+    fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
+      maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
+  }, [fitView, getZoom, graph])
 
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
     onSelect({ data: edge.data as unknown as CyEdgeData })
@@ -268,6 +279,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
         onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onEdgeClick={handleEdgeClick}
         onEdgeMouseEnter={(_e, edge) => { if (edge.type === 'link') setHoveredLinkId(edge.id) }}
         onEdgeMouseLeave={() => setHoveredLinkId(null)}
