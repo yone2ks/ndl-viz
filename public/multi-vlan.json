@@ -661,10 +661,22 @@
         "id": "vni-10100",
         "label": "L2VNI 10100",
         "type": "l2vni",
-        "vlan": "vlan-100",
+        "vlans": [
+          "vlan-100"
+        ],
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf1",
+            "vlan": "vlan-100"
+          },
+          {
+            "node": "leaf2",
+            "vlan": "vlan-100"
+          }
         ]
       }
     },
@@ -675,10 +687,22 @@
         "id": "vni-10200",
         "label": "L2VNI 10200",
         "type": "l2vni",
-        "vlan": "vlan-200",
+        "vlans": [
+          "vlan-200"
+        ],
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf1",
+            "vlan": "vlan-200"
+          },
+          {
+            "node": "leaf2",
+            "vlan": "vlan-200"
+          }
         ]
       }
     },
@@ -689,10 +713,22 @@
         "id": "vni-10300",
         "label": "L2VNI 10300",
         "type": "l2vni",
-        "vlan": "vlan-300",
+        "vlans": [
+          "vlan-300"
+        ],
         "vteps": [
           "vtep-leaf2",
           "vtep-leaf3"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf2",
+            "vlan": "vlan-300"
+          },
+          {
+            "node": "leaf3",
+            "vlan": "vlan-300"
+          }
         ]
       }
     },

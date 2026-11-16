@@ -36,6 +36,8 @@ const ja = {
   unnumbered:        'unnumbered',
   peerOutside:       'トポロジー外の相手',
   crossing:          (what: string) => `${what} 経由`,
+  vniNoVlan:         'VLAN なし',
+  vniNoVlanTip:      (node: string) => `${node} は VNI に参加している (VTEP)。この機器の VLAN は書かれていない`,
 }
 
 export type Messages = typeof ja
@@ -67,6 +69,8 @@ const en: Messages = {
   unnumbered:        'unnumbered',
   peerOutside:       'peer outside the topology',
   crossing:          (what: string) => `via ${what}`,
+  vniNoVlan:         'no VLAN',
+  vniNoVlanTip:      (node: string) => `${node} joins the VNI (VTEP). No VLAN is written for this device`,
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }

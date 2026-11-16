@@ -37,7 +37,10 @@ export interface CyNodeData {
   /** L3 IF 一覧（mlndl exporter。docs/exporter-cytoscape.md）*/
   l3_interfaces?: L3IfEntry[]
   vrfs?: string[]
-  // L2 埋め込みデータ
+  /**
+   * type=node: この機器にポートがある VLAN の id。
+   * type=l2vni: この VNI に載る VLAN の id (mlndl ADR-0026。YAML の vlans のまま)。名前は同じでも意味が違う
+   */
   vlans?: string[]
   // VLAN node 専用（type=vlan の場合）
   subnet?: string    // "192.168.100.0/24"
@@ -45,7 +48,11 @@ export interface CyNodeData {
   gateway?: string   // "192.168.100.254" (anycast VIP / VRRP VIP)
   vrf_name?: string  // VRF 名
   // VNI node 専用（type=l2vni / l3vni の場合）
-  vlan?: string      // l2vni: 紐づく VLAN ノード id
+  /**
+   * l2vni: 参加機器 (VTEP から導く) と、その機器の VLAN (mlndl が VLAN のポートか SVI から導く。ADR-0026 D4)。
+   * VLAN が決まらない参加機器 (BGW など VNI を中継するだけの機器) は出てこない。ndl-viz は導き直さない
+   */
+  node_vlans?: NodeVlan[]
   vrf?: string       // l3vni: 紐づく VRF 名
   /** type=node: 終端する VTEP / type=l2vni・l3vni: 載る VTEP の id（l3vni は VRF から導出）*/
   vteps?: NodeVtep[] | string[]
@@ -68,6 +75,12 @@ export interface CyNodeData {
   name?: string
   /** type=node: この機器のポートで転送する bridge。ndl-viz が type=bridge の要素から集めて載せる */
   bridges?: NodeBridge[]
+}
+
+/** L2VNI の参加機器と、その機器の VLAN の id */
+export interface NodeVlan {
+  node: string
+  vlan: string
 }
 
 /** 機器ノードの LAG。members はメンバーの L1 IF の name、lacp は書かれた値だけ */

@@ -810,9 +810,21 @@
         "id": "vni-10100",
         "label": "L2VNI 10100",
         "type": "l2vni",
-        "vlan": "vlan-100",
+        "vlans": [
+          "vlan-100"
+        ],
         "vteps": [
           "vtep-leaf1-leaf2"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf1",
+            "vlan": "vlan-100"
+          },
+          {
+            "node": "leaf2",
+            "vlan": "vlan-100"
+          }
         ]
       }
     },

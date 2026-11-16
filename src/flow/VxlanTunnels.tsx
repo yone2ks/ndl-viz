@@ -5,10 +5,15 @@
  * 読めるので描かず、VNI を 1 つの札にして、L2VNI も L3VNI も参加する機器へ線を落とす。
  * 参加する機器は mlndl の VNI.vteps から導く。共有 VTEP は終端するノードそれぞれに落とす。
  * 線は札から横に出て、角を丸めて機器の上端へ下りる。
+ *
+ * L2VNI は、機器によって番号の違う VLAN を載せられる (mlndl ADR-0026)。線の足もとに、その機器の VLAN を
+ * mlndl の node_vlans のとおりに添える。node_vlans に出てこない参加機器 (BGW など) は VLAN が書かれていないので、
+ * 「VLAN なし」と添えて推定では埋めない。VLAN のポートや SVI から導き直さない。
  */
 import { memo } from 'react'
 import { ViewportPortal, useNodes, type Node } from '@xyflow/react'
 import { useFlowCtx } from './FlowCtx'
+import { useT } from '../i18n'
 import { CARD_W, CARD_H } from './layout'
 import type { CyNodeData } from '../types/topology'
 
@@ -37,7 +42,8 @@ const vniLabel = (v: CyNodeData) => (v.type === 'l3vni' ? `L3VNI ${v.vni}` : `VN
 
 export const VxlanTunnels = memo(function VxlanTunnels() {
   const nodes = useNodes()
-  const { overlays, focusVniId, vniById, vtepNodes, vlanHue, vrfL3vni } = useFlowCtx()
+  const t = useT()
+  const { overlays, focusVniId, vniById, vlanById, vtepNodes, vlanHue, vrfL3vni } = useFlowCtx()
   // VNI のタブを選んだときと、L3VNI を持つ VRF を選んだとき。
   // VNI のタブは VLAN カード (Layer 2) にあり、VRF のバッジは Layer 3 で出るので、VRF からはどちらの層でも描く
   const vni = focusVniId ? vniById.get(focusVniId) : vrfL3vni ?? undefined
@@ -49,11 +55,20 @@ export const VxlanTunnels = memo(function VxlanTunnels() {
     .map(id => byId.get(id)).filter((n): n is Node => !!n)
   if (members.length === 0) return null
 
+  const vlans = vni.type === 'l2vni' ? vni.vlans ?? [] : []
+  // VLAN が 1 つなら VLAN の札と同じ色。番号の違う VLAN を載せるときは、どの VLAN の色でもない色にする
   const color = vni.type === 'l3vni'
     ? '#8b5cf6'
-    : `hsl(${vlanHue.get(vni.vlan ?? '') ?? 170}, 70%, 48%)`
+    : `hsl(${(vlans.length === 1 ? vlanHue.get(vlans[0]) : undefined) ?? 170}, 70%, 48%)`
+  // 機器 → その機器の VLAN (L2VNI だけ。mlndl が導いた値)
+  const vlanOfNode = new Map((vni.type === 'l2vni' ? vni.node_vlans ?? [] : []).map(nv => [nv.node, nv.vlan]))
+  // ポートのない VLAN (SVI だけで参加する機器の VLAN) は札がないので、図のノードではなく VLAN の一覧から番号を引く
+  const vlanLabel = (vlanId: string) => {
+    const num = vlanById.get(vlanId)?.vlan_id
+    return num !== undefined ? `VLAN ${num}` : vlanId
+  }
   const heightOf = (n: Node) => n.measured?.height ?? CARD_H
-  const feet = members.map(n => ({ x: n.position.x + (n.measured?.width ?? CARD_W) / 2, y: n.position.y }))
+  const feet = members.map(n => ({ id: n.id, x: n.position.x + (n.measured?.width ?? CARD_W) / 2, y: n.position.y }))
   const top = Math.min(...feet.map(f => f.y))
   // 母線の上に使える高さ: 機器の上端から、その上にある機器のカードの下端まで
   const room = top - Math.max(-Infinity, ...nodes
@@ -64,7 +79,7 @@ export const VxlanTunnels = memo(function VxlanTunnels() {
   const hx = (Math.min(...feet.map(f => f.x)) + Math.max(...feet.map(f => f.x))) / 2
   // 1 つの path にまとめる（重なる部分の透明度が濃くならず、破線の位置もそろう）
   const d = feet.map(f => branch(hx, y, f.x, f.y, rail)).join(' ')
-  const about = vni.type === 'l3vni' ? vni.vrf : vni.vlan
+  const about = vni.type === 'l3vni' ? vni.vrf : vlans.join(' · ')
 
   return (
     <ViewportPortal>
@@ -82,6 +97,17 @@ export const VxlanTunnels = memo(function VxlanTunnels() {
         <span className="vx-pill-main">VXLAN · {vniLabel(vni)}</span>
         {about && <span className="vx-pill-sub">{about}</span>}
       </div>
+      {vni.type === 'l2vni' && feet.map(f => {
+        const vlanId = vlanOfNode.get(f.id)
+        return (
+          <div key={f.id} className={`vx-foot${vlanId ? '' : ' is-unwritten'}`} onClick={e => e.stopPropagation()}
+            title={vlanId ? `${f.id}: ${vlanId}` : t.vniNoVlanTip(f.id)}
+            style={{ transform: `translate(-50%, -100%) translate(${f.x}px, ${f.y - R - 4}px)`,
+              '--vx': color } as React.CSSProperties}>
+            {vlanId ? vlanLabel(vlanId) : t.vniNoVlan}
+          </div>
+        )
+      })}
     </ViewportPortal>
   )
 })

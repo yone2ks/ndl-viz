@@ -866,10 +866,22 @@
         "id": "vni-10010",
         "label": "L2VNI 10010",
         "type": "l2vni",
-        "vlan": "vlan-10",
+        "vlans": [
+          "vlan-10"
+        ],
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf1",
+            "vlan": "vlan-10"
+          },
+          {
+            "node": "leaf2",
+            "vlan": "vlan-10"
+          }
         ],
         "description": "ingress-replication protocol bgp / suppress-arp. RT 65000:10010 (manual)"
       }
@@ -881,10 +893,22 @@
         "id": "vni-10020",
         "label": "L2VNI 10020",
         "type": "l2vni",
-        "vlan": "vlan-20",
+        "vlans": [
+          "vlan-20"
+        ],
         "vteps": [
           "vtep-leaf1",
           "vtep-leaf2"
+        ],
+        "node_vlans": [
+          {
+            "node": "leaf1",
+            "vlan": "vlan-20"
+          },
+          {
+            "node": "leaf2",
+            "vlan": "vlan-20"
+          }
         ],
         "description": "ingress-replication protocol bgp / suppress-arp. RT 65000:10020 (manual)"
       }
