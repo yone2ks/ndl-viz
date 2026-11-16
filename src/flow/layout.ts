@@ -66,6 +66,7 @@ export interface FlowGraphData {
   vniByVlan: Map<string, CyNodeData[]>
   vlanEndpoints: Map<string, Map<string, VlanEndpoint[]>>   // vlan id → (端点のノード id → 端点)
   vniById: Map<string, CyNodeData>
+  vlanById: Map<string, CyNodeData>      // vlan id → VLAN（札を出さない、ポートのない VLAN も）
   vtepNodes: Map<string, string[]>       // vtep id → 終端する node ids（共有 VTEP は複数）
   vtepAddress: Map<string, string>       // vtep id → VTEP のアドレス
   adjacency: Map<string, Set<string>>
@@ -397,17 +398,18 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     }))
   })
 
-  // ── VLAN ↔ VNI バインディング ──
+  // ── VLAN ↔ VNI バインディング（L2VNI は vlans のすべての VLAN に。機器によって番号が違う VLAN も同じ VNI。mlndl ADR-0026）──
   const vniNodes = data.nodes.map(n => n.data as CyNodeData)
     .filter(nd => nd.type === 'l2vni' || nd.type === 'l3vni')
   const vniByVlan = new Map<string, CyNodeData[]>()
   vlanNodes.forEach(vd => {
     const list = vniNodes.filter(nd =>
-      (nd.type === 'l2vni' && nd.vlan === vd.id) ||
+      (nd.type === 'l2vni' && !!nd.vlans?.includes(vd.id)) ||
       (nd.type === 'l3vni' && !!nd.vrf && nd.vrf === vd.vrf_name))
     if (list.length) vniByVlan.set(vd.id, list)
   })
   const vniById = new Map(vniNodes.map(nd => [nd.id, nd]))
+  const vlanById = new Map(vlanNodes.map(vd => [vd.id, vd]))
 
   // ── VTEP: 機器ノードの vteps から vtep id → 終端ノード / アドレス（ADR-0014）──
   const vtepNodes = new Map<string, string[]>()
@@ -504,7 +506,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   })
 
   return {
-    nodes, edges, tiers, sites, segmentFrames, linkBundles: linkBundlesOf(l1Links), vlanMembers, vniByVlan, vlanEndpoints, vniById, vtepNodes, vtepAddress,
+    nodes, edges, tiers, sites, segmentFrames, linkBundles: linkBundlesOf(l1Links), vlanMembers, vniByVlan, vlanEndpoints, vniById, vlanById, vtepNodes, vtepAddress,
     adjacency,
     vlanOnLink, vlanHue, ifIp, sviByVlan, siteIdOf, cardHeights: cardH,
     graphW: totalW,

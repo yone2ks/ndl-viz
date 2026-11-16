@@ -160,16 +160,17 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     const vni = focusVniId ? graph.vniById.get(focusVniId) : undefined
     if (!vni) return null
     // VNI は VLAN カードから選ぶので、VLAN とそのポートを持つ機器・端点（ホスト）も残す。
+    // L2VNI は載る VLAN (vlans) をすべて残す。機器によって番号の違う VLAN も同じ VNI に載る (mlndl ADR-0026)。
     // L3VNI は VRF に紐づくので、選んだ VLAN だけでなくその VRF の VLAN をすべて残す
     const vlans = vni.type === 'l3vni'
       ? graph.nodes.filter(n => n.type === 'vlan' && (n.data as unknown as CyNodeData).vrf_name === vni.vrf).map(n => n.id)
-      : focusVlanId ? [focusVlanId] : []
+      : vni.vlans ?? []
     return new Set([
       ...((vni.vteps ?? []) as string[]).flatMap(v => graph.vtepNodes.get(v) ?? []),
       ...vlans,
       ...vlans.flatMap(v => [...(graph.adjacency.get(v) ?? [])]),
     ])
-  }, [focusVniId, focusVlanId, graph])
+  }, [focusVniId, graph])
   // VRF のフォーカスで残すノード: その VRF の機器と VLAN、VLAN のポートを持つ機器・端点 (L3VNI のフォーカスと同じ)
   const vrfFocusNodes = useMemo(() => {
     if (!focusVrf) return null
@@ -213,7 +214,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     setHoveredId,
     adjacency, vniByVlan: graph.vniByVlan,
     vlanEndpoints: graph.vlanEndpoints,
-    vniById: graph.vniById, vtepNodes: graph.vtepNodes, vtepAddress: graph.vtepAddress,
+    vniById: graph.vniById, vlanById: graph.vlanById, vtepNodes: graph.vtepNodes, vtepAddress: graph.vtepAddress,
     vlanOnLink: graph.vlanOnLink,
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,

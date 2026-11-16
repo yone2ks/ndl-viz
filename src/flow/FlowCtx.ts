@@ -17,6 +17,8 @@ export interface FlowCtxValue {
   adjacency: Map<string, Set<string>>
   vniByVlan: Map<string, CyNodeData[]>
   vniById: Map<string, CyNodeData>
+  /** vlan id → VLAN（札を出さない、ポートのない VLAN も）*/
+  vlanById: Map<string, CyNodeData>
   /** vlan id → (端点のノード id → VLAN の端点。ADR-0013 D7) */
   vlanEndpoints: Map<string, Map<string, VlanEndpoint[]>>
   vtepNodes: Map<string, string[]>
