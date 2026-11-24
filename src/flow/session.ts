@@ -36,10 +36,14 @@ export function sessionStyle(d: CyEdgeData): LineStyle {
   return d.bgp_type === 'ebgp' ? OVERLAY_STYLE.ebgp : d.bgp_type === 'ibgp' ? OVERLAY_STYLE.ibgp : OVERLAY_STYLE.routing
 }
 
-/** 線の中央の札。BGP は「eBGP · ipv4+evpn」、OSPF は「OSPF 0.0.0.0」、IS-IS は「IS-IS level-2」 */
+/** IS-IS の level の値 (mlndl ADR-0028 で下線区切り) を札の短い表記に。知らない値はそのまま出す */
+const ISIS_LEVEL_LABEL: Record<string, string> = { level_1: 'L1', level_2: 'L2', level_all: 'L1/L2' }
+export const isisLevelLabel = (l?: string): string => (l ? ISIS_LEVEL_LABEL[l] ?? l : '')
+
+/** 線の中央の札。BGP は「eBGP · ipv4+evpn」、OSPF は「OSPF 0.0.0.0」、IS-IS は「IS-IS L2」 */
 export function sessionLabel(d: CyEdgeData): string {
   if (d.protocol === 'ospf') return `OSPF ${d.area ?? ''}`.trim()
-  if (d.protocol === 'isis') return `IS-IS ${d.level ?? ''}`.trim()
+  if (d.protocol === 'isis') return `IS-IS ${isisLevelLabel(d.level)}`.trim()
   const afs = (d.address_families ?? []).map(afShort).join('+')
   return afs ? `${bgpTypeLabel(d.bgp_type)} · ${afs}` : bgpTypeLabel(d.bgp_type)
 }

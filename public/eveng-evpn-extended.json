@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "ndl_version": "1.0",
+    "mlndl_version": "0.1.0"
+  },
   "nodes": [
     {
       "data": {
@@ -1295,9 +1299,9 @@
               "Ethernet1/6"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-leaf3-po3",
@@ -1306,9 +1310,9 @@
               "Ethernet1/3"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-server3"
           }
         ],
@@ -1628,9 +1632,9 @@
               "Ethernet1/6"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-leaf4-po3",
@@ -1639,9 +1643,9 @@
               "Ethernet1/3"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-server3"
           }
         ],

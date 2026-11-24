@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "ndl_version": "1.0",
+    "mlndl_version": "0.1.0"
+  },
   "nodes": [
     {
       "data": {
@@ -354,9 +358,9 @@
               "swp50"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-dc-leaf1-server1",
@@ -365,9 +369,9 @@
               "swp1"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-dc-server1"
           },
           {
@@ -377,9 +381,9 @@
               "swp2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-dc-server2"
           }
         ],
@@ -515,9 +519,9 @@
               "swp50"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-dc-leaf2-server1",
@@ -526,9 +530,9 @@
               "swp1"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-dc-server1"
           },
           {
@@ -538,9 +542,9 @@
               "swp2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
+              "mode": "active"
             },
+            "min_links": 1,
             "ethernet_segment": "es-dc-server2"
           }
         ],
@@ -951,9 +955,9 @@
               "eth1"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ]
       }
@@ -977,9 +981,9 @@
               "eth1"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ]
       }
@@ -1004,9 +1008,9 @@
               "Te2/2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ],
         "l3_interfaces": [
@@ -1166,9 +1170,9 @@
               "Te2/2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ],
         "l3_interfaces": [
