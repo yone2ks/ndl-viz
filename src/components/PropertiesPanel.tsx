@@ -85,12 +85,12 @@ function notesOf(id: unknown, items: unknown[], description?: unknown): ReactNod
   </>
 }
 
-/** LAG 1 件: 1 行目に機器上の名前 (なければ id) とメンバー、補足に id・LACP・ES、description */
+/** LAG 1 件: 1 行目に機器上の名前 (なければ id) とメンバー、補足に id・束ね方・min_links・ES、description */
 function lagSummary(o: Obj): ReactNode {
   const lacp = isObj(o.lacp) ? o.lacp : undefined
   const items = [
-    lacp?.mode && `LACP ${String(lacp.mode)}`,
-    lacp?.min_links != null && `min_links ${String(lacp.min_links)}`,
+    lacp?.mode && (lacp.mode === 'static' ? 'static (LACP なし)' : `LACP ${String(lacp.mode)}`),
+    o.min_links != null && `min_links ${String(o.min_links)}`,
     o.ethernet_segment && `ES ${String(o.ethernet_segment)}`,
   ]
   return <><code>{String(o.name ?? o.id)}</code> {segs((o.members as unknown[] | undefined) ?? [], ', ')}

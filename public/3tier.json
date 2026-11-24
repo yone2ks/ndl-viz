@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "ndl_version": "1.0",
+    "mlndl_version": "0.1.0"
+  },
   "nodes": [
     {
       "data": {
@@ -17,9 +21,9 @@
               "Te1/2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-core1-agg2",
@@ -28,9 +32,9 @@
               "Te1/4"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ]
       }
@@ -52,9 +56,9 @@
               "Te1/2"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           },
           {
             "id": "lag-core2-agg2",
@@ -63,9 +67,9 @@
               "Te1/4"
             ],
             "lacp": {
-              "mode": "active",
-              "min_links": 1
-            }
+              "mode": "active"
+            },
+            "min_links": 1
           }
         ]
       }

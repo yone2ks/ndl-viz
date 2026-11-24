@@ -83,12 +83,15 @@ export interface NodeVlan {
   vlan: string
 }
 
-/** 機器ノードの LAG。members はメンバーの L1 IF の name、lacp は書かれた値だけ */
+/** 機器ノードの LAG。members はメンバーの L1 IF の name。lacp と min_links は書かれたときだけ (mlndl ADR-0028) */
 export interface NodeLag {
   id: string
   name?: string
   members: string[]
-  lacp?: { mode?: string; min_links?: number }
+  /** 束ね方。active / passive は LACP で、static は LACP を使わずに束ねる */
+  lacp?: { mode: string }
+  /** 最低何本のメンバーが上がれば LAG が上がるか。LACP と独立 */
+  min_links?: number
   /** この LAG が脚の Ethernet Segment */
   ethernet_segment?: string
   description?: string
