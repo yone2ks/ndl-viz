@@ -4,12 +4,13 @@
 
 [mlndl](https://github.com/yone2ks/mlndl) が出力する Cytoscape.js JSON を読み込み、ネットワークのトポロジーを描くビューワです。
 物理のリンク (L1) をいつも描き、Layer 2 (VLAN・VXLAN)・Layer 3 (IF・VRF・OSPF / IS-IS)・BGP をボタンで重ねます。
+開いたときは Layer 2・3 を重ねた状態で、BGP はボタンで足します。
 
 表示するのは MLNDL に書かれた情報だけです。書かれていないこと (ノードの代表アドレス、セッションの underlay / overlay など) は推定して埋めません。
 
 **デモ**: https://yone2ks.github.io/ndl-viz/?data=sample.json
 
-![Layer 2・Layer 3・BGP を順に重ね、機器を選んで値を見る](docs/images/demo.gif)
+![Layer 2・3 を重ねて開き、BGP を足して、機器を選んで値を見る](docs/images/demo.gif)
 
 ## デモ
 
