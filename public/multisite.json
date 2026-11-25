@@ -672,13 +672,29 @@
         "labels": {
           "site": "dc"
         },
+        "subinterfaces": [
+          {
+            "id": "subif-dc-border1-swp1-100",
+            "parent": "dc-border1-swp1",
+            "vlan_id": 100,
+            "name": "swp1.100"
+          }
+        ],
+        "vteps": [
+          {
+            "id": "vtep-dc-border1",
+            "source": "lo",
+            "address": "10.0.0.21/32"
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "dc-border1-lo",
             "name": "lo",
             "attachment": "unattached",
             "roles": [
-              "update_source"
+              "update_source",
+              "vtep_source"
             ],
             "ip": "10.0.0.21/32"
           },
@@ -714,10 +730,24 @@
             ],
             "ip": "10.255.0.1/31",
             "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border1-swp1-100-l3",
+            "name": "swp1.100",
+            "attachment": "subinterface",
+            "attaches_to": {
+              "subinterface": "subif-dc-border1-swp1-100"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "ip": "10.255.1.1/31",
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
-          "vrf-default"
+          "vrf-default",
+          "vrf-tenant-a"
         ],
         "local_as": 65000,
         "bgp_sessions": [
@@ -794,6 +824,33 @@
               "ip": "10.255.0.0/31",
               "local_as": 65100
             }
+          },
+          {
+            "id": "bgp-peer-dc-border1-cm-core1-tenant-a",
+            "instance": "bgp-tenant-a",
+            "vrf": "vrf-tenant-a",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border1-core1"
+            },
+            "bfd": true,
+            "local": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-swp1-100-l3",
+              "interface_name": "swp1.100",
+              "ip": "10.255.1.1/31",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "cm-core1",
+              "l3_interface": "cm-core1-te1-1-100-l3",
+              "interface_name": "Te1/1.100",
+              "ip": "10.255.1.0/31",
+              "local_as": 65100
+            }
           }
         ]
       }
@@ -810,13 +867,29 @@
         "labels": {
           "site": "dc"
         },
+        "subinterfaces": [
+          {
+            "id": "subif-dc-border2-swp1-100",
+            "parent": "dc-border2-swp1",
+            "vlan_id": 100,
+            "name": "swp1.100"
+          }
+        ],
+        "vteps": [
+          {
+            "id": "vtep-dc-border2",
+            "source": "lo",
+            "address": "10.0.0.22/32"
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "dc-border2-lo",
             "name": "lo",
             "attachment": "unattached",
             "roles": [
-              "update_source"
+              "update_source",
+              "vtep_source"
             ],
             "ip": "10.0.0.22/32"
           },
@@ -852,10 +925,24 @@
             ],
             "ip": "10.255.0.3/31",
             "vrf": "vrf-default"
+          },
+          {
+            "id": "dc-border2-swp1-100-l3",
+            "name": "swp1.100",
+            "attachment": "subinterface",
+            "attaches_to": {
+              "subinterface": "subif-dc-border2-swp1-100"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "ip": "10.255.1.3/31",
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
-          "vrf-default"
+          "vrf-default",
+          "vrf-tenant-a"
         ],
         "local_as": 65000,
         "bgp_sessions": [
@@ -930,6 +1017,33 @@
               "l3_interface": "cm-core2-te1-1-l3",
               "interface_name": "Te1/1",
               "ip": "10.255.0.2/31",
+              "local_as": 65100
+            }
+          },
+          {
+            "id": "bgp-peer-dc-border2-cm-core2-tenant-a",
+            "instance": "bgp-tenant-a",
+            "vrf": "vrf-tenant-a",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border2-core2"
+            },
+            "bfd": true,
+            "local": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-swp1-100-l3",
+              "interface_name": "swp1.100",
+              "ip": "10.255.1.3/31",
+              "local_as": 65000
+            },
+            "peer": {
+              "node": "cm-core2",
+              "l3_interface": "cm-core2-te1-1-100-l3",
+              "interface_name": "Te1/1.100",
+              "ip": "10.255.1.2/31",
               "local_as": 65100
             }
           }
@@ -1037,6 +1151,14 @@
             "min_links": 1
           }
         ],
+        "subinterfaces": [
+          {
+            "id": "subif-cm-core1-te1-1-100",
+            "parent": "cm-core1-te1-1",
+            "vlan_id": 100,
+            "name": "Te1/1.100"
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "cm-core1-lo",
@@ -1055,7 +1177,7 @@
               "vlan": "vlan-10"
             },
             "ip": "172.16.10.2/24",
-            "vrf": "vrf-default",
+            "vrf": "vrf-tenant-a",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1073,7 +1195,7 @@
               "vlan": "vlan-20"
             },
             "ip": "172.16.20.2/24",
-            "vrf": "vrf-default",
+            "vrf": "vrf-tenant-a",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1113,9 +1235,23 @@
             ],
             "ip": "10.255.0.0/31",
             "vrf": "vrf-default"
+          },
+          {
+            "id": "cm-core1-te1-1-100-l3",
+            "name": "Te1/1.100",
+            "attachment": "subinterface",
+            "attaches_to": {
+              "subinterface": "subif-cm-core1-te1-1-100"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "ip": "10.255.1.0/31",
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
+          "vrf-tenant-a",
           "vrf-default"
         ],
         "vlans": [
@@ -1148,6 +1284,33 @@
               "l3_interface": "dc-border1-swp1-l3",
               "interface_name": "swp1",
               "ip": "10.255.0.1/31",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-border1-cm-core1-tenant-a",
+            "instance": "bgp-tenant-a",
+            "vrf": "vrf-tenant-a",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border1-core1"
+            },
+            "bfd": true,
+            "local": {
+              "node": "cm-core1",
+              "l3_interface": "cm-core1-te1-1-100-l3",
+              "interface_name": "Te1/1.100",
+              "ip": "10.255.1.0/31",
+              "local_as": 65100
+            },
+            "peer": {
+              "node": "dc-border1",
+              "l3_interface": "dc-border1-swp1-100-l3",
+              "interface_name": "swp1.100",
+              "ip": "10.255.1.1/31",
               "local_as": 65000
             }
           },
@@ -1199,6 +1362,14 @@
             "min_links": 1
           }
         ],
+        "subinterfaces": [
+          {
+            "id": "subif-cm-core2-te1-1-100",
+            "parent": "cm-core2-te1-1",
+            "vlan_id": 100,
+            "name": "Te1/1.100"
+          }
+        ],
         "l3_interfaces": [
           {
             "id": "cm-core2-lo",
@@ -1214,7 +1385,7 @@
               "vlan": "vlan-10"
             },
             "ip": "172.16.10.3/24",
-            "vrf": "vrf-default",
+            "vrf": "vrf-tenant-a",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1232,7 +1403,7 @@
               "vlan": "vlan-20"
             },
             "ip": "172.16.20.3/24",
-            "vrf": "vrf-default",
+            "vrf": "vrf-tenant-a",
             "gateway_redundancy": [
               {
                 "mode": "vrrp",
@@ -1272,9 +1443,23 @@
             ],
             "ip": "10.255.0.2/31",
             "vrf": "vrf-default"
+          },
+          {
+            "id": "cm-core2-te1-1-100-l3",
+            "name": "Te1/1.100",
+            "attachment": "subinterface",
+            "attaches_to": {
+              "subinterface": "subif-cm-core2-te1-1-100"
+            },
+            "roles": [
+              "update_source"
+            ],
+            "ip": "10.255.1.2/31",
+            "vrf": "vrf-tenant-a"
           }
         ],
         "vrfs": [
+          "vrf-tenant-a",
           "vrf-default"
         ],
         "vlans": [
@@ -1307,6 +1492,33 @@
               "l3_interface": "dc-border2-swp1-l3",
               "interface_name": "swp1",
               "ip": "10.255.0.3/31",
+              "local_as": 65000
+            }
+          },
+          {
+            "id": "bgp-peer-dc-border2-cm-core2-tenant-a",
+            "instance": "bgp-tenant-a",
+            "vrf": "vrf-tenant-a",
+            "bgp_type": "ebgp",
+            "address_families": [
+              "ipv4_unicast"
+            ],
+            "transport_link": {
+              "link": "link-wan-border2-core2"
+            },
+            "bfd": true,
+            "local": {
+              "node": "cm-core2",
+              "l3_interface": "cm-core2-te1-1-100-l3",
+              "interface_name": "Te1/1.100",
+              "ip": "10.255.1.2/31",
+              "local_as": 65100
+            },
+            "peer": {
+              "node": "dc-border2",
+              "l3_interface": "dc-border2-swp1-100-l3",
+              "interface_name": "swp1.100",
+              "ip": "10.255.1.3/31",
               "local_as": 65000
             }
           }
@@ -1502,7 +1714,7 @@
         "vlan_id": 10,
         "name": "cm-users",
         "subnet": "172.16.10.0/24",
-        "vrf_name": "vrf-default"
+        "vrf_name": "vrf-tenant-a"
       }
     },
     {
@@ -1514,7 +1726,7 @@
         "vlan_id": 20,
         "name": "cm-voip",
         "subnet": "172.16.20.0/24",
-        "vrf_name": "vrf-default"
+        "vrf_name": "vrf-tenant-a"
       }
     },
     {
@@ -1563,7 +1775,9 @@
         "type": "l3vni",
         "vrf": "vrf-tenant-a",
         "vteps": [
-          "vtep-dc-leaf1-leaf2"
+          "vtep-dc-leaf1-leaf2",
+          "vtep-dc-border1",
+          "vtep-dc-border2"
         ]
       }
     }
@@ -2703,6 +2917,74 @@
           "l3_interface": "cm-core2-te1-1-l3",
           "interface_name": "Te1/1",
           "ip": "10.255.0.2/31",
+          "local_as": 65100
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-dc-border1-cm-core1-tenant-a",
+        "instance": "bgp-tenant-a",
+        "vrf": "vrf-tenant-a",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "transport_link": {
+          "link": "link-wan-border1-core1"
+        },
+        "bfd": true,
+        "source": "dc-border1",
+        "target": "cm-core1",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-border1",
+          "l3_interface": "dc-border1-swp1-100-l3",
+          "interface_name": "swp1.100",
+          "ip": "10.255.1.1/31",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "cm-core1",
+          "l3_interface": "cm-core1-te1-1-100-l3",
+          "interface_name": "Te1/1.100",
+          "ip": "10.255.1.0/31",
+          "local_as": 65100
+        }
+      }
+    },
+    {
+      "data": {
+        "id": "bgp-peer-dc-border2-cm-core2-tenant-a",
+        "instance": "bgp-tenant-a",
+        "vrf": "vrf-tenant-a",
+        "bgp_type": "ebgp",
+        "address_families": [
+          "ipv4_unicast"
+        ],
+        "transport_link": {
+          "link": "link-wan-border2-core2"
+        },
+        "bfd": true,
+        "source": "dc-border2",
+        "target": "cm-core2",
+        "layer": "control_plane",
+        "type": "routing_neighbor",
+        "protocol": "bgp",
+        "from": {
+          "node": "dc-border2",
+          "l3_interface": "dc-border2-swp1-100-l3",
+          "interface_name": "swp1.100",
+          "ip": "10.255.1.3/31",
+          "local_as": 65000
+        },
+        "to": {
+          "node": "cm-core2",
+          "l3_interface": "cm-core2-te1-1-100-l3",
+          "interface_name": "Te1/1.100",
+          "ip": "10.255.1.2/31",
           "local_as": 65100
         }
       }
