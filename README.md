@@ -19,7 +19,7 @@
 | 見本 | 内容 |
 |---|---|
 | [sample.json](https://yone2ks.github.io/ndl-viz/?data=sample.json) | Spine-Leaf・EVPN / VXLAN・MLAG (Ethernet Segment)・eBGP。サーバー 2 台が leaf をまたいで同じ VLAN に |
-| [multisite.json](https://yone2ks.github.io/ndl-viz/?data=multisite.json) | データセンター (EVPN / VXLAN・MLAG) とキャンパスを WAN の eBGP でつないだ 2 サイト |
+| [multisite.json](https://yone2ks.github.io/ndl-viz/?data=multisite.json) | データセンター (EVPN / VXLAN・MLAG・border leaf) とキャンパスを WAN の eBGP でつないだ 2 サイト。テナントの VRF は VRF-lite で渡す |
 | [wan-sites.json](https://yone2ks.github.io/ndl-viz/?data=wan-sites.json) | 4 拠点とクラウドを、専用線・事業者網 (IP-VPN・広域イーサ・インターネット・閉域接続) でつないだ WAN |
 | [eveng-evpn.json](https://yone2ks.github.io/ndl-viz/?data=eveng-evpn.json) | EVE-NG で組んだ EVPN の学習ラボ |
 | [fabrics-superspine.json](https://yone2ks.github.io/ndl-viz/?data=fabrics-superspine.json) | 3 つのファブリックを Super-Spine で束ねた 5 段の Clos (L1 だけ) |
