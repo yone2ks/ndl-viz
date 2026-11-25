@@ -21,7 +21,9 @@ export default function App() {
   const lagById = useMemo(() => new Map<string, NodeLag>((data?.nodes ?? [])
     .flatMap(n => ((n.data as CyNodeData).lags ?? []).map(g => [g.id, g] as const))), [data])
   const [filename, setFilename] = useState<string>('')
-  const [overlays, setOverlays] = useState<Set<OverlayKey>>(new Set())
+  // 最初は Layer 2・3 を重ねて開く（ファイルに書いてあることを、ボタンを押さずに見せる）。
+  // BGP はセッションごとの線と札が重なって全体図が読みにくくなるので、押したときだけ
+  const [overlays, setOverlays] = useState<Set<OverlayKey>>(() => new Set<OverlayKey>(['l2', 'l3']))
   const [selected, setSelected] = useState<{ data: CyNodeData | CyEdgeData } | null>(null)
   const [theme, setTheme] = useState<'dark' | 'light'>('light')
   const [query, setQuery] = useState('')
