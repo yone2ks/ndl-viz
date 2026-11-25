@@ -84,7 +84,9 @@ export default function App() {
     const params = new URLSearchParams(location.search)
     const url = params.get('data')
     if (url) {
-      fetch(url)
+      // no-cache: 毎回サーバーに新しい版がないか確かめる (GitHub Pages は JSON を 10 分キャッシュさせるので、
+      // 見本を作り直した直後に古い JSON を描かないように)。変わっていなければ 304 でキャッシュを使う
+      fetch(url, { cache: 'no-cache' })
         .then(r => r.json())
         .then((d: TopologyData) => {
           setData(d)
