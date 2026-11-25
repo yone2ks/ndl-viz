@@ -391,14 +391,19 @@
             "vrf": "vrf-default"
           },
           {
-            "id": "leaf1-vlan100",
-            "name": "vlan-100",
+            "id": "leaf1-vlan-100",
+            "name": "Vlan100",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-100"
             },
             "ip": "192.168.100.1/24",
-            "vrf": "vrf-tenant-a"
+            "vrf": "vrf-tenant-a",
+            "gateway_redundancy": [
+              {
+                "mode": "anycast_gateway"
+              }
+            ]
           }
         ],
         "vrfs": [
@@ -592,10 +597,26 @@
             ],
             "ip": "10.1.0.7/31",
             "vrf": "vrf-default"
+          },
+          {
+            "id": "leaf2-vlan-100",
+            "name": "Vlan100",
+            "attachment": "vlan",
+            "attaches_to": {
+              "vlan": "vlan-100"
+            },
+            "ip": "192.168.100.1/24",
+            "vrf": "vrf-tenant-a",
+            "gateway_redundancy": [
+              {
+                "mode": "anycast_gateway"
+              }
+            ]
           }
         ],
         "vrfs": [
-          "vrf-default"
+          "vrf-default",
+          "vrf-tenant-a"
         ],
         "vlans": [
           "vlan-100"

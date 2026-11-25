@@ -243,8 +243,8 @@
             "ip": "10.0.0.11/32"
           },
           {
-            "id": "leaf1-vlan100",
-            "name": "vlan-100",
+            "id": "leaf1-vlan-100",
+            "name": "Vlan100",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-100"
@@ -253,8 +253,8 @@
             "vrf": "vrf-tenant-a"
           },
           {
-            "id": "leaf1-vlan200",
-            "name": "vlan-200",
+            "id": "leaf1-vlan-200",
+            "name": "Vlan200",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-200"
@@ -358,8 +358,8 @@
             "ip": "10.0.0.12/32"
           },
           {
-            "id": "leaf2-vlan100",
-            "name": "vlan-100",
+            "id": "leaf2-vlan-100",
+            "name": "Vlan100",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-100"
@@ -368,8 +368,8 @@
             "vrf": "vrf-tenant-a"
           },
           {
-            "id": "leaf2-vlan200",
-            "name": "vlan-200",
+            "id": "leaf2-vlan-200",
+            "name": "Vlan200",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-200"
@@ -378,8 +378,8 @@
             "vrf": "vrf-tenant-a"
           },
           {
-            "id": "leaf2-vlan300",
-            "name": "vlan-300",
+            "id": "leaf2-vlan-300",
+            "name": "Vlan300",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-300"
@@ -484,8 +484,8 @@
             "ip": "10.0.0.13/32"
           },
           {
-            "id": "leaf3-vlan400",
-            "name": "vlan-400",
+            "id": "leaf3-vlan-400",
+            "name": "Vlan400",
             "attachment": "vlan",
             "attaches_to": {
               "vlan": "vlan-400"
