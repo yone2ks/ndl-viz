@@ -950,6 +950,7 @@
         "lags": [
           {
             "id": "lag-dc-server1-bond0",
+            "name": "bond0",
             "members": [
               "eth0",
               "eth1"
@@ -958,6 +959,17 @@
               "mode": "active"
             },
             "min_links": 1
+          }
+        ],
+        "l3_interfaces": [
+          {
+            "id": "dc-server1-bond0-l3",
+            "name": "bond0",
+            "attachment": "lag",
+            "attaches_to": {
+              "lag": "lag-dc-server1-bond0"
+            },
+            "ip": "192.168.100.10/24"
           }
         ]
       }
@@ -976,6 +988,7 @@
         "lags": [
           {
             "id": "lag-dc-server2-bond0",
+            "name": "bond0",
             "members": [
               "eth0",
               "eth1"
@@ -984,6 +997,17 @@
               "mode": "active"
             },
             "min_links": 1
+          }
+        ],
+        "l3_interfaces": [
+          {
+            "id": "dc-server2-bond0-l3",
+            "name": "bond0",
+            "attachment": "lag",
+            "attaches_to": {
+              "lag": "lag-dc-server2-bond0"
+            },
+            "ip": "192.168.100.20/24"
           }
         ]
       }
@@ -1376,8 +1400,16 @@
         "labels": {
           "site": "campus"
         },
-        "vlans": [
-          "vlan-10"
+        "l3_interfaces": [
+          {
+            "id": "cm-host1-eth0-l3",
+            "name": "eth0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "cm-host1-eth0"
+            },
+            "ip": "172.16.10.10/24"
+          }
         ]
       }
     },
@@ -1392,8 +1424,16 @@
         "labels": {
           "site": "campus"
         },
-        "vlans": [
-          "vlan-20"
+        "l3_interfaces": [
+          {
+            "id": "cm-host2-eth0-l3",
+            "name": "eth0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "cm-host2-eth0"
+            },
+            "ip": "172.16.20.10/24"
+          }
         ]
       }
     },
@@ -1979,7 +2019,7 @@
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 100,
-        "tagged_on": [
+        "untagged_on": [
           "lag-dc-leaf1-server1",
           "lag-dc-leaf1-server2"
         ],
@@ -1992,9 +2032,12 @@
             "interface_names": [
               "eth0"
             ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server1-bond0"
+            "tagged": false,
+            "resolution": "direct",
+            "lag": "lag-dc-server1-bond0",
+            "l3_interface": "dc-server1-bond0-l3",
+            "name": "bond0",
+            "ip": "192.168.100.10/24"
           },
           {
             "node": "dc-server2",
@@ -2004,9 +2047,12 @@
             "interface_names": [
               "eth0"
             ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server2-bond0"
+            "tagged": false,
+            "resolution": "direct",
+            "lag": "lag-dc-server2-bond0",
+            "l3_interface": "dc-server2-bond0-l3",
+            "name": "bond0",
+            "ip": "192.168.100.20/24"
           }
         ]
       }
@@ -2019,7 +2065,7 @@
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 100,
-        "tagged_on": [
+        "untagged_on": [
           "lag-dc-leaf2-server1",
           "lag-dc-leaf2-server2"
         ],
@@ -2032,9 +2078,12 @@
             "interface_names": [
               "eth1"
             ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server1-bond0"
+            "tagged": false,
+            "resolution": "direct",
+            "lag": "lag-dc-server1-bond0",
+            "l3_interface": "dc-server1-bond0-l3",
+            "name": "bond0",
+            "ip": "192.168.100.10/24"
           },
           {
             "node": "dc-server2",
@@ -2044,9 +2093,12 @@
             "interface_names": [
               "eth1"
             ],
-            "tagged": true,
-            "resolution": "no_l3",
-            "lag": "lag-dc-server2-bond0"
+            "tagged": false,
+            "resolution": "direct",
+            "lag": "lag-dc-server2-bond0",
+            "l3_interface": "dc-server2-bond0-l3",
+            "name": "bond0",
+            "ip": "192.168.100.20/24"
           }
         ]
       }
@@ -2119,6 +2171,25 @@
         "vlan_id": 10,
         "tagged_on": [
           "Ge0/1"
+        ],
+        "untagged_on": [
+          "Fa0/1"
+        ],
+        "endpoints": [
+          {
+            "node": "cm-host1",
+            "interfaces": [
+              "cm-host1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "cm-host1-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.10.10/24"
+          }
         ]
       }
     },
@@ -2132,32 +2203,6 @@
         "vlan_id": 10,
         "tagged_on": [
           "Ge0/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-10-cm-host1",
-        "source": "vlan-10",
-        "target": "cm-host1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 10,
-        "untagged_on": [
-          "eth0"
-        ],
-        "endpoints": [
-          {
-            "node": "cm-dist1",
-            "interfaces": [
-              "cm-dist1-fa0-1"
-            ],
-            "interface_names": [
-              "Fa0/1"
-            ],
-            "tagged": false,
-            "resolution": "no_l3"
-          }
         ]
       }
     },
@@ -2242,31 +2287,24 @@
         "vlan_id": 20,
         "tagged_on": [
           "Ge0/1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-20-cm-host2",
-        "source": "vlan-20",
-        "target": "cm-host2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 20,
+        ],
         "untagged_on": [
-          "eth0"
+          "Fa0/1"
         ],
         "endpoints": [
           {
-            "node": "cm-dist2",
+            "node": "cm-host2",
             "interfaces": [
-              "cm-dist2-fa0-1"
+              "cm-host2-eth0"
             ],
             "interface_names": [
-              "Fa0/1"
+              "eth0"
             ],
             "tagged": false,
-            "resolution": "no_l3"
+            "resolution": "direct",
+            "l3_interface": "cm-host2-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.20.10/24"
           }
         ]
       }
