@@ -569,8 +569,16 @@
         "type": "node",
         "role": "server",
         "implementation": "physical",
-        "vlans": [
-          "vlan-100"
+        "l3_interfaces": [
+          {
+            "id": "server1-eth0-l3",
+            "name": "eth0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "server1-eth0"
+            },
+            "ip": "192.168.100.10/24"
+          }
         ]
       }
     },
@@ -582,8 +590,16 @@
         "type": "node",
         "role": "server",
         "implementation": "physical",
-        "vlans": [
-          "vlan-300"
+        "l3_interfaces": [
+          {
+            "id": "server2-eth0-l3",
+            "name": "eth0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "server2-eth0"
+            },
+            "ip": "172.16.30.10/24"
+          }
         ]
       }
     },
@@ -595,8 +611,16 @@
         "type": "node",
         "role": "server",
         "implementation": "physical",
-        "vlans": [
-          "vlan-400"
+        "l3_interfaces": [
+          {
+            "id": "server3-eth0-l3",
+            "name": "eth0",
+            "attachment": "l1_interface",
+            "attaches_to": {
+              "interface": "server3-eth0"
+            },
+            "ip": "172.16.40.10/24"
+          }
         ]
       }
     },
@@ -884,20 +908,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-100-leaf1",
-        "source": "vlan-100",
-        "target": "leaf1",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 100,
-        "tagged_on": [
-          "swp1",
-          "swp2"
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-100-leaf2",
         "source": "vlan-100",
         "target": "leaf2",
@@ -925,14 +935,33 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-100-server1",
+        "id": "vlan-vlan-100-leaf1",
         "source": "vlan-100",
-        "target": "server1",
+        "target": "leaf1",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 100,
+        "tagged_on": [
+          "swp2"
+        ],
         "untagged_on": [
-          "eth0"
+          "swp1"
+        ],
+        "endpoints": [
+          {
+            "node": "server1",
+            "interfaces": [
+              "server1-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "server1-eth0-l3",
+            "name": "eth0",
+            "ip": "192.168.100.10/24"
+          }
         ]
       }
     },
@@ -992,19 +1021,6 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-300-leaf2",
-        "source": "vlan-300",
-        "target": "leaf2",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 300,
-        "tagged_on": [
-          "swp1"
-        ]
-      }
-    },
-    {
-      "data": {
         "id": "vlan-vlan-300-leaf3",
         "source": "vlan-300",
         "target": "leaf3",
@@ -1031,14 +1047,30 @@
     },
     {
       "data": {
-        "id": "vlan-vlan-300-server2",
+        "id": "vlan-vlan-300-leaf2",
         "source": "vlan-300",
-        "target": "server2",
+        "target": "leaf2",
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 300,
         "untagged_on": [
-          "eth0"
+          "swp1"
+        ],
+        "endpoints": [
+          {
+            "node": "server2",
+            "interfaces": [
+              "server2-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "server2-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.30.10/24"
+          }
         ]
       }
     },
@@ -1050,21 +1082,24 @@
         "layer": "layer2",
         "type": "vlan_member",
         "vlan_id": 400,
-        "tagged_on": [
-          "swp1"
-        ]
-      }
-    },
-    {
-      "data": {
-        "id": "vlan-vlan-400-server3",
-        "source": "vlan-400",
-        "target": "server3",
-        "layer": "layer2",
-        "type": "vlan_member",
-        "vlan_id": 400,
         "untagged_on": [
-          "eth0"
+          "swp1"
+        ],
+        "endpoints": [
+          {
+            "node": "server3",
+            "interfaces": [
+              "server3-eth0"
+            ],
+            "interface_names": [
+              "eth0"
+            ],
+            "tagged": false,
+            "resolution": "direct",
+            "l3_interface": "server3-eth0-l3",
+            "name": "eth0",
+            "ip": "172.16.40.10/24"
+          }
         ]
       }
     },
