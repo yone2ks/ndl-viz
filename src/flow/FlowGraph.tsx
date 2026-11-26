@@ -217,6 +217,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     adjacency, vniByVlan: graph.vniByVlan,
     vlanEndpoints: graph.vlanEndpoints,
     vniById: graph.vniById, vlanById: graph.vlanById, vtepNodes: graph.vtepNodes, vtepAddress: graph.vtepAddress,
+    overlayDomainLabel: graph.overlayDomainLabel,
     vlanOnLink: graph.vlanOnLink,
     ifIp: graph.ifIp, sviByVlan: graph.sviByVlan, vlanHue: graph.vlanHue,
     focusVlanId, setFocusVlanId,

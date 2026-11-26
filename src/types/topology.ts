@@ -18,13 +18,21 @@ export interface NodeVtep {
   address?: string
   address_v6?: string
   shared_with?: string[]  // 共有 VTEP の相手ノード（MLAG ペア等）
+  /** 属するオーバーレイのドメイン (mlndl ADR-0029)。ドメインを書いた YAML だけ */
+  overlay_domain?: string
+}
+
+/** VNI のトンネルの対 (mlndl ADR-0029 D7)。同じドメインの VTEP どうし。ドメインを書いた YAML だけ */
+export interface TunnelPair {
+  endpoints: [string, string]
+  overlay_domain: string
 }
 
 export interface CyNodeData {
   id: string
   label: string
   layer: 'layer1' | 'layer2' | 'layer3'
-  type: 'node' | 'vlan' | 'l2vni' | 'l3vni' | 'bridge' | 'ethernet_segment'
+  type: 'node' | 'vlan' | 'l2vni' | 'l3vni' | 'bridge' | 'ethernet_segment' | 'overlay_domain'
   role?: string
   implementation?: string
   description?: string    // 人が読む補足。YAML に書かれたまま (ADR-0011 D7)
@@ -56,6 +64,13 @@ export interface CyNodeData {
   vrf?: string       // l3vni: 紐づく VRF 名
   /** type=node: 終端する VTEP / type=l2vni・l3vni: 載る VTEP の id（l3vni は VRF から導出）*/
   vteps?: NodeVtep[] | string[]
+  /**
+   * type=l2vni・l3vni: トンネルを張る VTEP の対 (mlndl ADR-0029 D7)。ドメインを書いた YAML では必ずある (空もある)。
+   * ないときは vteps のフルメッシュと読む
+   */
+  tunnel_pairs?: TunnelPair[]
+  /** type=l3vni: 同じ VRF の L2VNI のドメインの和集合 (mlndl ADR-0029 D4) */
+  overlay_domains?: string[]
   /** type=node: この機器の LAG (mlndl ADR-0023。LAG は機器 1 台) */
   lags?: NodeLag[]
   /** type=node: この機器のトンネル IF (ADR-0011 D6) */

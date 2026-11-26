@@ -27,6 +27,15 @@ const asBadge = (s: string) => 14 + s.length * 6.3 // AS（9px 等幅の太字�
 const badge = (s: string) => 14 + s.length * 7.3   // ロール・implementation・VRF（9px 太字）
 const ipText = (s: string) => 14 + s.length * 6.3  // ホストのアドレス（10.5px 等幅）
 
+/**
+ * VTEP のバッジの文字。アドレス (なければ source) と、書かれていれば属するオーバーレイのドメインの名前 (mlndl ADR-0029)。
+ * BGW はサイトの中向けと DCI 向けの 2 つの VTEP を持つので、どちらかをドメインで見分ける
+ */
+export function vtepBadgeText(v: NodeVtep, domainLabel: Map<string, string>): string {
+  const addr = (v.address ?? v.address_v6 ?? v.source).replace(/\/(32|128)$/, '')
+  return v.overlay_domain ? `VTEP ${addr} · ${domainLabel.get(v.overlay_domain) ?? v.overlay_domain}` : `VTEP ${addr}`
+}
+
 /** 幅 widths のものを gap で折り返して並べたときの行数（幅を超えるものは中で折り返す）*/
 function rowCount(widths: number[], gap: number): number {
   let rows = 0, x = Infinity
@@ -47,14 +56,14 @@ function block(widths: number[], rowH: number, gap: number, margin: number): num
 const capped = (names: string[], width: (s: string) => number) =>
   [...names.slice(0, MAX_CHIPS).map(width), ...(names.length > MAX_CHIPS ? [20] : [])]
 
-export function cardHeight(nd: CyNodeData): number {
+export function cardHeight(nd: CyNodeData, domainLabel: Map<string, string> = new Map()): number {
   if (nd.role === PROVIDER_NETWORK) return CLOUD_H
   const l3 = nd.l3_interfaces ?? []
   const badges = [badge(roleStyle(nd.role).label)]
   if (nd.implementation) badges.push(badge(nd.implementation))
   if (nd.local_as != null) badges.push(asBadge(`AS ${nd.local_as}`))
 
-  const vteps = ((nd.vteps ?? []) as NodeVtep[]).map(v => mono(`VTEP ${v.address ?? v.address_v6 ?? v.source}`))
+  const vteps = ((nd.vteps ?? []) as NodeVtep[]).map(v => mono(vtepBadgeText(v, domainLabel)))
   const peers = ((nd.bgp_sessions ?? []) as NodeBgpSession[]).filter(s => !s.peer.node)
     .map(s => mono(`→ ${s.peer.address} AS${s.peer.local_as} · eBGP · ${s.address_families.join('+')}`))
   const own = l3.filter(e => e.ip)

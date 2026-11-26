@@ -69,6 +69,7 @@ export interface FlowGraphData {
   vlanById: Map<string, CyNodeData>      // vlan id → VLAN（札を出さない、ポートのない VLAN も）
   vtepNodes: Map<string, string[]>       // vtep id → 終端する node ids（共有 VTEP は複数）
   vtepAddress: Map<string, string>       // vtep id → VTEP のアドレス
+  overlayDomainLabel: Map<string, string> // オーバーレイのドメインの id → 名前 (なければ id。mlndl ADR-0029)
   adjacency: Map<string, Set<string>>
   vlanOnLink: Map<string, VlanRail[]>    // link edge id → そのリンクを通る VLAN
   vlanHue: Map<string, number>           // vlan id → 色相
@@ -106,6 +107,9 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     .filter(nd => nd.type === 'node')
   const allEdges = data.edges.map(e => e.data as CyEdgeData)
   const idSet = new Set(l1Nodes.map(n => n.id))
+  // オーバーレイのドメイン (mlndl ADR-0029)。VTEP のバッジと VXLAN の母線の札に名前を出す
+  const overlayDomainLabel = new Map(data.nodes.map(n => n.data as CyNodeData)
+    .filter(nd => nd.type === 'overlay_domain').map(nd => [nd.id, nd.label] as const))
 
   // ── サイト: labels.site の値ごとにまとめる (ADR-0017 D1)。labels.site のない機器は、そういう機器どうしの
   //    リンクのつながりごとにまとめて離して置く（枠と名前は出さない。書かれていないサイトを推定しない）。
@@ -220,7 +224,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
   const bandH = (rows: number) => rows * VLAN_PILL_H + (rows - 1) * PILL_GAP_Y
 
   // ── 段の縦の位置: カードがいちばん高くなるときの高さと札の帯が収まるよう、段の間隔を広げる（全サイトで段をそろえる）──
-  const cardH = new Map(l1Nodes.map(nd => [nd.id, cardHeight(nd)]))
+  const cardH = new Map(l1Nodes.map(nd => [nd.id, cardHeight(nd, overlayDomainLabel)]))
   const tierCardH = new Map<string, number>()   // `${site}:${tier}` → その段のカードの高さの最大
   l1Nodes.filter(nd => siteOf.has(nd.id)).forEach(nd => {
     const key = `${siteOf.get(nd.id)}:${tierOf.get(nd.id)}`
@@ -446,7 +450,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
     if (Math.abs(p.y - q.y) > CARD_H / 2) return false
     return l1Nodes.some(nd => {
       if (nd.id === a || nd.id === b) return false
-      const c = centerOf(nd.id), hh = cardHeight(nd) / 2
+      const c = centerOf(nd.id), hh = cardH.get(nd.id)! / 2
       for (let i = 1; i < 32; i++) {
         const x = p.x + (q.x - p.x) * i / 32, y = p.y + (q.y - p.y) * i / 32
         if (Math.abs(x - c.x) < CARD_W / 2 && Math.abs(y - c.y) < hh) return true
@@ -507,7 +511,7 @@ export function buildFlow(data: TopologyData): FlowGraphData {
 
   return {
     nodes, edges, tiers, sites, segmentFrames, linkBundles: linkBundlesOf(l1Links), vlanMembers, vniByVlan, vlanEndpoints, vniById, vlanById, vtepNodes, vtepAddress,
-    adjacency,
+    overlayDomainLabel, adjacency,
     vlanOnLink, vlanHue, ifIp, sviByVlan, siteIdOf, cardHeights: cardH,
     graphW: totalW,
     graphH: globalMaxY + 80,
