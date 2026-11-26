@@ -23,6 +23,8 @@ export interface FlowCtxValue {
   vlanEndpoints: Map<string, Map<string, VlanEndpoint[]>>
   vtepNodes: Map<string, string[]>
   vtepAddress: Map<string, string>
+  /** オーバーレイのドメインの id → 名前 (なければ id。mlndl ADR-0029) */
+  overlayDomainLabel: Map<string, string>
   vlanOnLink: Map<string, VlanRail[]>
   /** node id → (IF 名 → IP)。リンク端点の IP 表示用 */
   ifIp: Map<string, Map<string, string>>

@@ -24,6 +24,7 @@ import type { CyNodeData, NodeVtep, NodeBgpSession } from '../types/topology'
 import type { VlanEndpoint } from './layout'
 import { l3Name, isVlanIf } from './l3'
 import { afShort, bgpTypeLabel } from './session'
+import { vtepBadgeText } from './cardSize'
 
 const lodSelector = (s: { transform: [number, number, number] }): Lod => lodOf(s.transform[2])
 
@@ -38,7 +39,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const t = useT()
   const { overlays, hoveredId, setHoveredId, adjacency, ifIp, vlanHue, setFocusVlanId, focusVlanId,
     query, matchedIds, vniFocusNodes, vlanEndpoints, bundle, focusVrf, selectVrf, vrfFocusNodes,
-    vrfL3vni } = useFlowCtx()
+    vrfL3vni, focusVniId, vniById, overlayDomainLabel } = useFlowCtx()
 
   const searchActive = query !== ''
   const matched = matchedIds.has(id)
@@ -54,6 +55,8 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       : hoveredId !== null && hoveredId !== id && !adjacency.get(hoveredId)?.has(id)
   // 終端する VTEP（L2 overlay ON 時。ADR-0014）
   const vteps = overlays.has('l2') && lod !== 'far' ? (nd.vteps ?? []) as NodeVtep[] : []
+  // 光らせる VTEP: 選んだ VNI (なければ選んだ VRF の L3VNI) に載るもの。BGW のように VTEP を 2 つ持つ機器でも、載るものだけ
+  const litVteps = new Set(((focusVniId ? vniById.get(focusVniId) : vrfL3vni)?.vteps ?? []) as string[])
   // クエリにマッチした l3_interface（IP 検索の該当 IF を強調表示）
   const hitIfs = searchActive && matched
     ? (nd.l3_interfaces ?? []).filter(e =>
@@ -147,9 +150,8 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       {vteps.length > 0 && (
         <div className="card-vteps">
           {vteps.map(v => (
-            <span key={v.id} className={`badge badge-vtep${vniFocusNodes?.has(id)
-              || ((vrfL3vni?.vteps ?? []) as string[]).includes(v.id) ? ' is-focused' : ''}`}>
-              VTEP {(v.address ?? v.address_v6 ?? v.source).replace(/\/(32|128)$/, '')}
+            <span key={v.id} className={`badge badge-vtep${litVteps.has(v.id) ? ' is-focused' : ''}`}>
+              {vtepBadgeText(v, overlayDomainLabel)}
             </span>
           ))}
         </div>

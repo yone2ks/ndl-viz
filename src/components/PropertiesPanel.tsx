@@ -131,7 +131,8 @@ function summarize(t: Messages, key: string, o: Obj): ReactNode {
     // VTEP は name を持たない。ネットワークの中で VTEP を表すのはアドレスなので、1 行目はアドレス (なければ id)
     const addr = o.address ?? o.address_v6
     const items = [o.source && `source ${String(o.source)}`,
-      Array.isArray(o.shared_with) && t.sharedWith(o.shared_with.join(', '))]
+      Array.isArray(o.shared_with) && t.sharedWith(o.shared_with.join(', ')),
+      o.overlay_domain && `overlay_domain ${String(o.overlay_domain)}`]
     return <><code>{String(addr ?? o.id)}</code>
       {notesOf(addr ? o.id : undefined, items, o.description)}</>
   }
