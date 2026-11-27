@@ -39,7 +39,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const t = useT()
   const { overlays, hoveredId, setHoveredId, adjacency, ifIp, vlanHue, setFocusVlanId, focusVlanId,
     query, matchedIds, vniFocusNodes, vlanEndpoints, bundle, focusVrf, selectVrf, vrfFocusNodes,
-    vrfL3vni, focusVniId, vniById, overlayDomainLabel } = useFlowCtx()
+    vrfL3vni, focusVniId, vniById, overlayDomainLabel, cp } = useFlowCtx()
 
   const searchActive = query !== ''
   const matched = matchedIds.has(id)
@@ -68,9 +68,11 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   // 選択中の VLAN の端点なら、その IF と IP をカードに出す（hostIp はそちらに任せる。ADR-0013 D7）
   const endpoints = groupEndpoints(focusVlanId ? vlanEndpoints.get(focusVlanId)?.get(id) ?? [] : [])
   const showHostIp = !!hostIp && !endpoints.some(g => g.ip)
-  const showAs  = lod !== 'far' && overlays.has('bgp') && nd.local_as
+  // AS とトポロジー外の相手は BGP のもの。制御プレーンで BGP を出しているときだけ
+  const bgpShown = overlays.has('cp') && cp.protocols.has('bgp')
+  const showAs  = lod !== 'far' && bgpShown && nd.local_as
   // トポロジー外の相手との BGP セッションは線にならないので、カードに出す (ADR-0010 D11。トンネルの destination_ip と同じ)
-  const outsidePeers = lod !== 'far' && overlays.has('bgp')
+  const outsidePeers = lod !== 'far' && bgpShown
     ? ((nd.bgp_sessions ?? []) as NodeBgpSession[]).filter(s => !s.peer.node) : []
   const showVrf = (lod === 'near' || lod === 'detail') && overlays.has('l3')
   const vrfs = showVrf ? (nd.vrfs ?? []).filter(v => v !== 'vrf-default') : []

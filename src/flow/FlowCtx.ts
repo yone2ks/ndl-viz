@@ -4,6 +4,7 @@
 import { createContext, useContext } from 'react'
 import type { OverlayKey, CyNodeData } from '../types/topology'
 import type { VlanRail, VlanEndpoint, LinkBundle } from './layout'
+import type { CpView } from './session'
 
 export type Lod = 'far' | 'mid' | 'near' | 'detail'
 
@@ -54,8 +55,10 @@ export interface FlowCtxValue {
   matchedIds: Set<string>
   /** フォーカス中のリンク (ホバーか選択) が入る LAG / Ethernet Segment の組。なければ null */
   bundle: LinkBundle | null
-  /** 凡例で外した BGP の AF (address_families の値)。外した AF だけを運ぶセッションの線は出さない */
-  hiddenAfs: Set<string>
+  /** 制御プレーンのボタンの ▾ で選んだもの (出すプロトコル・隠す AF・線を出す範囲) */
+  cp: CpView
+  /** 押して選んだ機器。制御プレーンの範囲が「選んだ機器だけ」のとき、この機器のセッションを出す */
+  focusNodeId: string | null
 }
 
 export const FlowCtx = createContext<FlowCtxValue | null>(null)

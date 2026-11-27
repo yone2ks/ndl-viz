@@ -51,6 +51,8 @@ body {
   border-bottom: 1px solid rgba(124, 140, 248, 0.16);
   backdrop-filter: blur(10px);
   flex-shrink: 0;
+  position: relative;
+  z-index: 20;   /* 制御プレーンのメニューを図の上に出す */
 }
 
 .brand {
@@ -206,6 +208,41 @@ body {
   color: #1e293b;
   background: color-mix(in srgb, var(--chip) 14%, white);
 }
+
+/* ── 制御プレーンのボタン (本体と ▾ に割る) とメニュー ── */
+.cp-split { position: relative; }
+.cp-btn { padding: 0; gap: 0; overflow: hidden; }
+.cp-btn > button {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: transparent; border: none; color: inherit; font: inherit; cursor: pointer;
+}
+.cp-main { padding: 5px 10px 5px 13px; white-space: nowrap; }
+.cp-caret { padding: 5px 10px 5px 8px; border-left: 1px solid rgba(148, 163, 184, 0.25) !important; }
+.cp-btn > button:hover { background: rgba(148, 163, 184, 0.12); }
+.cp-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; min-width: 230px;
+  padding: 8px 12px 10px; border-radius: 12px;
+  background: rgba(15, 21, 38, 0.98); border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  font-size: 12.5px; color: var(--text);
+}
+.cp-sec { font-size: 10.5px; color: var(--text-muted); margin: 8px 0 4px; }
+.cp-sec:first-child { margin-top: 2px; }
+.cp-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+.cp-item input { margin: 0; accent-color: #FB923C; }
+.cp-item:has(input:disabled) { opacity: 0.45; cursor: default; }
+.cp-sub { padding-left: 22px; font-family: 'SF Mono', monospace; font-size: 11.5px; }
+.cp-count { margin-left: auto; padding-left: 12px; font-size: 11px; color: var(--text-muted); font-family: 'SF Mono', monospace; }
+.cp-seg { display: flex; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; overflow: hidden; }
+.cp-seg button {
+  flex: 1; padding: 5px 8px; border: none; background: transparent; color: var(--text-muted);
+  font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.cp-seg button + button { border-left: 1px solid rgba(148, 163, 184, 0.3); }
+.cp-seg button.is-on { background: rgba(251, 146, 60, 0.18); color: var(--text); }
+.cp-hint, .cp-empty { margin-top: 6px; font-size: 11px; color: var(--text-muted); }
+[data-theme="light"] .cp-menu { background: rgba(255, 255, 255, 0.98); border-color: rgba(100, 116, 139, 0.25); box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14); }
+[data-theme="light"] .cp-seg button.is-on { background: rgba(251, 146, 60, 0.16); color: #9a3412; }
 
 /* ── File Loader ── */
 .file-loader { flex-shrink: 0; }

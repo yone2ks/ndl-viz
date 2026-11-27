@@ -7,18 +7,46 @@
 import { OVERLAY_STYLE, type LineStyle } from './palette'
 import type { CyEdgeData, OverlayKey, SessionEndData, TransportLink } from '../types/topology'
 
-/** 線をどの層のボタンで出すか。BGP は BGP、OSPF / IS-IS は Layer 3。attaches_to は常に出す。L1 リンクは null */
+/** 線をどのボタンで出すか。セッション (BGP / OSPF / IS-IS) は制御プレーン。attaches_to は常に出す。L1 リンクは null */
 export function overlayOf(d: CyEdgeData): OverlayKey | 'always' | null {
-  if (d.type === 'routing_neighbor') return d.protocol === 'bgp' ? 'bgp' : 'l3'
+  if (d.type === 'routing_neighbor') return 'cp'
   if (d.type === 'vlan_member') return 'l2'
   if (d.type === 'attaches_to') return 'always'
   return null
 }
 
-/** BGP は凡例で外した AF だけを運ぶセッションを隠す (AF を書いていないセッションは絞らない) */
-export function afsHidden(d: CyEdgeData, hiddenAfs: Set<string>): boolean {
+/** セッションのプロトコル (routing_neighbor の protocol) の表示名 */
+export const PROTOCOL_LABEL: Record<string, string> = { bgp: 'BGP', ospf: 'OSPF', isis: 'IS-IS' }
+export const protocolLabel = (p: string): string => PROTOCOL_LABEL[p] ?? p.toUpperCase()
+
+/**
+ * 制御プレーンのボタンの ▾ で選んだもの。protocols は出すプロトコル、hiddenAfs は隠す BGP の AF、
+ * scope は線を出す範囲 (all: すべて / selected: 選んだ機器のセッションだけ)
+ */
+export interface CpView {
+  protocols: ReadonlySet<string>
+  hiddenAfs: ReadonlySet<string>
+  scope: 'all' | 'selected'
+}
+
+/**
+ * セッションの線を出すか (制御プレーンのボタンが押されている前提)。
+ * BGP は隠した AF だけを運ぶセッションを隠す (AF を書いていないセッションは絞らない)。
+ * scope が selected なら、選んだ機器 (focusNodeId) を端に持つセッションだけ
+ */
+export function sessionShown(d: CyEdgeData, cp: CpView, focusNodeId: string | null): boolean {
+  if (d.type !== 'routing_neighbor') return true
+  if (!cp.protocols.has(d.protocol ?? '')) return false
   const afs = d.address_families ?? []
-  return d.type === 'routing_neighbor' && d.protocol === 'bgp' && afs.length > 0 && afs.every(af => hiddenAfs.has(af))
+  if (d.protocol === 'bgp' && afs.length > 0 && afs.every(af => cp.hiddenAfs.has(af))) return false
+  if (cp.scope === 'selected') return !!focusNodeId && (d.source === focusNodeId || d.target === focusNodeId)
+  return true
+}
+
+/** 辺を出すか: その辺のボタンが押されていて、セッションなら ▾ で選んだものに入るか */
+export function edgeShown(d: CyEdgeData, overlays: ReadonlySet<OverlayKey>, cp: CpView, focusNodeId: string | null): boolean {
+  const kind = overlayOf(d)
+  return kind === 'always' || (kind !== null && overlays.has(kind) && sessionShown(d, cp, focusNodeId))
 }
 
 /** address_families の値 (YAML) → 表示名 */

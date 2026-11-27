@@ -893,30 +893,12 @@ button.vni-tab { cursor: pointer; line-height: inherit; }
 .legend-body { padding: 0 10px 8px; display: grid; gap: 4px; }
 .legend-row { display: flex; align-items: center; gap: 8px; }
 .legend-row span { overflow-wrap: anywhere; }
-.legend-roles { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-.legend-role {
-  padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(251, 146, 60, 0.55);
-  background: rgba(251, 146, 60, 0.14);
-  color: #fdba74;
-  font: inherit; font-size: 10px;
-  cursor: pointer;
-}
-.legend-role.is-off {
-  border-color: rgba(148, 163, 184, 0.3);
-  background: transparent;
-  color: #64748b;
-  text-decoration: line-through;
-}
 [data-theme="light"] .flow-legend {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(100, 116, 139, 0.25);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
   color: #334155;
 }
-[data-theme="light"] .legend-role { color: #c2410c; }
-[data-theme="light"] .legend-role.is-off { color: #94a3b8; }
 
 /* ── 制御プレーンのセッション (ADR-0010 D11) ── */
 /* 端の札: その端の AS とアドレス。線と同じ色の枠 */

@@ -259,4 +259,4 @@ export interface TopologyData {
 }
 
 // L1 は常時表示、L2/L3/BGP はオーバーレイとしてトグル
-export type OverlayKey = 'l2' | 'l3' | 'bgp'
+export type OverlayKey = 'l2' | 'l3' | 'cp'
