@@ -44,7 +44,8 @@ export default function ControlPlaneButton({ active, color, stats, view, onToggl
 
   const shown = stats.protocols.filter(p => view.protocols.has(p.key)
     && (p.key !== 'bgp' || stats.afs.length === 0 || stats.afs.some(af => !view.hiddenAfs.has(af.key))))
-  const name = active && shown.length ? `${t.cpLabel} · ${shown.map(p => protocolLabel(p.key)).join(' + ')}` : t.cpLabel
+  // 窓が狭いときは CSS で detail を隠し、「制御プレーン」だけにする (中身は ▾ のメニューで分かる)
+  const detail = active && shown.length ? shown.map(p => protocolLabel(p.key)).join(' + ') : null
 
   const toggleIn = (set: ReadonlySet<string>, key: string) => {
     const next = new Set(set)
@@ -58,7 +59,8 @@ export default function ControlPlaneButton({ active, color, stats, view, onToggl
         style={active ? ({ '--chip': color } as React.CSSProperties) : undefined}>
         <button type="button" className="cp-main" data-tip={t.tipCp} onClick={onToggle}>
           <span className="dot" style={{ background: color, opacity: active ? 1 : 0.35 }} />
-          {name}
+          {t.cpLabel}
+          {detail && <span className="cp-detail">· {detail}</span>}
         </button>
         <button type="button" className="cp-caret" aria-label={t.cpMenu} aria-expanded={open}
           data-tip={open ? undefined : t.cpMenu} onClick={() => setOpen(o => !o)}>▾</button>
