@@ -62,6 +62,8 @@ const VLAN_FOCUS_PADDING = { ...FOCUS_PADDING, bottom: '240px' } as const
 const CARD_CLOSE_ZOOM = 1.6
 /** クリックで画面を動かすまで待つ時間。この間に 2 回目が来たらダブルクリックとして近づくだけにする (向きの違う動きが続けて走らないように) */
 const CLICK_SETTLE_MS = 300
+/** カードを押して周りを見る / 近づくときの画面の動きの長さ。速いとどこへ動いたか追えない */
+const FOCUS_MOVE_MS = 800
 
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
@@ -231,7 +233,7 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
   // VLAN の札: 全体を見せる
   const showAround = useCallback((node: Node) => {
     if (node.type === 'vlan') {
-      fitView({ ...FIT_VIEW, duration: 450 })
+      fitView({ ...FIT_VIEW, duration: FOCUS_MOVE_MS })
       return
     }
     const hosts = new Set(graph.edges
@@ -240,7 +242,7 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
     const around = graph.nodes.filter(n => n.type === 'device'
       && (n.id === node.id || (adjacency.get(node.id)?.has(n.id) && !hosts.has(n.id))))
     fitView({ nodes: around.map(n => ({ id: n.id })), padding: FOCUS_PADDING,
-      maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
+      maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
   }, [fitView, getZoom, graph, adjacency])
 
   // 機器: そのカードに近づく。VLAN の札: 札とポートを持つ機器まで近づく
@@ -249,29 +251,35 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
       const members = new Set(graph.vlanMembers.get(node.id) ?? [])
       const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
       fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
-        maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
+        maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
       return
     }
     fitView({ nodes: [{ id: node.id }], padding: FOCUS_PADDING,
-      maxZoom: Math.max(getZoom(), CARD_CLOSE_ZOOM), duration: 450 })
+      maxZoom: Math.max(getZoom(), CARD_CLOSE_ZOOM), duration: FOCUS_MOVE_MS })
   }, [fitView, getZoom, graph])
 
   // 1 回目は選んで周りを見る (VLAN の札は全体を見せたまま)。選んであるカードをもう一度押すと近づき、さらに押すと周りに戻る。
-  // 選ぶ (パネル・強調) のはすぐ。画面を動かすのは少し待ち、その間に 2 回目が来たらダブルクリックとして近づくだけにする。
+  // ダブルクリックも 1 回の操作として同じように切り替える (選んでいなければ近づく、近づいていれば周りに戻る)。
+  // 選ぶ (パネル・強調) のはすぐ。画面を動かすのは少し待ち、その間に 2 回目が来たら 1 回目の動きを取り消す。
   // 待たないと、ダブルクリックの 1 回目と 2 回目で引く動きと寄る動きが続けて走り、画面が揺れる
   const pendingMove = useRef<number | undefined>(undefined)
+  // 直前の 1 回目のクリックの前に、そのカードに近づいていたか。ダブルクリックの 2 回目で、どちらへ動くかを決める
+  const beforeClick = useRef<{ id: string; wasClose: boolean } | null>(null)
   useEffect(() => () => window.clearTimeout(pendingMove.current), [])
   const handleNodeClick = useCallback((e: React.MouseEvent, node: Node) => {
     window.clearTimeout(pendingMove.current)
     onSelect({ data: node.data as unknown as CyNodeData })
     onCanvasClick?.()
     const isVlan = node.type === 'vlan'
-    // ダブルクリックの 2 回目 (detail はブラウザが数える連続クリックの回数): いつも近づく
+    // ダブルクリックの 2 回目 (detail はブラウザが数える連続クリックの回数): 1 回目の前に近づいていれば周りに戻り、そうでなければ近づく
     if (e.detail >= 2) {
-      setCloseId(node.id)
-      showClose(node)
+      const wasClose = beforeClick.current?.id === node.id && beforeClick.current.wasClose
+      setCloseId(wasClose ? null : node.id)
+      if (wasClose) showAround(node)
+      else showClose(node)
       return
     }
+    beforeClick.current = { id: node.id, wasClose: closeId === node.id }
     const already = node.id === (isVlan ? focusVlanId : focusNodeId)
     if (!already) {
       setFocusVrf(null)
