@@ -8,13 +8,15 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { useFlowCtx } from './FlowCtx'
+import { useT } from '../i18n'
 import type { CyNodeData } from '../types/topology'
 
 export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps) {
   const nd = data as unknown as CyNodeData & { hue?: number; pillW?: number }
   const { overlays, vniByVlan, sviByVlan, hoveredId, setHoveredId, adjacency,
     query, matchedIds, focusVlanId, focusVniId, setFocusVniId, vniFocusNodes, bundle,
-    focusVrf, selectVrf, vrfFocusNodes } = useFlowCtx()
+    focusVrf, selectVrf, vrfFocusNodes, closeId } = useFlowCtx()
+  const t = useT()
   const visible = overlays.has('l2')
   const open = focusVlanId === id
   const title = nd.label?.split('\n')[0] ?? nd.id
@@ -36,6 +38,7 @@ export const VlanNode = memo(function VlanNode({ id, data, selected }: NodeProps
     <div
       className={`vlan-node${visible ? '' : ' is-hidden'}${selected ? ' is-selected' : ''}${dim ? ' is-dim' : ''}${open ? ' is-open' : ''}`}
       style={{ '--vhue': hue, width: nd.pillW } as React.CSSProperties}
+      data-tip={open ? (closeId === id ? t.tipClickOverview : t.tipClickClose) : undefined}
       onMouseEnter={() => setHoveredId(id)}
       onMouseLeave={() => setHoveredId(null)}>
       <Handle type="target" position={Position.Top} className="hidden-handle" />

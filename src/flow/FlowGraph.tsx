@@ -1,7 +1,7 @@
 /**
  * FlowGraph — React Flow ベースのトポロジービューワ本体
  */
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant,
   MiniMap, Controls, useReactFlow,
@@ -56,8 +56,14 @@ function vrfMembers(data: TopologyData, vrf: string) {
 const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
 /** 機器を押して隣まで見せるときの余白。左は凡例、右はプロパティの枠の分をあける */
 const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340px' } as const
-/** VLAN をダブルクリックしてズームするときの余白。札の下に広がるカードが入るよう、下を多くあける */
+/** VLAN の札をもう一度押して近づくときの余白。札の下に広がるカードが入るよう、下を多くあける */
 const VLAN_FOCUS_PADDING = { ...FOCUS_PADDING, bottom: '240px' } as const
+/** 機器のカードをもう一度押して近づくときの拡大の上限 (カードの小さな文字が読める大きさ) */
+const CARD_CLOSE_ZOOM = 1.6
+/** クリックで画面を動かすまで待つ時間。この間に 2 回目が来たらダブルクリックとして近づくだけにする (向きの違う動きが続けて走らないように) */
+const CLICK_SETTLE_MS = 300
+/** カードを押して周りを見る / 近づくときの画面の動きの長さ。速いとどこへ動いたか追えない */
+const FOCUS_MOVE_MS = 800
 
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
@@ -135,7 +141,9 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
   // VRF のバッジを押したときのフォーカス
   const [focusVrf, setFocusVrf] = useState<string | null>(null)
-  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes); setFocusNodeId(null); setFocusVrf(null) }
+  // 選んだカードをもう一度押して近づいたとき、そのカードの id。もう一度押すと周りを見る画面に戻る
+  const [closeId, setCloseId] = useState<string | null>(null)
+  if (graph !== prevGraph) { setPrevGraph(graph); setNodes(graph.nodes); setFocusNodeId(null); setFocusVrf(null); setCloseId(null) }
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes(ns => applyNodeChanges(changes, ns)),
     [],
@@ -181,7 +189,7 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
   // VRF を選ぶ (null で外す)。パネルにはその VRF の中身を出す
   const selectVrf = useCallback((vrf: string | null) => {
     setFocusVrf(vrf)
-    setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null)
+    setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setCloseId(null)
     onCanvasClick?.()
     if (!vrf) { onSelect(null); return }
     const { vlans, devices, l3vnis } = vrfMembers(data, vrf)
@@ -217,47 +225,85 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
     focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
-    query: q, matchedIds, cp, focusNodeId, bundle,
+    query: q, matchedIds, cp, focusNodeId, bundle, closeId,
   }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
-    graph, adjacency, q, matchedIds, cp, bundle])
+    graph, adjacency, q, matchedIds, cp, bundle, closeId])
 
-  const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
-    onSelect({ data: node.data as unknown as CyNodeData })
-    onCanvasClick?.()
-    setFocusVrf(null)
-    setFocusVlanId(node.type === 'vlan' ? node.id : null)
-    setFocusVniId(null)
-    setFocusNodeId(node.type === 'vlan' ? null : node.id)
-    setFocusLinkId(null)
-    // VLAN カード選択時はズームインせず全体俯瞰のままフォーカスを見せる (ズームはダブルクリック)。機器は隣の機器まで画面に入れる
-    if (node.type !== 'vlan') {
-      // VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）
-      const hosts = new Set(graph.edges
-        .filter(e => (e.data as unknown as CyEdgeData).type === 'attaches_to' && e.source === node.id)
-        .map(e => e.target))
-      const around = graph.nodes.filter(n => n.type === 'device'
-        && (n.id === node.id || (adjacency.get(node.id)?.has(n.id) && !hosts.has(n.id))))
-      fitView({ nodes: around.map(n => ({ id: n.id })), padding: FOCUS_PADDING,
-        maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
+  // 機器: 隣の機器まで画面に入れる。VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）。
+  // VLAN の札: 全体を見せる
+  const showAround = useCallback((node: Node) => {
+    if (node.type === 'vlan') {
+      fitView({ ...FIT_VIEW, duration: FOCUS_MOVE_MS })
+      return
     }
-  }, [onSelect, onCanvasClick, fitView, getZoom, graph, adjacency])
+    const hosts = new Set(graph.edges
+      .filter(e => (e.data as unknown as CyEdgeData).type === 'attaches_to' && e.source === node.id)
+      .map(e => e.target))
+    const around = graph.nodes.filter(n => n.type === 'device'
+      && (n.id === node.id || (adjacency.get(node.id)?.has(n.id) && !hosts.has(n.id))))
+    fitView({ nodes: around.map(n => ({ id: n.id })), padding: FOCUS_PADDING,
+      maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
+  }, [fitView, getZoom, graph, adjacency])
 
-  // VLAN はクリックでは全体を見せたまま。ダブルクリックで、機器を押したときと同じように札とポートを持つ機器までズームする
-  const handleNodeDoubleClick = useCallback((_e: React.MouseEvent, node: Node) => {
-    if (node.type !== 'vlan') return
-    const members = new Set(graph.vlanMembers.get(node.id) ?? [])
-    const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
-    fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
-      maxZoom: Math.max(getZoom(), 1.1), duration: 450 })
+  // 機器: そのカードに近づく。VLAN の札: 札とポートを持つ機器まで近づく
+  const showClose = useCallback((node: Node) => {
+    if (node.type === 'vlan') {
+      const members = new Set(graph.vlanMembers.get(node.id) ?? [])
+      const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
+      fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
+        maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
+      return
+    }
+    fitView({ nodes: [{ id: node.id }], padding: FOCUS_PADDING,
+      maxZoom: Math.max(getZoom(), CARD_CLOSE_ZOOM), duration: FOCUS_MOVE_MS })
   }, [fitView, getZoom, graph])
 
+  // 1 回目は選んで周りを見る (VLAN の札は全体を見せたまま)。選んであるカードをもう一度押すと近づき、さらに押すと周りに戻る。
+  // ダブルクリックも 1 回の操作として同じように切り替える (選んでいなければ近づく、近づいていれば周りに戻る)。
+  // 選ぶ (パネル・強調) のはすぐ。画面を動かすのは少し待ち、その間に 2 回目が来たら 1 回目の動きを取り消す。
+  // 待たないと、ダブルクリックの 1 回目と 2 回目で引く動きと寄る動きが続けて走り、画面が揺れる
+  const pendingMove = useRef<number | undefined>(undefined)
+  // 直前の 1 回目のクリックの前に、そのカードに近づいていたか。ダブルクリックの 2 回目で、どちらへ動くかを決める
+  const beforeClick = useRef<{ id: string; wasClose: boolean } | null>(null)
+  useEffect(() => () => window.clearTimeout(pendingMove.current), [])
+  const handleNodeClick = useCallback((e: React.MouseEvent, node: Node) => {
+    window.clearTimeout(pendingMove.current)
+    onSelect({ data: node.data as unknown as CyNodeData })
+    onCanvasClick?.()
+    const isVlan = node.type === 'vlan'
+    // ダブルクリックの 2 回目 (detail はブラウザが数える連続クリックの回数): 1 回目の前に近づいていれば周りに戻り、そうでなければ近づく
+    if (e.detail >= 2) {
+      const wasClose = beforeClick.current?.id === node.id && beforeClick.current.wasClose
+      setCloseId(wasClose ? null : node.id)
+      if (wasClose) showAround(node)
+      else showClose(node)
+      return
+    }
+    beforeClick.current = { id: node.id, wasClose: closeId === node.id }
+    const already = node.id === (isVlan ? focusVlanId : focusNodeId)
+    if (!already) {
+      setFocusVrf(null)
+      setFocusVlanId(isVlan ? node.id : null)
+      setFocusVniId(null)
+      setFocusNodeId(isVlan ? null : node.id)
+      setFocusLinkId(null)
+    }
+    const close = already && closeId !== node.id
+    setCloseId(close ? node.id : null)
+    // VLAN の札は 1 回目では画面を動かさない
+    if (!close && !already && isVlan) return
+    pendingMove.current = window.setTimeout(() => (close ? showClose(node) : showAround(node)), CLICK_SETTLE_MS)
+  }, [onSelect, onCanvasClick, focusVlanId, focusNodeId, closeId, showAround, showClose])
+
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
+    window.clearTimeout(pendingMove.current)
     onSelect({ data: edge.data as unknown as CyEdgeData })
     onCanvasClick?.()
     setFocusVrf(null)
     setFocusVlanId(null)
     setFocusVniId(null)
     setFocusLinkId(edge.type === 'link' ? edge.id : null)
+    setCloseId(null)
   }, [onSelect, onCanvasClick])
 
   return (
@@ -274,11 +320,10 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
         maxZoom={4}
         proOptions={{ hideAttribution: true }}
         onNodeClick={handleNodeClick}
-        onNodeDoubleClick={handleNodeDoubleClick}
         onEdgeClick={handleEdgeClick}
         onEdgeMouseEnter={(_e, edge) => { if (edge.type === 'link') setHoveredLinkId(edge.id) }}
         onEdgeMouseLeave={() => setHoveredLinkId(null)}
-        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setFocusVrf(null) }}
+        onPaneClick={() => { window.clearTimeout(pendingMove.current); onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setFocusVrf(null); setCloseId(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}

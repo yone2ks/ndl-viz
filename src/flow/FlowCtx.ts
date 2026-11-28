@@ -59,6 +59,8 @@ export interface FlowCtxValue {
   cp: CpView
   /** 押して選んだ機器。制御プレーンの範囲が「選んだ機器だけ」のとき、この機器のセッションを出す */
   focusNodeId: string | null
+  /** もう一度押して近づいたカード (機器か VLAN の札)。もう一度押すと周りを見る画面に戻る */
+  closeId: string | null
 }
 
 export const FlowCtx = createContext<FlowCtxValue | null>(null)

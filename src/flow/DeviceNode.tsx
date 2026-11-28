@@ -39,7 +39,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
   const t = useT()
   const { overlays, hoveredId, setHoveredId, adjacency, ifIp, vlanHue, setFocusVlanId, focusVlanId,
     query, matchedIds, vniFocusNodes, vlanEndpoints, bundle, focusVrf, selectVrf, vrfFocusNodes,
-    vrfL3vni, focusVniId, vniById, overlayDomainLabel, cp } = useFlowCtx()
+    vrfL3vni, focusVniId, vniById, overlayDomainLabel, cp, focusNodeId, closeId } = useFlowCtx()
 
   const searchActive = query !== ''
   const matched = matchedIds.has(id)
@@ -101,6 +101,9 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       : []
   const shownSvis = svis.filter(([v], i) => i < MAX_SVI_CHIPS || v === focusVlanId)
 
+  // 選んだカードにだけ、もう一度押したときの動きを添える
+  const clickTip = focusNodeId === id ? (closeId === id ? t.tipClickAround : t.tipClickClose) : undefined
+
   // 事業者網の箱は雲で描く。中の機器は書かれない (ADR-0017 D3) ので、名前と種類と、
   // 箱のポートで L2 を転送する bridge (ADR-0018 D1) だけを出す。bridge のない箱は L2 で透過しない
   if (nd.role === PROVIDER_NETWORK) {
@@ -109,6 +112,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
       <div
         className={`cloud-card${dim ? ' is-dim' : ''}${selected ? ' is-selected' : ''}${searchActive && matched ? ' is-hit' : ''}`}
         style={{ '--accent': rs.accent } as React.CSSProperties}
+        data-tip={clickTip}
         onMouseEnter={() => setHoveredId(id)}
         onMouseLeave={() => setHoveredId(null)}
       >
@@ -129,6 +133,7 @@ export const DeviceNode = memo(function DeviceNode({ id, data, selected }: NodeP
     <div
       className={`device-card${dim ? ' is-dim' : ''}${selected ? ' is-selected' : ''}${searchActive && matched ? ' is-hit' : ''}`}
       style={{ '--accent': rs.accent } as React.CSSProperties}
+      data-tip={clickTip}
       onMouseEnter={() => setHoveredId(id)}
       onMouseLeave={() => setHoveredId(null)}
     >
