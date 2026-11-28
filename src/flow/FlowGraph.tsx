@@ -1,7 +1,7 @@
 /**
  * FlowGraph — React Flow ベースのトポロジービューワ本体
  */
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant,
   MiniMap, Controls, useReactFlow,
@@ -60,6 +60,8 @@ const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340p
 const VLAN_FOCUS_PADDING = { ...FOCUS_PADDING, bottom: '240px' } as const
 /** 機器のカードをもう一度押して近づくときの拡大の上限 (カードの小さな文字が読める大きさ) */
 const CARD_CLOSE_ZOOM = 1.6
+/** クリックで画面を動かすまで待つ時間。この間に 2 回目が来たらダブルクリックとして近づくだけにする (向きの違う動きが続けて走らないように) */
+const CLICK_SETTLE_MS = 300
 
 /** ノード data から検索対象テキストを連結（小文字）*/
 function nodeSearchText(d: CyNodeData): string {
@@ -255,26 +257,38 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
   }, [fitView, getZoom, graph])
 
   // 1 回目は選んで周りを見る (VLAN の札は全体を見せたまま)。選んであるカードをもう一度押すと近づき、さらに押すと周りに戻る。
-  // ダブルクリックとは区別しない (ダブルクリックは「選ぶ → 近づく」になる)
-  const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
+  // 選ぶ (パネル・強調) のはすぐ。画面を動かすのは少し待ち、その間に 2 回目が来たらダブルクリックとして近づくだけにする。
+  // 待たないと、ダブルクリックの 1 回目と 2 回目で引く動きと寄る動きが続けて走り、画面が揺れる
+  const pendingMove = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(pendingMove.current), [])
+  const handleNodeClick = useCallback((e: React.MouseEvent, node: Node) => {
+    window.clearTimeout(pendingMove.current)
     onSelect({ data: node.data as unknown as CyNodeData })
     onCanvasClick?.()
     const isVlan = node.type === 'vlan'
-    if (node.id === (isVlan ? focusVlanId : focusNodeId)) {
-      if (closeId === node.id) { setCloseId(null); showAround(node) }
-      else { setCloseId(node.id); showClose(node) }
+    // ダブルクリックの 2 回目 (detail はブラウザが数える連続クリックの回数): いつも近づく
+    if (e.detail >= 2) {
+      setCloseId(node.id)
+      showClose(node)
       return
     }
-    setCloseId(null)
-    setFocusVrf(null)
-    setFocusVlanId(isVlan ? node.id : null)
-    setFocusVniId(null)
-    setFocusNodeId(isVlan ? null : node.id)
-    setFocusLinkId(null)
-    if (!isVlan) showAround(node)
+    const already = node.id === (isVlan ? focusVlanId : focusNodeId)
+    if (!already) {
+      setFocusVrf(null)
+      setFocusVlanId(isVlan ? node.id : null)
+      setFocusVniId(null)
+      setFocusNodeId(isVlan ? null : node.id)
+      setFocusLinkId(null)
+    }
+    const close = already && closeId !== node.id
+    setCloseId(close ? node.id : null)
+    // VLAN の札は 1 回目では画面を動かさない
+    if (!close && !already && isVlan) return
+    pendingMove.current = window.setTimeout(() => (close ? showClose(node) : showAround(node)), CLICK_SETTLE_MS)
   }, [onSelect, onCanvasClick, focusVlanId, focusNodeId, closeId, showAround, showClose])
 
   const handleEdgeClick = useCallback((_e: React.MouseEvent, edge: Edge) => {
+    window.clearTimeout(pendingMove.current)
     onSelect({ data: edge.data as unknown as CyEdgeData })
     onCanvasClick?.()
     setFocusVrf(null)
@@ -301,7 +315,7 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
         onEdgeClick={handleEdgeClick}
         onEdgeMouseEnter={(_e, edge) => { if (edge.type === 'link') setHoveredLinkId(edge.id) }}
         onEdgeMouseLeave={() => setHoveredLinkId(null)}
-        onPaneClick={() => { onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setFocusVrf(null); setCloseId(null) }}
+        onPaneClick={() => { window.clearTimeout(pendingMove.current); onSelect(null); onCanvasClick?.(); setFocusVlanId(null); setFocusVniId(null); setFocusNodeId(null); setFocusLinkId(null); setFocusVrf(null); setCloseId(null) }}
         nodesConnectable={false}
         elementsSelectable
         defaultEdgeOptions={{ type: 'link' }}
