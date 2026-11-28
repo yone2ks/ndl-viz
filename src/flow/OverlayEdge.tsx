@@ -13,7 +13,7 @@ import { useInternalNode, useStore, EdgeLabelRenderer, type EdgeProps } from '@x
 import { edgeGeometry, arcGeometry } from './edgeGeometry'
 import { OVERLAY_STYLE, type LineStyle } from './palette'
 import { useFlowCtx, lodOf, type Lod } from './FlowCtx'
-import { afsHidden, endLabel, overlayOf, sessionLabel, sessionStyle } from './session'
+import { edgeShown, endLabel, sessionLabel, sessionStyle } from './session'
 import { useT } from '../i18n'
 import type { CyEdgeData } from '../types/topology'
 
@@ -29,12 +29,11 @@ export const OverlayEdge = memo(function OverlayEdge({ source, target, data, sel
   const targetNode = useInternalNode(target)
   const lod = useStore(lodSelector)
   const t = useT()
-  const { overlays, hoveredId, hiddenAfs, vniFocusNodes, bundle, focusVrf, vrfFocusNodes } = useFlowCtx()
+  const { overlays, hoveredId, cp, focusNodeId, vniFocusNodes, bundle, focusVrf, vrfFocusNodes } = useFlowCtx()
   if (!sourceNode || !targetNode) return null
 
-  const kind = overlayOf(d)
   const session = d.type === 'routing_neighbor'
-  const visible = kind === 'always' || (kind !== null && overlays.has(kind) && !afsHidden(d, hiddenAfs))
+  const visible = edgeShown(d, overlays, cp, focusNodeId)
 
   // 間の機器のカードを突き抜けるセッションは、カードの下を回る弧で描く (札がカードに隠れないように)
   const arc = session && d.detour

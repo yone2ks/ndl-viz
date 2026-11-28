@@ -3,14 +3,15 @@
 [![CI](https://github.com/yone2ks/ndl-viz/actions/workflows/ci.yml/badge.svg)](https://github.com/yone2ks/ndl-viz/actions/workflows/ci.yml)
 
 [mlndl](https://github.com/yone2ks/mlndl) が出力する Cytoscape.js JSON を読み込み、ネットワークのトポロジーを描くビューワです。
-物理のリンク (L1) をいつも描き、Layer 2 (VLAN・VXLAN)・Layer 3 (IF・VRF・OSPF / IS-IS)・BGP をボタンで重ねます。
-開いたときは Layer 2・3 を重ねた状態で、BGP はボタンで足します。
+物理のリンク (L1) をいつも描き、Layer 2 (VLAN・VXLAN)・Layer 3 (IF・VRF)・制御プレーン (BGP・OSPF・IS-IS) をボタンで重ねます。
+ボタンは MLNDL の区画 (`layer1`・`layer2`・`layer3`・`control_plane`) に合わせています。
+開いたときは Layer 2・3 を重ねた状態で、制御プレーンはボタンで足します。
 
 表示するのは MLNDL に書かれた情報だけです。書かれていないこと (ノードの代表アドレス、セッションの underlay / overlay など) は推定して埋めません。
 
 **デモ**: https://yone2ks.github.io/ndl-viz/?data=sample.json
 
-![Layer 2・3 を重ねて開き、BGP を足して、機器を選んで値を見る](docs/images/demo.gif)
+![Layer 2・3 を重ねて開き、制御プレーンを足して ▾ のメニューを開き、機器を選んで値を見る](docs/images/demo.gif)
 
 ## デモ
 
@@ -48,11 +49,12 @@ python -m mlndl export --format cytoscape topology.yaml > public/topology.json
 
 ## 画面
 
-![Spine-Leaf の EVPN のトポロジーに Layer 2・Layer 3・BGP を重ねた画面](docs/images/overview.png)
+![Spine-Leaf の EVPN のトポロジーに Layer 2・Layer 3・制御プレーン (BGP) を重ねた画面](docs/images/overview.png)
 
 - サイト (`labels.site`) ごとに枠を描き、事業者網 (`role: provider-network`) は拠点の上に雲で描きます
 - VLAN の札の VNI のタブを押すと、その VNI に参加する機器を 1 本の母線で結びます。オーバーレイのドメイン (`layer2.overlay_domains`) を書いた YAML では、ドメインごとに母線を分けます (EVPN Multi-Site なら、サイトの中の 2 本と DCI の 1 本。BGW には 2 本が下ります)
 - BGP / OSPF / IS-IS はセッション 1 本を 1 本の線で描きます。通り道が事業者網の bridge やトンネルなら、線の札に「… 経由」を添えます
+- 制御プレーンのボタンの ▾ で、出すプロトコル・BGP の AF・線を出す範囲 (すべて / 選んだ機器だけ) を選べます。最初は BGP だけを出し、選んだものはブラウザに覚えておきます
 - 機器・リンク・セッションを選ぶと、右のパネルに MLNDL の値が出ます
 - IP・ホスト名・VLAN・VRF・サイトで検索できます。表示は日本語と英語を切り替えられます
 

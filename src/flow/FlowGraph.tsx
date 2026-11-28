@@ -20,7 +20,7 @@ import { FlowLegend } from './FlowLegend'
 import { FlowCtx, type FlowCtxValue } from './FlowCtx'
 import { roleStyle } from './palette'
 import { l3Name } from './l3'
-import { afsHidden, overlayOf } from './session'
+import { edgeShown, type CpView } from './session'
 import type { TopologyData, OverlayKey, CyNodeData, CyEdgeData } from '../types/topology'
 import './flow.css'
 
@@ -30,6 +30,8 @@ const edgeTypes: EdgeTypes = { link: LinkEdge, overlay: OverlayEdge }
 interface Props {
   data: TopologyData
   overlays: Set<OverlayKey>
+  /** 制御プレーンのボタンの ▾ で選んだもの */
+  cp: CpView
   query: string
   onSelect: (el: { data: CyNodeData | CyEdgeData } | null) => void
   /** ノード・エッジ・空白を押したとき（検索の強調を外すのに使う）*/
@@ -67,7 +69,7 @@ function nodeSearchText(d: CyNodeData): string {
   return parts.filter(Boolean).join(' ').toLowerCase()
 }
 
-function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Props) {
+function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: Props) {
   const graph = useMemo(() => buildFlow(data), [data])
   const { setCenter, getZoom, fitView } = useReactFlow()
 
@@ -151,13 +153,6 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
   const [focusVlanId, setFocusVlanId] = useState<string | null>(null)
   // VNI タブ選択中は、その VNI が載る VTEP 間のトンネルを描く
   const [focusVniId, setFocusVniId] = useState<string | null>(null)
-  // 凡例で外した BGP の AF
-  const [hiddenAfs, setHiddenAfs] = useState<Set<string>>(() => new Set())
-  const toggleAf = useCallback((af: string) => setHiddenAfs(prev => {
-    const next = new Set(prev)
-    if (!next.delete(af)) next.add(af)
-    return next
-  }), [])
   const vniFocusNodes = useMemo(() => {
     const vni = focusVniId ? graph.vniById.get(focusVniId) : undefined
     if (!vni) return null
@@ -203,13 +198,12 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     }
     graph.edges.forEach(e => {
       const d = e.data as unknown as CyEdgeData
-      const kind = overlayOf(d)
-      if (kind === 'always' || (kind && overlays.has(kind) && !afsHidden(d, hiddenAfs))) {
+      if (edgeShown(d, overlays, cp, focusNodeId)) {
         add(e.source, e.target); add(e.target, e.source)
       }
     })
     return adj
-  }, [graph, overlays, hiddenAfs])
+  }, [graph, overlays, cp, focusNodeId])
   const ctx = useMemo<FlowCtxValue>(() => ({
     overlays,
     hoveredId: hoveredId ?? focusVlanId ?? focusNodeId,
@@ -223,9 +217,9 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
     focusVlanId, setFocusVlanId,
     focusVniId, setFocusVniId, vniFocusNodes,
     focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
-    query: q, matchedIds, hiddenAfs, bundle,
+    query: q, matchedIds, cp, focusNodeId, bundle,
   }), [overlays, hoveredId, focusVlanId, focusNodeId, focusVniId, vniFocusNodes, focusVrf, selectVrf, vrfFocusNodes, vrfL3vni,
-    graph, adjacency, q, matchedIds, hiddenAfs, bundle])
+    graph, adjacency, q, matchedIds, cp, bundle])
 
   const handleNodeClick = useCallback((_e: React.MouseEvent, node: Node) => {
     onSelect({ data: node.data as unknown as CyNodeData })
@@ -294,8 +288,7 @@ function FlowGraphInner({ data, overlays, query, onSelect, onCanvasClick }: Prop
         <GraphOverlays tiers={graph.tiers} sites={graph.sites} segmentFrames={graph.segmentFrames}
           siteIdOf={graph.siteIdOf} cardHeights={graph.cardHeights} graphW={graphWOf(graph.graphW)} />
         <VxlanTunnels />
-        <FlowLegend edges={graph.edges} overlays={overlays}
-          hiddenAfs={hiddenAfs} onToggleAf={toggleAf} />
+        <FlowLegend edges={graph.edges} overlays={overlays} cp={cp} />
         <MiniMap
           pannable zoomable
           className="flow-minimap"
