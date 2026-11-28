@@ -45,6 +45,10 @@ const ja = {
   crossing:          (what: string) => `${what} 経由`,
   vniNoVlan:         'VLAN なし',
   vniNoVlanTip:      (node: string) => `${node} は VNI に参加している (VTEP)。この機器の VLAN は書かれていない`,
+  // 選んだカードをもう一度押したときの動き
+  tipClickClose:     'もう一度押すと近づきます',
+  tipClickAround:    'もう一度押すと隣の機器まで戻ります',
+  tipClickOverview:  'もう一度押すと全体に戻ります',
 }
 
 export type Messages = typeof ja
@@ -85,6 +89,9 @@ const en: Messages = {
   crossing:          (what: string) => `via ${what}`,
   vniNoVlan:         'no VLAN',
   vniNoVlanTip:      (node: string) => `${node} joins the VNI (VTEP). No VLAN is written for this device`,
+  tipClickClose:     'Click again to zoom in',
+  tipClickAround:    'Click again to zoom back out to the neighbors',
+  tipClickOverview:  'Click again to zoom back out to the whole view',
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }
