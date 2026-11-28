@@ -48,7 +48,7 @@ const ja = {
   // 選んだカードをもう一度押したときの動き
   tipClickClose:     'もう一度押すと近づきます',
   tipClickAround:    'もう一度押すと隣の機器まで戻ります',
-  tipClickOverview:  'もう一度押すと全体に戻ります',
+  tipClickVlanAround: 'もう一度押すとポートを持つ機器まで戻ります',
 }
 
 export type Messages = typeof ja
@@ -91,7 +91,7 @@ const en: Messages = {
   vniNoVlanTip:      (node: string) => `${node} joins the VNI (VTEP). No VLAN is written for this device`,
   tipClickClose:     'Click again to zoom in',
   tipClickAround:    'Click again to zoom back out to the neighbors',
-  tipClickOverview:  'Click again to zoom back out to the whole view',
+  tipClickVlanAround: 'Click again to zoom back out to the devices with ports',
 }
 
 export const MESSAGES: Record<Lang, Messages> = { ja, en }
