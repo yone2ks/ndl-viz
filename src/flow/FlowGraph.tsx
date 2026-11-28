@@ -4,7 +4,7 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant,
-  MiniMap, Controls, useReactFlow,
+  MiniMap, Controls, useReactFlow, useStoreApi,
   applyNodeChanges,
   type Node, type Edge, type NodeChange, type NodeTypes, type EdgeTypes,
 } from '@xyflow/react'
@@ -54,11 +54,13 @@ function vrfMembers(data: TopologyData, vrf: string) {
 
 /** 毎回同じオブジェクトを渡す（新しいオブジェクトを渡すと、fitView() に渡した nodes が描画のたびに上書きされる）*/
 const FIT_VIEW = { padding: 0.22, maxZoom: 1.0 }
-/** 機器を押して隣まで見せるときの余白。左は凡例、右はプロパティの枠の分をあける */
-const FOCUS_PADDING = { top: '70px', bottom: '70px', left: '170px', right: '340px' } as const
-/** VLAN の札をもう一度押して近づくときの余白。札の下に広がるカードが入るよう、下を多くあける */
+/** 機器を押して隣まで見せるときの余白 (px)。左は凡例、右はプロパティの枠の分をあける */
+const FOCUS_PAD = { top: 70, bottom: 70, left: 170, right: 340 } as const
+const FOCUS_PADDING = { top: `${FOCUS_PAD.top}px`, bottom: `${FOCUS_PAD.bottom}px`,
+  left: `${FOCUS_PAD.left}px`, right: `${FOCUS_PAD.right}px` } as const
+/** VLAN の札を押して、札とポートを持つ機器まで見せるときの余白。札の下に開くカードが入るよう、下を多くあける */
 const VLAN_FOCUS_PADDING = { ...FOCUS_PADDING, bottom: '240px' } as const
-/** 機器のカードをもう一度押して近づくときの拡大の上限 (カードの小さな文字が読める大きさ) */
+/** 選んだカードをもう一度押して近づくときの拡大の上限 (カードの小さな文字が読める大きさ) */
 const CARD_CLOSE_ZOOM = 1.6
 /** クリックで画面を動かすまで待つ時間。この間に 2 回目が来たらダブルクリックとして近づくだけにする (向きの違う動きが続けて走らないように) */
 const CLICK_SETTLE_MS = 300
@@ -77,7 +79,8 @@ function nodeSearchText(d: CyNodeData): string {
 
 function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: Props) {
   const graph = useMemo(() => buildFlow(data), [data])
-  const { setCenter, getZoom, fitView } = useReactFlow()
+  const { setCenter, getZoom, fitView, setViewport, screenToFlowPosition } = useReactFlow()
+  const store = useStoreApi()
 
   // graph が変わるたびにノード測定完了後に fitView を再実行
   useEffect(() => {
@@ -230,10 +233,13 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
     graph, adjacency, q, matchedIds, cp, bundle, closeId])
 
   // 機器: 隣の機器まで画面に入れる。VM が載るホストは入れない（遠くにあることが多く、全 VM に共通で、入れると引きすぎる）。
-  // VLAN の札: 全体を見せる
+  // VLAN の札: 札とポートを持つ機器まで画面に入れる
   const showAround = useCallback((node: Node) => {
     if (node.type === 'vlan') {
-      fitView({ ...FIT_VIEW, duration: FOCUS_MOVE_MS })
+      const members = new Set(graph.vlanMembers.get(node.id) ?? [])
+      const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
+      fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
+        maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
       return
     }
     const hosts = new Set(graph.edges
@@ -245,20 +251,27 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
       maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
   }, [fitView, getZoom, graph, adjacency])
 
-  // 機器: そのカードに近づく。VLAN の札: 札とポートを持つ機器まで近づく
+  // そのカードに近づき、凡例とプロパティの枠のあいだの真ん中に置く。VLAN の札は、選ぶと札の下に開くカード (サブネット・SVI・VNI) を読めるようにする。
+  // 開いたカードはノード (札) の枠の外に描くので React Flow は大きさを知らない。描いたものを測って倍率と位置を決める
+  // (fitView は倍率が上限で止まると余白を無視して画面の真ん中に置くので使わない)
   const showClose = useCallback((node: Node) => {
-    if (node.type === 'vlan') {
-      const members = new Set(graph.vlanMembers.get(node.id) ?? [])
-      const around = graph.nodes.filter(n => n.id === node.id || (n.type === 'device' && members.has(n.id)))
-      fitView({ nodes: around.map(n => ({ id: n.id })), padding: VLAN_FOCUS_PADDING,
-        maxZoom: Math.max(getZoom(), 1.1), duration: FOCUS_MOVE_MS })
-      return
-    }
-    fitView({ nodes: [{ id: node.id }], padding: FOCUS_PADDING,
-      maxZoom: Math.max(getZoom(), CARD_CLOSE_ZOOM), duration: FOCUS_MOVE_MS })
-  }, [fitView, getZoom, graph])
+    const el = document.querySelector(`.react-flow__node[data-id="${CSS.escape(node.id)}"]`)
+    const box = (node.type === 'vlan' ? el?.querySelector('.vlan-card') ?? el : el)?.getBoundingClientRect()
+    if (!box) return
+    const zoomNow = getZoom()
+    // 機器のカードは、引いているときは中身を省いて低く描き、近づくと下へ伸びる。いちばん高いときの高さで場所を決める
+    const w = box.width / zoomNow
+    const h = Math.max(box.height / zoomNow, node.type === 'vlan' ? 0 : graph.cardHeights.get(node.id) ?? 0)
+    const { width, height } = store.getState()
+    const areaW = width - FOCUS_PAD.left - FOCUS_PAD.right
+    const areaH = height - FOCUS_PAD.top - FOCUS_PAD.bottom
+    const zoom = Math.max(zoomNow, Math.min(CARD_CLOSE_ZOOM, areaW / w, areaH / h))
+    const topLeft = screenToFlowPosition({ x: box.left, y: box.top })
+    setViewport({ x: FOCUS_PAD.left + areaW / 2 - (topLeft.x + w / 2) * zoom,
+      y: FOCUS_PAD.top + areaH / 2 - (topLeft.y + h / 2) * zoom, zoom }, { duration: FOCUS_MOVE_MS })
+  }, [getZoom, store, screenToFlowPosition, setViewport, graph])
 
-  // 1 回目は選んで周りを見る (VLAN の札は全体を見せたまま)。選んであるカードをもう一度押すと近づき、さらに押すと周りに戻る。
+  // 1 回目は選んで周りを見る。選んであるカードをもう一度押すと近づき、さらに押すと周りに戻る。
   // ダブルクリックも 1 回の操作として同じように切り替える (選んでいなければ近づく、近づいていれば周りに戻る)。
   // 選ぶ (パネル・強調) のはすぐ。画面を動かすのは少し待ち、その間に 2 回目が来たら 1 回目の動きを取り消す。
   // 待たないと、ダブルクリックの 1 回目と 2 回目で引く動きと寄る動きが続けて走り、画面が揺れる
@@ -290,8 +303,6 @@ function FlowGraphInner({ data, overlays, cp, query, onSelect, onCanvasClick }: 
     }
     const close = already && closeId !== node.id
     setCloseId(close ? node.id : null)
-    // VLAN の札は 1 回目では画面を動かさない
-    if (!close && !already && isVlan) return
     pendingMove.current = window.setTimeout(() => (close ? showClose(node) : showAround(node)), CLICK_SETTLE_MS)
   }, [onSelect, onCanvasClick, focusVlanId, focusNodeId, closeId, showAround, showClose])
 
