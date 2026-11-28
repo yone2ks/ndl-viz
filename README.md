@@ -20,7 +20,7 @@
 | 見本 | 内容 |
 |---|---|
 | [sample.json](https://yone2ks.github.io/ndl-viz/?data=sample.json) | Spine-Leaf・EVPN / VXLAN・MLAG (Ethernet Segment)・eBGP。サーバー 2 台が leaf をまたいで同じ VLAN に |
-| [multisite.json](https://yone2ks.github.io/ndl-viz/?data=multisite.json) | データセンター (EVPN / VXLAN・MLAG・border leaf) とキャンパスを WAN の eBGP でつないだ 2 サイト。テナントの VRF は VRF-lite で渡す |
+| [dc-campus.json](https://yone2ks.github.io/ndl-viz/?data=dc-campus.json) | データセンター (EVPN / VXLAN・MLAG・border leaf) とキャンパスを WAN の eBGP でつないだ 2 サイト。テナントの VRF は VRF-lite で渡す (EVPN Multi-Site ではない) |
 | [wan-sites.json](https://yone2ks.github.io/ndl-viz/?data=wan-sites.json) | 4 拠点とクラウドを、専用線・事業者網 (IP-VPN・広域イーサ・インターネット・閉域接続) でつないだ WAN |
 | [eveng-evpn.json](https://yone2ks.github.io/ndl-viz/?data=eveng-evpn.json) | EVE-NG で組んだ EVPN の学習ラボ |
 | [evpn-multisite.json](https://yone2ks.github.io/ndl-viz/?data=evpn-multisite.json) | EVPN Multi-Site の 2 サイト。サイトの中と DCI をオーバーレイのドメインに分け、anycast の BGW がつなぐ |
